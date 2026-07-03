@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+server/.env
+*.json.key
+firebase-debug.log
+scripts/missing-audio.json
+.DS_Store

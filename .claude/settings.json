@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build*)",
+      "Bash(npx vite build*)",
+      "Bash(node scripts/find-missing-audio.js)",
+      "Bash(node scripts/generate-missing-audio.js)"
+    ]
+  }
+}
