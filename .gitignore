@@ -6,3 +6,4 @@ server/.env
 firebase-debug.log
 scripts/missing-audio.json
 .DS_Store
+.claude/settings.local.json
