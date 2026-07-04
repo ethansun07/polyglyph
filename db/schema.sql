@@ -54,11 +54,13 @@ CREATE TABLE IF NOT EXISTS writing_progress (
 );
 
 CREATE TABLE IF NOT EXISTS user_settings (
-  uid              TEXT PRIMARY KEY REFERENCES users(uid) ON DELETE CASCADE,
-  audio_enabled    BOOL DEFAULT TRUE,
-  english_fallback BOOL DEFAULT TRUE,
-  streak_last_date TEXT,
-  streak_count     INT  DEFAULT 0
+  uid                    TEXT PRIMARY KEY REFERENCES users(uid) ON DELETE CASCADE,
+  audio_enabled          BOOL DEFAULT TRUE,
+  english_fallback       BOOL DEFAULT TRUE,
+  streak_last_date       TEXT,
+  streak_count           INT  DEFAULT 0,
+  highest_unlocked_level INT  DEFAULT 1,
+  phrase_test_passed     BOOL DEFAULT FALSE
 );
 
 CREATE TABLE IF NOT EXISTS logs (
