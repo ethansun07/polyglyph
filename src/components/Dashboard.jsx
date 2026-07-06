@@ -90,7 +90,7 @@ export default function Dashboard({ progress, onNavigate, onLevelAction, badges 
               <span className="nudge-icon">📖</span>
               <span className="nudge-text">
                 <strong>New word drill</strong>
-                <span>Practice recognising full Amharic words</span>
+                <span>Practice recognizing full Amharic words</span>
               </span>
               <span className="nudge-arrow">→</span>
             </button>
