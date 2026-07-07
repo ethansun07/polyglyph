@@ -206,11 +206,6 @@ function FlashcardMode({ pool, settings, onPhraseResult, progress, onProgressUpd
         <div className="session-summary-box">
           <div className="ss-score">{session.correct}/{session.total}</div>
           <div className="ss-label">correct this session</div>
-          {finalScore?.isNew ? (
-            <div className="phrase-test-high-score phrase-test-high-score-new">🏆 New high score!</div>
-          ) : finalScore ? (
-            <div className="phrase-test-high-score">🏆 Best: {finalScore.correct} / {finalScore.total} ({Math.round(finalScore.pct * 100)}%)</div>
-          ) : null}
           <button className="btn btn-primary" onClick={() => reset(selectedLevels, direction)}>
             Again →
           </button>
@@ -1023,21 +1018,17 @@ function levelKeyLabel(key) {
   return key === 'all' ? 'All levels' : `Lv ${key.split(',').join(', ')}`;
 }
 
-function flashKeyLabel(key) {
-  const [lvlPart, dir] = key.split(':');
-  return `${levelKeyLabel(lvlPart)} (${dir})`;
-}
-
+// Flashcard high scores are tracked (see phraseFlashcardHighScores) but not
+// shown here — Flashcard is self-graded, so a "score" there is trivially
+// gameable and isn't a meaningful signal the way Typing/Final Test are.
 function HighScorePanel({ progress }) {
   const [open, setOpen] = useState(false);
-  const testScores      = progress.phraseTestHighScores       || {};
-  const typingScores    = progress.phraseTypingHighScores     || {};
-  const flashcardScores = progress.phraseFlashcardHighScores  || {};
+  const testScores   = progress.phraseTestHighScores   || {};
+  const typingScores = progress.phraseTypingHighScores || {};
   const testLevels  = Object.keys(testScores).map(Number).sort((a, b) => a - b);
   const typingKeys  = Object.keys(typingScores).sort();
-  const flashKeys   = Object.keys(flashcardScores).sort();
 
-  if (testLevels.length === 0 && typingKeys.length === 0 && flashKeys.length === 0) return null;
+  if (testLevels.length === 0 && typingKeys.length === 0) return null;
 
   return (
     <div className="grammar-note">
@@ -1059,14 +1050,6 @@ function HighScorePanel({ progress }) {
             return (
               <li key={`type-${key}`}>
                 ⌨️ Typing · {levelKeyLabel(key)}: {s.correct} / {s.total} ({Math.round(s.pct * 100)}%)
-              </li>
-            );
-          })}
-          {flashKeys.map(key => {
-            const s = flashcardScores[key];
-            return (
-              <li key={`flash-${key}`}>
-                🃏 Flashcard · {flashKeyLabel(key)}: {s.correct} / {s.total} ({Math.round(s.pct * 100)}%)
               </li>
             );
           })}
