@@ -117,6 +117,7 @@ function FlashcardMode({ pool, settings, onPhraseResult, progress, onProgressUpd
   const [session, setSession]               = useState({ correct: 0, total: 0 });
   const [done, setDone]                     = useState(false);
   const [wrongIds, setWrongIds]             = useState(() => new Set());
+  const [scoredIds, setScoredIds]           = useState(() => new Set()); // phrases already counted toward the score
   const [finalScore, setFinalScore]         = useState(null); // { correct, total, pct, isNew }
 
   const phrase    = queue[0];
@@ -129,6 +130,7 @@ function FlashcardMode({ pool, settings, onPhraseResult, progress, onProgressUpd
     setDone(false);
     setSession({ correct: 0, total: 0 });
     setWrongIds(new Set());
+    setScoredIds(new Set());
     setFinalScore(null);
   }
 
@@ -149,9 +151,17 @@ function FlashcardMode({ pool, settings, onPhraseResult, progress, onProgressUpd
 
   function grade(result) {
     const wasCorrect = result === 'correct';
-    const newSession = { correct: session.correct + (wasCorrect ? 1 : 0), total: session.total + 1 };
+    // Only the first attempt at a phrase counts toward the score — retries
+    // (after a miss) are extra practice, not additional score opportunities.
+    const alreadyScored = scoredIds.has(phrase.id);
+    const newSession = alreadyScored
+      ? session
+      : { correct: session.correct + (wasCorrect ? 1 : 0), total: session.total + 1 };
     setGraded(result);
-    setSession(newSession);
+    if (!alreadyScored) {
+      setSession(newSession);
+      setScoredIds(prev => new Set([...prev, phrase.id]));
+    }
     if (!wasCorrect) setWrongIds(prev => new Set([...prev, phrase.id]));
     onPhraseResult(phrase.id, wasCorrect ? 'easy' : 'didntKnow');
     setTimeout(() => {
@@ -475,6 +485,7 @@ function TypingMode({ pool, settings, onPhraseResult, progress, onProgressUpdate
   const [session, setSession] = useState({ correct: 0, total: 0 });
   const [done, setDone]       = useState(false);
   const [wrongIds, setWrongIds] = useState(() => new Set());
+  const [scoredIds, setScoredIds] = useState(() => new Set()); // phrases already counted toward the score
   const [finalScore, setFinalScore] = useState(null); // { correct, total, pct, isNew }
   const inputRef              = useRef(null);
 
@@ -488,6 +499,7 @@ function TypingMode({ pool, settings, onPhraseResult, progress, onProgressUpdate
     setDone(false);
     setSession({ correct: 0, total: 0 });
     setWrongIds(new Set());
+    setScoredIds(new Set());
     setFinalScore(null);
   }
 
@@ -511,7 +523,12 @@ function TypingMode({ pool, settings, onPhraseResult, progress, onProgressUpdate
     const variants = phrase.amharic.split(' / ').map(v => normalize(v));
     const isCorrect = variants.some(v => v === normalize(current));
     setResult(isCorrect ? 'correct' : 'wrong');
-    setSession(s => ({ correct: s.correct + (isCorrect ? 1 : 0), total: s.total + 1 }));
+    // Only the first attempt at a phrase counts toward the score — retries
+    // (after a miss) are extra practice, not additional score opportunities.
+    if (!scoredIds.has(phrase.id)) {
+      setSession(s => ({ correct: s.correct + (isCorrect ? 1 : 0), total: s.total + 1 }));
+      setScoredIds(prev => new Set([...prev, phrase.id]));
+    }
     if (!isCorrect) setWrongIds(prev => new Set([...prev, phrase.id]));
     onPhraseResult(phrase.id, isCorrect ? 'easy' : 'didntKnow');
   }
