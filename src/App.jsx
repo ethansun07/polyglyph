@@ -193,7 +193,7 @@ export default function App() {
     });
     return {
       write:   hasSeen && !localStorage.getItem('amharic_write_visited'),
-      read:    readPending,
+      read:    readPending && isReadModeUnlocked(progress),
       phrases: hasSeen && !localStorage.getItem('amharic_phrases_visited'),
     };
   }
