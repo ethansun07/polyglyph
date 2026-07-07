@@ -516,14 +516,16 @@ function TypingMode({ pool, settings, onPhraseResult, progress, onProgressUpdate
   }
 
   const stateRef = useRef({});
-  stateRef.current = { result, input, next, checkAnswer };
+  stateRef.current = { result, input, next, checkAnswer, done, restart: () => reset(selectedLevels) };
   const justCheckedRef = useRef(false);
 
   useEffect(() => {
     const onKey = (e) => {
       if (e.key !== 'Enter') return;
-      const { result, next, checkAnswer } = stateRef.current;
-      if (result) {
+      const { result, next, checkAnswer, done, restart } = stateRef.current;
+      if (done) {
+        restart();
+      } else if (result) {
         if (!justCheckedRef.current) next();
       } else {
         checkAnswer();
