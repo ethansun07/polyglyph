@@ -172,21 +172,25 @@ function FlashcardMode({ pool, settings, onPhraseResult, progress, onProgressUpd
       setFlipped(false);
       setGraded(null);
       if (wasCorrect && remaining === 1) {
-        const key      = flashKey(selectedLevels, direction);
-        const existing = progress?.phraseFlashcardHighScores?.[key];
-        const pct      = newSession.total > 0 ? newSession.correct / newSession.total : 0;
-        const isNew    = !existing || pct > existing.pct;
-        setFinalScore(isNew
-          ? { correct: newSession.correct, total: newSession.total, pct, isNew: true }
-          : { ...existing, isNew: false });
-        if (isNew && onProgressUpdate) {
-          onProgressUpdate({
-            ...progress,
-            phraseFlashcardHighScores: {
-              ...(progress.phraseFlashcardHighScores || {}),
-              [key]: { correct: newSession.correct, total: newSession.total, pct, date: new Date().toISOString() },
-            },
-          });
+        // Only single-level or "All" selections are worth tracking as a high
+        // score — arbitrary multi-level combos are one-off and just add noise.
+        if (selectedLevels.size <= 1) {
+          const key      = flashKey(selectedLevels, direction);
+          const existing = progress?.phraseFlashcardHighScores?.[key];
+          const pct      = newSession.total > 0 ? newSession.correct / newSession.total : 0;
+          const isNew    = !existing || pct > existing.pct;
+          setFinalScore(isNew
+            ? { correct: newSession.correct, total: newSession.total, pct, isNew: true }
+            : { ...existing, isNew: false });
+          if (isNew && onProgressUpdate) {
+            onProgressUpdate({
+              ...progress,
+              phraseFlashcardHighScores: {
+                ...(progress.phraseFlashcardHighScores || {}),
+                [key]: { correct: newSession.correct, total: newSession.total, pct, date: new Date().toISOString() },
+              },
+            });
+          }
         }
         setDone(true);
       }
@@ -531,21 +535,25 @@ function TypingMode({ pool, settings, onPhraseResult, progress, onProgressUpdate
   function next() {
     const wasCorrect = result === 'correct';
     if (wasCorrect && remaining === 1) {
-      const key      = levelKey(selectedLevels);
-      const existing = progress?.phraseTypingHighScores?.[key];
-      const pct      = session.total > 0 ? session.correct / session.total : 0;
-      const isNew    = !existing || pct > existing.pct;
-      setFinalScore(isNew
-        ? { correct: session.correct, total: session.total, pct, isNew: true }
-        : { ...existing, isNew: false });
-      if (isNew && onProgressUpdate) {
-        onProgressUpdate({
-          ...progress,
-          phraseTypingHighScores: {
-            ...(progress.phraseTypingHighScores || {}),
-            [key]: { correct: session.correct, total: session.total, pct, date: new Date().toISOString() },
-          },
-        });
+      // Only single-level or "All" selections are worth tracking as a high
+      // score — arbitrary multi-level combos are one-off and just add noise.
+      if (selectedLevels.size <= 1) {
+        const key      = levelKey(selectedLevels);
+        const existing = progress?.phraseTypingHighScores?.[key];
+        const pct      = session.total > 0 ? session.correct / session.total : 0;
+        const isNew    = !existing || pct > existing.pct;
+        setFinalScore(isNew
+          ? { correct: session.correct, total: session.total, pct, isNew: true }
+          : { ...existing, isNew: false });
+        if (isNew && onProgressUpdate) {
+          onProgressUpdate({
+            ...progress,
+            phraseTypingHighScores: {
+              ...(progress.phraseTypingHighScores || {}),
+              [key]: { correct: session.correct, total: session.total, pct, date: new Date().toISOString() },
+            },
+          });
+        }
       }
       setDone(true);
       return;
