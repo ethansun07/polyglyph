@@ -60,7 +60,8 @@ CREATE TABLE IF NOT EXISTS user_settings (
   streak_last_date       TEXT,
   streak_count           INT  DEFAULT 0,
   highest_unlocked_level INT  DEFAULT 1,
-  phrase_test_passed     BOOL DEFAULT FALSE
+  phrase_test_passed     BOOL DEFAULT FALSE,
+  phrase_test_high_scores JSONB DEFAULT '{}'::jsonb
 );
 
 CREATE TABLE IF NOT EXISTS logs (

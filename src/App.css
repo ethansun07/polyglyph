@@ -3194,6 +3194,16 @@ code {
   margin-top: -0.5rem;
 }
 
+.phrase-test-high-score {
+  font-size: 0.9rem;
+  color: var(--text-sec);
+}
+
+.phrase-test-high-score-new {
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+
 .phrase-test-msg {
   font-size: 0.95rem;
   max-width: 280px;

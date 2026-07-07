@@ -721,23 +721,36 @@ function MatchingRound({ phrases, settings, onComplete }) {
   );
 }
 
-function PhraseTestMode({ pool, progress, phraseProgress, onProgressUpdate, alreadyPassed, settings }) {
+function PhraseTestMode({ pool, progress, phraseProgress, onProgressUpdate, alreadyPassed, settings, highestLevel }) {
   const [steps]     = useState(() => buildTestPlan(pool, phraseProgress));
   const [stepIndex, setStepIndex] = useState(0);
   const [selected, setSelected]   = useState(null);
   const [score, setScore]         = useState(0);
   const [done, setDone]           = useState(false);
+  const [newHighScore, setNewHighScore] = useState(false);
 
   const step  = steps[stepIndex];
   const total = steps.reduce((s, st) => s + stepQuestionCount(st), 0);
   const questionsSoFar = steps.slice(0, stepIndex).reduce((s, st) => s + stepQuestionCount(st), 0);
 
+  const highScores = progress.phraseTestHighScores || {};
+  const bestForLevel = highScores[highestLevel];
+
   function finishOrAdvance(newScore) {
     if (stepIndex + 1 >= steps.length) {
       setDone(true);
-      if (newScore / total >= PASS_THRESHOLD) {
-        onProgressUpdate({ ...progress, phraseTestPassed: true });
+      const updates = {};
+      if (newScore / total >= PASS_THRESHOLD) updates.phraseTestPassed = true;
+
+      const newPct = newScore / total;
+      if (!bestForLevel || newPct > bestForLevel.pct) {
+        setNewHighScore(!!bestForLevel);
+        updates.phraseTestHighScores = {
+          ...highScores,
+          [highestLevel]: { score: newScore, total, pct: newPct, date: new Date().toISOString() },
+        };
       }
+      if (Object.keys(updates).length > 0) onProgressUpdate({ ...progress, ...updates });
     } else {
       setStepIndex(i => i + 1);
       setSelected(null);
@@ -769,6 +782,11 @@ function PhraseTestMode({ pool, progress, phraseProgress, onProgressUpdate, alre
         </div>
         <div className="phrase-test-score">{score} / {total}</div>
         <div className="phrase-test-score-pct">{Math.round((score / total) * 100)}%</div>
+        {newHighScore ? (
+          <div className="phrase-test-high-score phrase-test-high-score-new">🏆 New high score for Level {highestLevel}!</div>
+        ) : bestForLevel ? (
+          <div className="phrase-test-high-score">🏆 Best for Level {highestLevel}: {bestForLevel.score} / {bestForLevel.total} ({Math.round(bestForLevel.pct * 100)}%)</div>
+        ) : null}
         {finalPassed ? (
           <>
             <div className="phrase-test-msg phrase-test-msg-pass">
@@ -1026,6 +1044,7 @@ export default function CommonPhrases({ progress, initialMode = 'browse', onProg
           onProgressUpdate={onProgressUpdate || (() => {})}
           alreadyPassed={alreadyPassed}
           settings={progress.settings}
+          highestLevel={highestLevel}
         />
       )}
     </div>
