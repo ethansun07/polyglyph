@@ -90,7 +90,13 @@ function BrowseMode({ pool, settings, newestLevel, onPhraseSeen }) {
 const PHRASE_SESSION_SIZE = 8;
 
 // ─── Flashcard Mode ───────────────────────────────────────────────────────────
-function FlashcardMode({ pool, settings, onPhraseResult }) {
+// Direction changes which phrases are eligible (reverse drops skipReverse
+// phrases), so it's folded into the key alongside the level selection.
+function flashKey(selectedLevels, direction) {
+  return `${levelKey(selectedLevels)}:${direction}`;
+}
+
+function FlashcardMode({ pool, settings, onPhraseResult, progress, onProgressUpdate }) {
   const availableLevels = [...new Set(pool.map(p => p.requiredLevel))].sort((a, b) => a - b);
 
   function getActivePool(levels, dir) {
@@ -111,6 +117,7 @@ function FlashcardMode({ pool, settings, onPhraseResult }) {
   const [session, setSession]               = useState({ correct: 0, total: 0 });
   const [done, setDone]                     = useState(false);
   const [wrongIds, setWrongIds]             = useState(() => new Set());
+  const [finalScore, setFinalScore]         = useState(null); // { correct, total, pct, isNew }
 
   const phrase    = queue[0];
   const remaining = queue.length;
@@ -122,6 +129,7 @@ function FlashcardMode({ pool, settings, onPhraseResult }) {
     setDone(false);
     setSession({ correct: 0, total: 0 });
     setWrongIds(new Set());
+    setFinalScore(null);
   }
 
   function toggleLevel(lvl) {
@@ -153,7 +161,25 @@ function FlashcardMode({ pool, settings, onPhraseResult }) {
       });
       setFlipped(false);
       setGraded(null);
-      if (wasCorrect && remaining === 1) setDone(true);
+      if (wasCorrect && remaining === 1) {
+        const key      = flashKey(selectedLevels, direction);
+        const existing = progress?.phraseFlashcardHighScores?.[key];
+        const pct      = newSession.total > 0 ? newSession.correct / newSession.total : 0;
+        const isNew    = !existing || pct > existing.pct;
+        setFinalScore(isNew
+          ? { correct: newSession.correct, total: newSession.total, pct, isNew: true }
+          : { ...existing, isNew: false });
+        if (isNew && onProgressUpdate) {
+          onProgressUpdate({
+            ...progress,
+            phraseFlashcardHighScores: {
+              ...(progress.phraseFlashcardHighScores || {}),
+              [key]: { correct: newSession.correct, total: newSession.total, pct, date: new Date().toISOString() },
+            },
+          });
+        }
+        setDone(true);
+      }
     }, 600);
   }
 
@@ -170,6 +196,11 @@ function FlashcardMode({ pool, settings, onPhraseResult }) {
         <div className="session-summary-box">
           <div className="ss-score">{session.correct}/{session.total}</div>
           <div className="ss-label">correct this session</div>
+          {finalScore?.isNew ? (
+            <div className="phrase-test-high-score phrase-test-high-score-new">🏆 New high score!</div>
+          ) : finalScore ? (
+            <div className="phrase-test-high-score">🏆 Best: {finalScore.correct} / {finalScore.total} ({Math.round(finalScore.pct * 100)}%)</div>
+          ) : null}
           <button className="btn btn-primary" onClick={() => reset(selectedLevels, direction)}>
             Again →
           </button>
@@ -975,14 +1006,21 @@ function levelKeyLabel(key) {
   return key === 'all' ? 'All levels' : `Lv ${key.split(',').join(', ')}`;
 }
 
+function flashKeyLabel(key) {
+  const [lvlPart, dir] = key.split(':');
+  return `${levelKeyLabel(lvlPart)} (${dir})`;
+}
+
 function HighScorePanel({ progress }) {
   const [open, setOpen] = useState(false);
-  const testScores   = progress.phraseTestHighScores   || {};
-  const typingScores = progress.phraseTypingHighScores || {};
-  const testLevels = Object.keys(testScores).map(Number).sort((a, b) => a - b);
-  const typingKeys = Object.keys(typingScores).sort();
+  const testScores      = progress.phraseTestHighScores       || {};
+  const typingScores    = progress.phraseTypingHighScores     || {};
+  const flashcardScores = progress.phraseFlashcardHighScores  || {};
+  const testLevels  = Object.keys(testScores).map(Number).sort((a, b) => a - b);
+  const typingKeys  = Object.keys(typingScores).sort();
+  const flashKeys   = Object.keys(flashcardScores).sort();
 
-  if (testLevels.length === 0 && typingKeys.length === 0) return null;
+  if (testLevels.length === 0 && typingKeys.length === 0 && flashKeys.length === 0) return null;
 
   return (
     <div className="grammar-note">
@@ -1004,6 +1042,14 @@ function HighScorePanel({ progress }) {
             return (
               <li key={`type-${key}`}>
                 ⌨️ Typing · {levelKeyLabel(key)}: {s.correct} / {s.total} ({Math.round(s.pct * 100)}%)
+              </li>
+            );
+          })}
+          {flashKeys.map(key => {
+            const s = flashcardScores[key];
+            return (
+              <li key={`flash-${key}`}>
+                🃏 Flashcard · {flashKeyLabel(key)}: {s.correct} / {s.total} ({Math.round(s.pct * 100)}%)
               </li>
             );
           })}
@@ -1108,7 +1154,7 @@ export default function CommonPhrases({ progress, initialMode = 'browse', onProg
         <BrowseMode key="browse" pool={pool} settings={progress.settings} newestLevel={highestLevel} onPhraseSeen={onPhraseSeen} />
       )}
       {mode === 'flashcard' && (
-        <FlashcardMode key="flashcard" pool={pool} settings={progress.settings} onPhraseResult={onPhraseResult} />
+        <FlashcardMode key="flashcard" pool={pool} settings={progress.settings} onPhraseResult={onPhraseResult} progress={progress} onProgressUpdate={onProgressUpdate} />
       )}
       {mode === 'type' && (
         <TypingMode key="type" pool={pool} settings={progress.settings} onPhraseResult={onPhraseResult} progress={progress} onProgressUpdate={onProgressUpdate} />

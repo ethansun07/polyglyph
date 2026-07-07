@@ -61,8 +61,9 @@ export function mergeProgress(local, cloud) {
     phraseTestPassed:     newer.phraseTestPassed,
     readUnlockedByAdmin:  cloud.readUnlockedByAdmin || local.readUnlockedByAdmin,
     highestUnlockedLevel: Math.max(cloud.highestUnlockedLevel || 1, local.highestUnlockedLevel || 1),
-    phraseTestHighScores:   mergeHighScoreMaps(local.phraseTestHighScores, cloud.phraseTestHighScores),
-    phraseTypingHighScores: mergeHighScoreMaps(local.phraseTypingHighScores, cloud.phraseTypingHighScores),
+    phraseTestHighScores:      mergeHighScoreMaps(local.phraseTestHighScores, cloud.phraseTestHighScores),
+    phraseTypingHighScores:    mergeHighScoreMaps(local.phraseTypingHighScores, cloud.phraseTypingHighScores),
+    phraseFlashcardHighScores: mergeHighScoreMaps(local.phraseFlashcardHighScores, cloud.phraseFlashcardHighScores),
   };
 }
 
