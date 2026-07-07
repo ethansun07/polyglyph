@@ -970,6 +970,49 @@ function PhraseBreakdown() {
   );
 }
 
+// ─── High scores panel (Final Test + Typing) ───────────────────────────────────
+function levelKeyLabel(key) {
+  return key === 'all' ? 'All levels' : `Lv ${key.split(',').join(', ')}`;
+}
+
+function HighScorePanel({ progress }) {
+  const [open, setOpen] = useState(false);
+  const testScores   = progress.phraseTestHighScores   || {};
+  const typingScores = progress.phraseTypingHighScores || {};
+  const testLevels = Object.keys(testScores).map(Number).sort((a, b) => a - b);
+  const typingKeys = Object.keys(typingScores).sort();
+
+  if (testLevels.length === 0 && typingKeys.length === 0) return null;
+
+  return (
+    <div className="grammar-note">
+      <button className="grammar-note-toggle" onClick={() => setOpen(o => !o)}>
+        🏆 High Scores {open ? '▲' : '▼'}
+      </button>
+      {open && (
+        <ul className="grammar-note-body">
+          {testLevels.map(lvl => {
+            const s = testScores[lvl];
+            return (
+              <li key={`test-${lvl}`}>
+                🎯 Final Test · Level {lvl}: {s.score} / {s.total} ({Math.round(s.pct * 100)}%)
+              </li>
+            );
+          })}
+          {typingKeys.map(key => {
+            const s = typingScores[key];
+            return (
+              <li key={`type-${key}`}>
+                ⌨️ Typing · {levelKeyLabel(key)}: {s.correct} / {s.total} ({Math.round(s.pct * 100)}%)
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 const BASE_MODES = [
   { id: 'browse',    label: '📖 Browse'    },
@@ -1039,6 +1082,7 @@ export default function CommonPhrases({ progress, initialMode = 'browse', onProg
       </div>
 
       {auth.currentUser?.email === ADMIN_EMAIL && <PhraseBreakdown />}
+      <HighScorePanel progress={progress} />
 
       <div className="writing-mode-tabs" style={{marginBottom:'0.6rem'}}>
         {MODES.map(m => (
