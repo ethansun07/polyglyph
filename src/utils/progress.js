@@ -52,18 +52,6 @@ export function mergeProgress(local, cloud) {
     .reduce((max, c) => Math.max(max, new Date(c.lastSeen || 0).getTime()), 0);
   const newer = newestActivity(local) > newestActivity(cloud) ? local : cloud;
 
-  // Per-level best score wins, rather than one side's whole map replacing the other's.
-  const phraseTestHighScores = {};
-  const levelKeys = new Set([
-    ...Object.keys(local.phraseTestHighScores || {}),
-    ...Object.keys(cloud.phraseTestHighScores || {}),
-  ]);
-  for (const lvl of levelKeys) {
-    const l = local.phraseTestHighScores?.[lvl];
-    const c = cloud.phraseTestHighScores?.[lvl];
-    phraseTestHighScores[lvl] = (!c || (l && l.pct > c.pct)) ? l : c;
-  }
-
   return {
     ...cloud,
     ...local,
@@ -73,8 +61,21 @@ export function mergeProgress(local, cloud) {
     phraseTestPassed:     newer.phraseTestPassed,
     readUnlockedByAdmin:  cloud.readUnlockedByAdmin || local.readUnlockedByAdmin,
     highestUnlockedLevel: Math.max(cloud.highestUnlockedLevel || 1, local.highestUnlockedLevel || 1),
-    phraseTestHighScores,
+    phraseTestHighScores:   mergeHighScoreMaps(local.phraseTestHighScores, cloud.phraseTestHighScores),
+    phraseTypingHighScores: mergeHighScoreMaps(local.phraseTypingHighScores, cloud.phraseTypingHighScores),
   };
+}
+
+// Per-key best score wins, rather than one side's whole map replacing the other's.
+function mergeHighScoreMaps(localMap, cloudMap) {
+  const merged = {};
+  const keys = new Set([...Object.keys(localMap || {}), ...Object.keys(cloudMap || {})]);
+  for (const key of keys) {
+    const l = localMap?.[key];
+    const c = cloudMap?.[key];
+    merged[key] = (!c || (l && l.pct > c.pct)) ? l : c;
+  }
+  return merged;
 }
 
 export function makeDefaultProgress() {

@@ -36,9 +36,10 @@ router.get('/', async (req, res) => {
       chars,
       streak:   { lastDate: s.streak_last_date || null, count: s.streak_count || 0 },
       settings: { audioEnabled: s.audio_enabled ?? true, englishFallback: s.english_fallback ?? true },
-      highestUnlockedLevel:  s.highest_unlocked_level || 1,
-      phraseTestPassed:      s.phrase_test_passed ?? false,
-      phraseTestHighScores:  s.phrase_test_high_scores || {},
+      highestUnlockedLevel:    s.highest_unlocked_level || 1,
+      phraseTestPassed:        s.phrase_test_passed ?? false,
+      phraseTestHighScores:    s.phrase_test_high_scores || {},
+      phraseTypingHighScores:  s.phrase_typing_high_scores || {},
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -48,7 +49,7 @@ router.get('/', async (req, res) => {
 // PUT /api/progress — save full progress blob (upserts each char row)
 router.put('/', async (req, res) => {
   const { uid } = req.user;
-  const { chars = {}, streak = {}, settings = {}, highestUnlockedLevel, phraseTestPassed, phraseTestHighScores } = req.body;
+  const { chars = {}, streak = {}, settings = {}, highestUnlockedLevel, phraseTestPassed, phraseTestHighScores, phraseTypingHighScores } = req.body;
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -72,20 +73,22 @@ router.put('/', async (req, res) => {
 
     await client.query(`
       INSERT INTO user_settings
-        (uid, audio_enabled, english_fallback, streak_last_date, streak_count, highest_unlocked_level, phrase_test_passed, phrase_test_high_scores)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        (uid, audio_enabled, english_fallback, streak_last_date, streak_count, highest_unlocked_level, phrase_test_passed, phrase_test_high_scores, phrase_typing_high_scores)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       ON CONFLICT (uid) DO UPDATE SET
-        audio_enabled            = EXCLUDED.audio_enabled,
-        english_fallback         = EXCLUDED.english_fallback,
-        streak_last_date         = EXCLUDED.streak_last_date,
-        streak_count             = EXCLUDED.streak_count,
-        highest_unlocked_level   = GREATEST(user_settings.highest_unlocked_level, EXCLUDED.highest_unlocked_level),
-        phrase_test_passed       = user_settings.phrase_test_passed OR EXCLUDED.phrase_test_passed,
-        phrase_test_high_scores  = EXCLUDED.phrase_test_high_scores
+        audio_enabled              = EXCLUDED.audio_enabled,
+        english_fallback           = EXCLUDED.english_fallback,
+        streak_last_date           = EXCLUDED.streak_last_date,
+        streak_count               = EXCLUDED.streak_count,
+        highest_unlocked_level     = GREATEST(user_settings.highest_unlocked_level, EXCLUDED.highest_unlocked_level),
+        phrase_test_passed         = user_settings.phrase_test_passed OR EXCLUDED.phrase_test_passed,
+        phrase_test_high_scores    = EXCLUDED.phrase_test_high_scores,
+        phrase_typing_high_scores  = EXCLUDED.phrase_typing_high_scores
     `, [uid, settings.audioEnabled ?? true, settings.englishFallback ?? true,
         streak.lastDate ?? null, streak.count ?? 0,
         highestUnlockedLevel ?? 1, phraseTestPassed ?? false,
-        JSON.stringify(phraseTestHighScores ?? {})]);
+        JSON.stringify(phraseTestHighScores ?? {}),
+        JSON.stringify(phraseTypingHighScores ?? {})]);
 
     await client.query(`
       INSERT INTO logs (uid, action, table_name, detail)

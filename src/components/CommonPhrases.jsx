@@ -423,7 +423,13 @@ function GeezKeyboardGuide() {
 }
 
 // ─── Typing Mode ──────────────────────────────────────────────────────────────
-function TypingMode({ pool, settings, onPhraseResult }) {
+// Canonical key for a level selection so high scores across different level
+// combinations (which have different phrase pools, and thus difficulty) stay separate.
+function levelKey(selectedLevels) {
+  return selectedLevels.size === 0 ? 'all' : [...selectedLevels].sort((a, b) => a - b).join(',');
+}
+
+function TypingMode({ pool, settings, onPhraseResult, progress, onProgressUpdate }) {
   const availableLevels = [...new Set(pool.map(p => p.requiredLevel))].sort((a, b) => a - b);
 
   function makeQueue(levels) {
@@ -438,6 +444,7 @@ function TypingMode({ pool, settings, onPhraseResult }) {
   const [session, setSession] = useState({ correct: 0, total: 0 });
   const [done, setDone]       = useState(false);
   const [wrongIds, setWrongIds] = useState(() => new Set());
+  const [finalScore, setFinalScore] = useState(null); // { correct, total, pct, isNew }
   const inputRef              = useRef(null);
 
   const phrase    = queue[0];
@@ -450,6 +457,7 @@ function TypingMode({ pool, settings, onPhraseResult }) {
     setDone(false);
     setSession({ correct: 0, total: 0 });
     setWrongIds(new Set());
+    setFinalScore(null);
   }
 
   function toggleLevel(lvl) {
@@ -479,7 +487,26 @@ function TypingMode({ pool, settings, onPhraseResult }) {
 
   function next() {
     const wasCorrect = result === 'correct';
-    if (wasCorrect && remaining === 1) { setDone(true); return; }
+    if (wasCorrect && remaining === 1) {
+      const key      = levelKey(selectedLevels);
+      const existing = progress?.phraseTypingHighScores?.[key];
+      const pct      = session.total > 0 ? session.correct / session.total : 0;
+      const isNew    = !existing || pct > existing.pct;
+      setFinalScore(isNew
+        ? { correct: session.correct, total: session.total, pct, isNew: true }
+        : { ...existing, isNew: false });
+      if (isNew && onProgressUpdate) {
+        onProgressUpdate({
+          ...progress,
+          phraseTypingHighScores: {
+            ...(progress.phraseTypingHighScores || {}),
+            [key]: { correct: session.correct, total: session.total, pct, date: new Date().toISOString() },
+          },
+        });
+      }
+      setDone(true);
+      return;
+    }
     setQueue(prev => {
       const [current, ...rest] = prev;
       return wasCorrect ? rest : [...rest, current];
@@ -521,6 +548,11 @@ function TypingMode({ pool, settings, onPhraseResult }) {
         <div className="session-summary-box">
           <div className="ss-score">{session.correct}/{session.total}</div>
           <div className="ss-label">correct this session</div>
+          {finalScore?.isNew ? (
+            <div className="phrase-test-high-score phrase-test-high-score-new">🏆 New high score!</div>
+          ) : finalScore ? (
+            <div className="phrase-test-high-score">🏆 Best: {finalScore.correct} / {finalScore.total} ({Math.round(finalScore.pct * 100)}%)</div>
+          ) : null}
           <button className="btn btn-primary" onClick={() => reset(selectedLevels)}>Again →</button>
         </div>
       </div>
@@ -1033,7 +1065,7 @@ export default function CommonPhrases({ progress, initialMode = 'browse', onProg
         <FlashcardMode key="flashcard" pool={pool} settings={progress.settings} onPhraseResult={onPhraseResult} />
       )}
       {mode === 'type' && (
-        <TypingMode key="type" pool={pool} settings={progress.settings} onPhraseResult={onPhraseResult} />
+        <TypingMode key="type" pool={pool} settings={progress.settings} onPhraseResult={onPhraseResult} progress={progress} onProgressUpdate={onProgressUpdate} />
       )}
       {mode === 'test' && testUnlocked && (
         <PhraseTestMode
