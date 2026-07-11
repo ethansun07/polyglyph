@@ -703,12 +703,13 @@ export const PHRASES = [
   },
   {
     id:              'englizgna_yinageralu',
-    amharic:         'እንግሊዝኛ ይናገራሉ?',
-    transliteration: 'ənglizña yənagäralu?',
-    meaning:         'do you speak English?',
+    amharic:         'እንግሊዝኛ ትናገራለህ? / ትናገሪያለሽ?',
+    femaleAmharic:   'እንግሊዝኛ ትናገሪያለሽ?',
+    transliteration: 'ənglizña tənagäraläh? / tənagäriyaläš?',
+    meaning:         'do you speak English? (male / female)',
     category:        'language',
     requiredLevel:   6,
-    note:            'እንግሊዝኛ (ənglizña) = English language, ይናገራሉ (yənagäralu) = do they/you speak [formal/respectful form]. English is taught in Ethiopian schools from an early age and is widely spoken in cities and tourist areas. Outside of Addis Ababa, fluency drops sharply. Using the respectful ይናገራሉ rather than the informal form shows cultural awareness.',
+    note:            'እንግሊዝኛ (ənglizña) = English language, ትናገራለህ/ትናገሪያለሽ (tənagäraläh/tənagäriyaläš) = do you speak? [male/female]. Same ት-/-ህ vs -ያለሽ pattern as ትፈልጋለህ/ትፈልጊያለሽ (do you want?). English is taught in Ethiopian schools from an early age and is widely spoken in cities and tourist areas. Outside of Addis Ababa, fluency drops sharply.',
     travelEssential: true,
   },
   {
