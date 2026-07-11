@@ -478,7 +478,7 @@ export const PHRASES = [
   },
   {
     id:              'tena_yistilignh',
-    amharic:         'ጤና ይስጥልህ / ጤና ይስጥልሽ / ጤና ይስጥልዎ',
+    amharic:         'ጤና ይስጥልህ / ይስጥልሽ / ይስጥልዎ',
     femaleAmharic:   'ጤና ይስጥልሽ',
     formalAmharic:   'ጤና ይስጥልዎ',
     transliteration: 'ṭena yəsṭlh / ṭena yəsṭlš / ṭena yəsṭlwo',
