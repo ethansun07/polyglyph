@@ -184,14 +184,13 @@ export const PHRASES = [
   },
   {
     id:              'ibakih',
-    amharic:         'እባክህ / እባክሽ / እባክዎ',
+    amharic:         'እባክህ / እባክሽ',
     femaleAmharic:   'እባክሽ',
-    formalAmharic:   'እባክዎ',
-    transliteration: 'əbakh / əbakš / əbakwo',
-    meaning:         'please (masc / fem / formal)',
+    transliteration: 'əbakh / əbakš',
+    meaning:         'please (masc / fem)',
     category:        'politeness',
     requiredLevel:   4,
-    note:            'From a root meaning "I beg" or "I implore." Use እባክህ (əbakh) to a man, እባክሽ (əbakš) to a woman, and እባክዎ (əbakwo) for an elder or someone deserving formal respect. Always use እባክዎ with older people; it signals cultural awareness.',
+    note:            'From a root meaning "I beg" or "I implore." Use እባክህ (əbakh) to a man, እባክሽ (əbakš) to a woman. For an elder or someone deserving formal respect, the honorific form is እባክዎ (əbakwo) — you may hear this used with older people as a sign of cultural awareness.',
     travelEssential: true,
   },
   {
