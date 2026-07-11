@@ -469,6 +469,15 @@ function levelKey(selectedLevels) {
   return selectedLevels.size === 0 ? 'all' : [...selectedLevels].sort((a, b) => a - b).join(',');
 }
 
+// Every fully-correct answer for a phrase. `amharic` is sometimes an
+// abbreviated "male / femaleSuffix" display string (e.g. 'እንኳን ደስ አለህ / አለሽ'),
+// so the male form and any gendered/formal/group variants must come from
+// their dedicated fields rather than a naive split of the display string.
+function phraseVariants(phrase) {
+  const male = phrase.femaleAmharic ? phrase.amharic.split(' / ')[0] : phrase.amharic;
+  return [male, phrase.femaleAmharic, phrase.formalAmharic, phrase.groupAmharic].filter(Boolean);
+}
+
 function TypingMode({ pool, settings, onPhraseResult, progress, onProgressUpdate }) {
   const availableLevels = [...new Set(pool.map(p => p.requiredLevel))].sort((a, b) => a - b);
 
@@ -519,7 +528,7 @@ function TypingMode({ pool, settings, onPhraseResult, progress, onProgressUpdate
   function checkAnswer() {
     const current = inputRef.current?.value ?? '';
     if (!phrase || result) return;
-    const variants = phrase.amharic.split(' / ').map(v => normalize(v));
+    const variants = phraseVariants(phrase).map(v => normalize(v));
     const isCorrect = variants.some(v => v === normalize(current));
     setResult(isCorrect ? 'correct' : 'wrong');
     // Only the first attempt at a phrase counts toward the score — retries
