@@ -445,14 +445,13 @@ export const PHRASES = [
   },
   {
     id:              'dehna_hun',
-    amharic:         'ደህና ሁን / ደህና ሁኚ / ደህና ሁኑ',
+    amharic:         'ደህና ሁን / ደህና ሁኚ',
     femaleAmharic:   'ደህና ሁኚ',
-    groupAmharic:    'ደህና ሁኑ',
-    transliteration: 'dähna hun / dähna huñi / dähna hunu',
-    meaning:         'goodbye / be well (masc / fem / group)',
+    transliteration: 'dähna hun / dähna huñi',
+    meaning:         'goodbye / be well (masc / fem)',
     category:        'greetings',
     requiredLevel:   5,
-    note:            'ደህና (dähna) = well/fine, ሁን (hun) = be [imperative]. Literally "be well." Use ሁን (hun) to a man, ሁኚ (huñi) to a woman, ሁኑ (hunu) to a group. Ethiopian farewells tend to be extended, expect ደህና ሁን to be exchanged two or three times before actually parting. Rushing a goodbye can feel rude.',
+    note:            'ደህና (dähna) = well/fine, ሁን (hun) = be [imperative]. Literally "be well." Use ሁን (hun) to a man, ሁኚ (huñi) to a woman. Ethiopian farewells tend to be extended, expect ደህና ሁን to be exchanged two or three times before actually parting. Rushing a goodbye can feel rude.',
     travelEssential: true,
   },
   {
