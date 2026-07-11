@@ -46,7 +46,13 @@ function buildQuestion(pool, questionPool, progress, modes) {
     const choices = buildReverseChoices(char, pool);
     if (choices) return { type: 'audio', char, choices };
   }
-  return null;
+  // Audio mode couldn't build a fair question — e.g. every remaining
+  // candidate has a same-sound sibling elsewhere in the unlocked pool
+  // (buildReverseChoices rejects those). Fall back to a forward question
+  // instead of dead-ending the whole quiz session.
+  const char = weightedRandomPick(questionPool, progress);
+  if (!char) return null;
+  return { type: 'forward', char, choices: buildQuizChoices(char, pool) };
 }
 
 export default function QuizMode({ progress, onProgressUpdate, initialLevel, onDone }) {
