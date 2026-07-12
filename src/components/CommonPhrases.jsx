@@ -884,7 +884,7 @@ function PhraseTestMode({ pool, progress, phraseProgress, onProgressUpdate, alre
         {finalPassed ? (
           <>
             <div className="phrase-test-msg phrase-test-msg-pass">
-              Read mode unlocked! Head to the 👁 Read tab.
+              Read mode unlocked! Head to the 📜 Read tab.
             </div>
           </>
         ) : (
