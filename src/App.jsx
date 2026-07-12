@@ -19,7 +19,13 @@ import WordReadingExercise from './components/WordReadingExercise.jsx';
 import LessonMode from './components/LessonMode.jsx';
 import SentenceReader from './components/SentenceReader.jsx';
 import { LEVEL_WORDS } from './data/levelWords.js';
-import { getHighestUnlockedLevel, isReadModeUnlocked } from './utils/progress.js';
+import { getHighestUnlockedLevel, isReadModeUnlocked, isLevel7Mastered } from './utils/progress.js';
+
+// Levels 1-6 finish their word drill when the next level unlocks. Level 7 has
+// no level 8 to unlock, so it's eligible once level 7 mastery itself is hit.
+function isDrillEligible(level, highestUnlocked, progress) {
+  return level < highestUnlocked || (level === 7 && isLevel7Mastered(progress));
+}
 
 const NAV = [
   { id: 'dashboard', label: 'Home',    icon: '🏠' },
@@ -119,14 +125,20 @@ export default function App() {
       saveMainProgressToCloud(user.uid, toSave).catch(() => {});
     }
 
-    if (newHighest > prevHighest && LEVEL_WORDS[prevHighest]) {
+    // Levels 1-6 finish their drill when the next level unlocks. Level 7 has
+    // no level 8 to unlock, so it triggers off level 7 mastery itself instead.
+    const justFinishedLevel = newHighest > prevHighest
+      ? prevHighest
+      : (!isLevel7Mastered(progress) && isLevel7Mastered(newProgress)) ? 7 : null;
+
+    if (justFinishedLevel && LEVEL_WORDS[justFinishedLevel]) {
       const seen = getSeenDrills();
-      if (!seen.includes(prevHighest)) {
-        markDrillSeen(prevHighest);
+      if (!seen.includes(justFinishedLevel)) {
+        markDrillSeen(justFinishedLevel);
         if (page === 'dashboard') {
-          setWordDrillLevel(prevHighest);
+          setWordDrillLevel(justFinishedLevel);
         } else {
-          pendingDrillLevel.current = prevHighest;
+          pendingDrillLevel.current = justFinishedLevel;
         }
       }
     }
@@ -161,12 +173,12 @@ export default function App() {
       const highestUnlocked = getHighestUnlockedLevel(progress);
       if (initialMode === 'all') {
         // Quick Start: jump straight into an all-levels drill covering every unlocked level.
-        const lvl = Object.keys(LEVEL_WORDS).map(Number).filter(l => l < highestUnlocked).pop();
+        const lvl = Object.keys(LEVEL_WORDS).map(Number).filter(l => isDrillEligible(l, highestUnlocked, progress)).pop();
         if (lvl) { setWordDrillLevel(lvl); setWordDrillScope('all'); setPage('dashboard'); }
         return;
       }
       const seenDrills = getSeenDrills();
-      const lvl = Object.keys(LEVEL_WORDS).map(Number).find(l => l < highestUnlocked && !seenDrills.includes(l));
+      const lvl = Object.keys(LEVEL_WORDS).map(Number).find(l => isDrillEligible(l, highestUnlocked, progress) && !seenDrills.includes(l));
       if (lvl) { setWordDrillLevel(lvl); setWordDrillScope('level'); setPage('dashboard'); }
       return;
     }
@@ -189,12 +201,13 @@ export default function App() {
     const seenDrills = getSeenDrills();
     const readPending = Object.keys(LEVEL_WORDS).some(lvl => {
       const l = Number(lvl);
-      return l < highestUnlocked && !seenDrills.includes(l);
+      return isDrillEligible(l, highestUnlocked, progress) && !seenDrills.includes(l);
     });
     return {
-      write:   hasSeen && !localStorage.getItem('amharic_write_visited'),
-      read:    readPending && isReadModeUnlocked(progress),
-      phrases: hasSeen && !localStorage.getItem('amharic_phrases_visited'),
+      write:     hasSeen && !localStorage.getItem('amharic_write_visited'),
+      wordDrill: readPending, // Dashboard "new word drill" nudge — independent of Read mode's own unlock state
+      read:      readPending && isReadModeUnlocked(progress), // 📜 Read nav-tab dot — only meaningful once that page is actually unlocked
+      phrases:   hasSeen && !localStorage.getItem('amharic_phrases_visited'),
     };
   }
 

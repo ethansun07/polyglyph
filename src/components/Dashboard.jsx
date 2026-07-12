@@ -73,7 +73,7 @@ export default function Dashboard({ progress, onNavigate, onLevelAction, badges 
       </div>
 
       {/* Nudge cards */}
-      {(badges.write || badges.read || badges.phrases) && (
+      {(badges.write || badges.wordDrill || badges.phrases) && (
         <div className="nudge-cards">
           {badges.write && (
             <button className="nudge-card" onClick={() => onNavigate('write')}>
@@ -85,7 +85,7 @@ export default function Dashboard({ progress, onNavigate, onLevelAction, badges 
               <span className="nudge-arrow">→</span>
             </button>
           )}
-          {badges.read && (
+          {badges.wordDrill && (
             <button className="nudge-card" onClick={() => onNavigate('wordread')}>
               <span className="nudge-icon">📖</span>
               <span className="nudge-text">
