@@ -822,6 +822,7 @@ function PhraseTestMode({ pool, progress, phraseProgress, onProgressUpdate, alre
   const [score, setScore]         = useState(0);
   const [done, setDone]           = useState(false);
   const [newHighScore, setNewHighScore] = useState(false);
+  const [tiedBest, setTiedBest] = useState(false);
 
   const step  = steps[stepIndex];
   const total = steps.reduce((s, st) => s + stepQuestionCount(st), 0);
@@ -843,6 +844,8 @@ function PhraseTestMode({ pool, progress, phraseProgress, onProgressUpdate, alre
           ...highScores,
           [highestLevel]: { score: newScore, total, pct: newPct, date: new Date().toISOString() },
         };
+      } else if (newPct === bestForLevel.pct) {
+        setTiedBest(true);
       }
       if (Object.keys(updates).length > 0) onProgressUpdate({ ...progress, ...updates });
     } else {
@@ -877,9 +880,11 @@ function PhraseTestMode({ pool, progress, phraseProgress, onProgressUpdate, alre
         <div className="phrase-test-score">{score} / {total}</div>
         <div className="phrase-test-score-pct">{Math.round((score / total) * 100)}%</div>
         {newHighScore ? (
-          <div className="phrase-test-high-score phrase-test-high-score-new">🏆 New high score for Level {highestLevel}!</div>
+          <div className="phrase-test-high-score phrase-test-high-score-new">🏆 New high score!</div>
+        ) : tiedBest ? (
+          <div className="phrase-test-high-score phrase-test-high-score-new">🏆 Matched your best!</div>
         ) : bestForLevel ? (
-          <div className="phrase-test-high-score">🏆 Best for Level {highestLevel}: {bestForLevel.score} / {bestForLevel.total} ({Math.round(bestForLevel.pct * 100)}%)</div>
+          <div className="phrase-test-high-score">🏆 Best: {bestForLevel.score} / {bestForLevel.total} ({Math.round(bestForLevel.pct * 100)}%)</div>
         ) : null}
         {finalPassed ? (
           <>
