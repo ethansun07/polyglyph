@@ -859,12 +859,12 @@ export const PHRASES = [
   // ── Level 7 additions ─────────────────────────────────────────────────────
   {
     id:              'feqer',
-    amharic:         'ፍቅር',
-    transliteration: 'fəqr',
-    meaning:         'love',
+    amharic:         'የኔ ፍቅር',
+    transliteration: 'yäne fəqr',
+    meaning:         'my love (term of endearment)',
     category:        'culture',
     requiredLevel:   7,
-    note:            'From a Ge\'ez root for longing or desire. ፍቅር covers romantic love, family love, and spiritual love , and context makes the meaning clear. "ፍቅር አለኝ" (fiqir alegny) means I am in love; "የእግዚአብሔር ፍቅር" (yägzabiher fiqir) is the love of God. Ethiopian love songs use ፍቅር constantly. The verb form is ወደደ (wädädä, to love or like). One of the most frequently encountered words in music, poetry, and everyday speech.',
+    note:            'የኔ (yäne) = "my," from የ (possessive particle "of") + እኔ (I/me). ፍቅር (fəqr) = love, from a Ge\'ez root for longing or desire, covering romantic, family, and spiritual love depending on context. Combined, የኔ ፍቅር is a warm term of endearment used for a partner, spouse, or close loved one, similar to "my love" or "my dear" in English. "ፍቅር አለኝ" (fiqir alegny) means I am in love; the verb form is ወደደ (wädädä, to love or like). One of the most frequently encountered words in Ethiopian music, poetry, and everyday speech.',
     travelEssential: false,
   },
 
