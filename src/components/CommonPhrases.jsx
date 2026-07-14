@@ -667,7 +667,7 @@ function TypingMode({ pool, settings, onPhraseResult, progress, onProgressUpdate
           {result === 'correct'
             ? <span className="typing-result-correct">✓ Correct!</span>
             : <span className="typing-result-wrong">
-                ✗ <span className="typing-answer">{phrase.amharic.split(' / ')[0]}</span>
+                ✗ <span className="typing-answer">{phraseVariants(phrase).join(' / ')}</span>
               </span>
           }
           <div className="typing-translit">{phrase.transliteration}</div>
