@@ -9,6 +9,7 @@ import {
 } from '../utils/quiz.js';
 import { playCharAudio } from '../utils/audio.js';
 import { useEnterKey } from '../utils/useEnterKey.js';
+import { useChoiceKeys } from '../utils/useChoiceKeys.js';
 import SessionSummary, { SESSION_SIZE } from './SessionSummary.jsx';
 import ChartModal from './ChartModal.jsx';
 
@@ -178,6 +179,11 @@ export default function QuizMode({ progress, onProgressUpdate, initialLevel, onD
   const isLastQuestion = sessionLog.length >= SESSION_SIZE;
 
   useEnterKey(answered && !showChart && !showSummary, handleNext);
+  useChoiceKeys(!answered && !!q, q?.choices?.length ?? 0, i => {
+    const choice = q.choices[i];
+    if (currentType === 'forward') handleForwardAnswer(choice);
+    else handleCharAnswer(choice);
+  });
 
   if (!q) {
     return (

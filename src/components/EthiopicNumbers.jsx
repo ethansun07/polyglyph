@@ -7,6 +7,7 @@ import {
 import { PUNCTUATION } from '../data/fidel.js';
 import { playNumberAudio } from '../utils/audio.js';
 import { useEnterKey } from '../utils/useEnterKey.js';
+import { useChoiceKeys } from '../utils/useChoiceKeys.js';
 import {
   loadNumberProgress, saveNumberProgress, mergeNumberProgress,
   recordNumberAnswer, isNumberMastered, getNumberNet,
@@ -258,6 +259,8 @@ function NumberValueQuiz({ progress, settings, onProgressUpdate, onDone }) {
   const wasCorrect = answered && selected === q.symbol.value;
   const isLastQuestion = sessionLog.length >= SESSION_SIZE;
 
+  useChoiceKeys(!answered, q.choices.length, i => handleAnswer(q.choices[i]));
+
   useEnterKey(answered && !showSummary, handleNext);
 
   return (
@@ -387,6 +390,7 @@ function CombosQuiz({ settings }) {
   const wasCorrect = answered && selected === q.value;
 
   useEnterKey(answered, handleNext);
+  useChoiceKeys(!answered, q.choices.length, i => handleAnswer(q.choices[i]));
   const display = q.displayMode === 'word' ? q.amharic : q.symbol;
 
   return (
