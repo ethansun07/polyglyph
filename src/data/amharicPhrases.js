@@ -829,10 +829,10 @@ export const PHRASES = [
     id:              'wendeme',
     amharic:         'ወንድሜ',
     transliteration: 'wändəme',
-    meaning:         'my brother',
+    meaning:         'my brother / bro',
     category:        'basics',
     requiredLevel:   5,
-    note:            'ወንድሜ (wändəme) means "my brother": ወንድም (wändəm, brother) plus the same first-person possessive suffix you already saw in ስሜ (səme, "my name," from sime_new). Family is a warm, central topic in Ethiopian conversation. Introducing your ወንድሜ is a natural way to bring family into a chat.',
+    note:            'ወንድሜ (wändəme) means "my brother": ወንድም (wändəm, brother) plus the same first-person possessive suffix you already saw in ስሜ (səme, "my name," from sime_new). Just like English "bro," it is used constantly for close friends, not only literal siblings. Calling a buddy ወንድሜ signals warmth and closeness the same casual way "bro" or "man" does in English.',
     travelEssential: true,
   },
   {
