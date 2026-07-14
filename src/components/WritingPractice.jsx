@@ -289,7 +289,7 @@ function WritingQuizMode({ chars, writingProgress, onResultSaved, recognitionPro
   useEnterKey(!revealed && !showChart, () => setRevealed(true));
 
   return (
-    <div className="writing-mode-content">
+    <div className="writing-mode-content writing-quiz-page">
       {showChart && <WritingChartModal writingProgress={writingProgress} recognitionProgress={recognitionProgress} settings={settings} onClose={() => setShowChart(false)} />}
 
       <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', width:'100%'}}>
@@ -325,22 +325,24 @@ function WritingQuizMode({ chars, writingProgress, onResultSaved, recognitionPro
         hasStrokes={strokes.length > 0}
       />
 
+      {char.note && revealed && <div className="feedback-note" style={{color:'var(--text-sec)'}}>{char.note}</div>}
+
       {!revealed ? (
-        <button className="btn btn-primary btn-next" onClick={() => setRevealed(true)}>
-          Reveal Answer
-        </button>
+        <div className="quiz-next-bar">
+          <button className="btn btn-primary btn-next" onClick={() => setRevealed(true)}>
+            Reveal Answer
+          </button>
+        </div>
       ) : (
-        <>
+        <div className="quiz-next-bar">
           <p className="wq-grade-label">How did you do?</p>
           <div className="wq-grade-btns">
             <button className="btn wq-btn-wrong"   onClick={() => grade('wrong')}>✗ Wrong</button>
             <button className="btn wq-btn-almost"  onClick={() => grade('almost')}>≈ Almost</button>
             <button className="btn wq-btn-correct" onClick={() => grade('correct')}>✓ Correct</button>
           </div>
-          {char.note && <div className="feedback-note" style={{marginTop:'0.6rem', color:'var(--text-sec)'}}>{char.note}</div>}
-        </>
+        </div>
       )}
-
     </div>
   );
 }

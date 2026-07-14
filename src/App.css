@@ -396,6 +396,16 @@ a { color: var(--primary); }
   max-width: 680px;
   margin: 0 auto;
 }
+.quiz-next-bar .wq-grade-label,
+.quiz-next-bar .wq-grade-btns {
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.quiz-next-bar .wq-grade-label { margin-top: 0; margin-bottom: 0.4rem; }
+
+/* Writing quiz: same reachability fix as .quiz-page, for the Reveal/grade bar */
+.writing-quiz-page { padding-bottom: 6rem; }
 
 .level-cards-list { display: flex; flex-direction: column; gap: 0.8rem; }
 
