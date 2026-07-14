@@ -2769,6 +2769,7 @@ code {
   gap: 0.35rem;
   flex-wrap: wrap;
   justify-content: center;
+  touch-action: none;
 }
 .lesson-teach-strip-btn {
   font-family: var(--fidel-font);

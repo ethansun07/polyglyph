@@ -66,6 +66,22 @@ function IntroStep({ level, progress, onStart }) {
     setCharIdx(cIdx);
   }
 
+  // Follow-the-finger scrub: whichever letter square is under the touch
+  // point becomes active in real time, not just on release.
+  function handleStripTouch(e) {
+    const touch = e.touches[0];
+    if (!touch) return;
+    const buttons = e.currentTarget.querySelectorAll('.lesson-teach-strip-btn');
+    for (let i = 0; i < buttons.length; i++) {
+      const rect = buttons[i].getBoundingClientRect();
+      if (touch.clientX >= rect.left && touch.clientX < rect.right &&
+          touch.clientY >= rect.top && touch.clientY < rect.bottom) {
+        if (i !== charIdx) goToChar(rowIdx, i);
+        break;
+      }
+    }
+  }
+
   const isFirst = rowIdx === 0 && charIdx === 0;
 
   function prev() {
@@ -114,7 +130,7 @@ function IntroStep({ level, progress, onStart }) {
         <div className="row-note">{currentRow.note}</div>
       )}
 
-      <div className="lesson-teach-strip" {...swipeHandlers}>
+      <div className="lesson-teach-strip" onTouchStart={handleStripTouch} onTouchMove={handleStripTouch}>
         {rowChars.map((c, i) => (
           <button
             key={c.id}
