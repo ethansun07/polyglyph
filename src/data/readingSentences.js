@@ -396,6 +396,54 @@ export const SENTENCES = [
       { amharic: 'አዲስ አበባ በጣም ቆንጆ ናት!',         meaning: 'Addis Ababa is very beautiful!' },
     ],
   },
+
+  // ── More standalone additions ──────────────────────────────────────────────
+  {
+    id: 'wait_no_money',
+    type: 'sentence',
+    amharic: 'ቆይ! ገንዘብ የለኝም።',
+    meaning: "Wait! I don't have money.",
+    phraseIds: ['qoy', 'genzeb'],
+    words: [
+      { amharic: 'ቆይ',        meaning: 'wait' },
+      { amharic: 'ገንዘብ የለኝም', meaning: "I don't have money" },
+    ],
+  },
+  {
+    id: 'hurry_taxi',
+    type: 'sentence',
+    amharic: 'ቶሎ! ታክሲ እፈልጋለሁ።',
+    meaning: 'Quickly! I need a taxi.',
+    phraseIds: ['tolo', 'taksi', 'ifelgalehu'],
+    words: [
+      { amharic: 'ቶሎ',       meaning: 'quickly / hurry' },
+      { amharic: 'ታክሲ',      meaning: 'taxi' },
+      { amharic: 'እፈልጋለሁ', meaning: 'I want / I need' },
+    ],
+  },
+  {
+    id: 'coffeehouse_good',
+    type: 'sentence',
+    amharic: 'ቡና ቤቱ ጥሩ ነው? አይ፣ ጥሩ አይደለም ግን ሻሂ ጥሩ ነው።',
+    meaning: "Is the coffee house good? No, it's not good, but the tea is good.",
+    phraseIds: ['buna_bet', 'ay', 'shahi'],
+    words: [
+      { amharic: 'ቡና ቤቱ ጥሩ ነው',   meaning: 'is the coffee house good' },
+      { amharic: 'አይ፣ ጥሩ አይደለም', meaning: "no, it's not good" },
+      { amharic: 'ግን ሻሂ ጥሩ ነው',  meaning: 'but the tea is good' },
+    ],
+  },
+  {
+    id: 'shop_far',
+    type: 'sentence',
+    amharic: 'ሱቁ ሩቅ ነው? ገበያው ቅርብ ነው!',
+    meaning: 'Is the shop far? The market is close!',
+    phraseIds: ['suq', 'ruq', 'gebeya', 'qərb'],
+    words: [
+      { amharic: 'ሱቁ ሩቅ ነው',   meaning: 'is the shop far' },
+      { amharic: 'ገበያው ቅርብ ነው', meaning: 'the market is close' },
+    ],
+  },
 ];
 
 // ─── Dialogues ────────────────────────────────────────────────────────────────
@@ -654,6 +702,40 @@ export const DIALOGUES = [
       { speaker: 'B', amharic: 'አዎ፣ ሳንዱዊቹ ጥሩ ነው።',                   meaning: 'Yes, the sandwich is good.' },
       { speaker: 'A', amharic: 'ኢንተርኔቱ ጥሩ ነው?',                       meaning: 'Is the internet good?' },
       { speaker: 'B', amharic: 'አዎ! ቡፌ በጣም ጥሩ ነው!',                  meaning: 'Yes! The buffet is very good!' },
+    ],
+  },
+
+  // ── ሲኒማ ቅርብ ነው? — Cinema night ─────────────────────────────────────────
+  {
+    id: 'dial_cinema',
+    type: 'dialogue',
+    title: 'ሲኒማ ቅርብ ነው?',
+    titleMeaning: 'Cinema Night',
+    phraseIds: ['selam', 'qərb', 'iwedalehu', 'betam_tiru', 'eshi', 'inihed', 'ameseginalehu', 'minim_ayidelem'],
+    lines: [
+      { speaker: 'A', amharic: 'ሰላም! ሲኒማ ቅርብ ነው?',                   meaning: 'Hi! Is the cinema close?' },
+      { speaker: 'B', amharic: 'አዎ፣ ቅርብ ነው።',                         meaning: "Yes, it's close." },
+      { speaker: 'A', amharic: 'ፒዛ እወዳለሁ! በጣም ጥሩ ነው።',              meaning: 'I like pizza! It\'s very good.' },
+      { speaker: 'B', amharic: 'እሺ! እንሂድ።',                            meaning: "Okay! Let's go." },
+      { speaker: 'A', amharic: 'አመሰግናለሁ!',                             meaning: 'Thank you!' },
+      { speaker: 'B', amharic: 'ምንም አይደለም!',                           meaning: "You're welcome!" },
+    ],
+  },
+
+  // ── ስልክ እችላለሁ? — Borrowing a phone ──────────────────────────────────
+  {
+    id: 'dial_phone',
+    type: 'dialogue',
+    title: 'ስልክ እችላለሁ?',
+    titleMeaning: 'Borrowing a Phone',
+    phraseIds: ['silk', 'icalalehu', 'ibakih', 'qoy', 'wuha', 'awo', 'ameseginalehu', 'cheger_yelem'],
+    lines: [
+      { speaker: 'A', amharic: 'ስልክ እችላለሁ? እባክህ።',                    meaning: 'Can I use the phone? Please.' },
+      { speaker: 'B', amharic: 'አዎ! ቆይ።',                               meaning: 'Yes! Wait.' },
+      { speaker: 'A', amharic: 'ውሃ እችላለሁ?',                            meaning: 'Can I have water?' },
+      { speaker: 'B', amharic: 'አዎ!',                                    meaning: 'Yes!' },
+      { speaker: 'A', amharic: 'አመሰግናለሁ!',                              meaning: 'Thank you!' },
+      { speaker: 'B', amharic: 'ችግር የለም!',                              meaning: 'No problem!' },
     ],
   },
 ];
