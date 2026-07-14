@@ -114,7 +114,7 @@ function IntroStep({ level, progress, onStart }) {
         <div className="row-note">{currentRow.note}</div>
       )}
 
-      <div className="lesson-teach-strip">
+      <div className="lesson-teach-strip" {...swipeHandlers}>
         {rowChars.map((c, i) => (
           <button
             key={c.id}
