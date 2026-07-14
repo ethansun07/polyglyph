@@ -897,7 +897,7 @@ export const PHRASES = [
     meaning:         'do you want...? (male / female)',
     category:        'basics',
     requiredLevel:   7,
-    note:            'This is the same verb as እፈልጋለሁ (əfälgalähu), just with a different subject marker at the front: ት- means "you" instead of እ- for "I." The -ህ/-ሽ ending you already know from ደህና ነህ/ነሽ? and ስምህ/ስምሽ? shows up again here too, it marks the same masculine/feminine split no matter what kind of word it attaches to. Useful when ordering for someone else or asking what a companion needs.',
+    note:            'This is the same verb as እፈልጋለሁ (əfälgalähu), just with a different subject marker at the front: ት- means "you" instead of እ- for "I." The -ህ/-ሽ ending you already know from ደህና ነህ/ነሽ? and ስምህ/ስምሽ? shows up again here too, it marks the same masculine/feminine split no matter what kind of word it attaches to. Notice ትፈልጊያለሽ has an extra ጊ that ትፈልጋለህ doesn\'t (that\'s not a typo): unlike ነህ/ነሽ or እባክህ/እባክሽ, where only the last letter swaps, here the feminine form works by inserting that sound as part of how "feminine" itself gets marked in this tense, on top of the usual -ሽ at the end. Useful when ordering for someone else or asking what a companion needs.',
     travelEssential: true,
   },
   {

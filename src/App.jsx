@@ -312,7 +312,6 @@ export default function App() {
             >
               <span className="nav-icon-wrap">
                 <span className="nav-icon">{isReadLocked ? '🔒' : item.icon}</span>
-                {badges[item.id] && <span className="nav-dot" />}
               </span>
               <span className="nav-label">{item.label}</span>
             </button>
