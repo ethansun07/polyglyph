@@ -48,23 +48,29 @@ function CanvasToolbar({ onClear, onUndo, hasStrokes, extra }) {
 
 // ─── Copy Mode ────────────────────────────────────────────────────────────────
 function CopyMode({ chars, writingProgress, settings }) {
-  const [selectedRow, setSelectedRow] = useState(null);
+  const [selectedRows, setSelectedRows] = useState(() => new Set());
   const [idx, setIdx]                 = useState(0);
   const [strokes, setStrokes]         = useState([]);
 
   const rowIds = [...new Set(chars.map(c => c.rowId))];
   const rows   = rowIds.map(id => FIDEL_ROWS.find(r => r.id === id)).filter(Boolean);
 
-  const activeChars = selectedRow ? chars.filter(c => c.rowId === selectedRow) : chars;
+  const activeChars = selectedRows.size === 0 ? chars : chars.filter(c => selectedRows.has(c.rowId));
   const char = activeChars[idx % activeChars.length];
 
-  useEffect(() => { if (char) playCharAudio(char, settings); }, [idx, selectedRow]);
+  useEffect(() => { if (char) playCharAudio(char, settings); }, [idx, selectedRows]);
 
   function next() { setIdx(i => (i + 1) % activeChars.length); setStrokes([]); }
   function prev() { setIdx(i => (i - 1 + activeChars.length) % activeChars.length); setStrokes([]); }
 
-  function selectRow(rowId) {
-    setSelectedRow(prev => prev === rowId ? null : rowId);
+  useEnterKey(activeChars.length > 1, next);
+
+  function toggleRow(rowId) {
+    setSelectedRows(prev => {
+      const next = new Set(prev);
+      if (next.has(rowId)) next.delete(rowId); else next.add(rowId);
+      return next;
+    });
     setIdx(0);
     setStrokes([]);
   }
@@ -80,14 +86,14 @@ function CopyMode({ chars, writingProgress, settings }) {
 
       <div className="level-selector" style={{flexWrap:'wrap'}}>
         <button
-          className={`level-pill ${!selectedRow ? 'active' : ''}`}
-          onClick={() => { setSelectedRow(null); setIdx(0); setStrokes([]); }}
+          className={`level-pill ${selectedRows.size === 0 ? 'active' : ''}`}
+          onClick={() => { setSelectedRows(new Set()); setIdx(0); setStrokes([]); }}
         >All</button>
         {rows.map(row => (
           <button
             key={row.id}
-            className={`level-pill ${selectedRow === row.id ? 'active' : ''}`}
-            onClick={() => selectRow(row.id)}
+            className={`level-pill ${selectedRows.has(row.id) ? 'active' : ''}`}
+            onClick={() => toggleRow(row.id)}
           >
             {row.baseName}
           </button>

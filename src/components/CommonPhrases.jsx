@@ -5,6 +5,7 @@ import {
 } from '../data/amharicPhrases.js';
 import { getHighestUnlockedLevel } from '../utils/progress.js';
 import { playPhraseAudio } from '../utils/audio.js';
+import { useChoiceKeys } from '../utils/useChoiceKeys.js';
 import { loadPhraseProgress, savePhraseProgress, recordPhraseResult, loadBrowseSeen, markBrowseSeen, mergePhraseProgress, getPhraseState, getPhraseWeight } from '../utils/phraseProgress.js';
 import { auth, onAuthChange, loadPhraseProgressFromCloud, savePhraseProgressToCloud, ADMIN_EMAIL } from '../utils/firebase.js';
 
@@ -202,6 +203,16 @@ function FlashcardMode({ pool, settings, onPhraseResult, progress, onProgressUpd
     reset(selectedLevels, dir);
   }
 
+  useEffect(() => {
+    function onKey(e) {
+      if (e.key !== ' ') return;
+      e.preventDefault();
+      flip();
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [flip]);
+
   if (!phrase && !done) return <div className="empty-state">No phrases in this pool.</div>;
 
   if (done) {
@@ -265,7 +276,7 @@ function FlashcardMode({ pool, settings, onPhraseResult, progress, onProgressUpd
               ? <div className="pfc-amharic">{phrase.amharic}</div>
               : <div className="pfc-meaning pfc-front-meaning">{phrase.meaning}</div>
             }
-            <p className="pfc-flip-hint">tap to flip</p>
+            <p className="pfc-flip-hint">tap or press Space to flip</p>
           </>
         ) : (
           <div className="pfc-reveal-content">
@@ -869,6 +880,8 @@ function PhraseTestMode({ pool, progress, phraseProgress, onProgressUpdate, alre
     setScore(newScore);
     finishOrAdvance(newScore);
   }
+
+  useChoiceKeys(step.type !== 'match' && selected === null, step.options?.length ?? 0, i => pick(step.options[i]));
 
   if (done) {
     const finalPassed = score / total >= PASS_THRESHOLD;

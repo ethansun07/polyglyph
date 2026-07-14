@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { shuffleArray } from '../data/levelWords.js';
 import { playWordAudio } from '../utils/audio.js';
+import { useEnterKey } from '../utils/useEnterKey.js';
 
 const SESSION_SIZE = 10;
 
@@ -61,6 +62,8 @@ export default function WordReadingExercise({ level, words, allWords, onClose, a
   }
 
   const pool = scope === 'all' ? allWords : words;
+
+  useEnterKey(!done && !revealed, reveal);
 
   return (
     <div className="wr-overlay" onClick={e => e.target === e.currentTarget && onClose()}>

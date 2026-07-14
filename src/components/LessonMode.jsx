@@ -4,6 +4,7 @@ import { weightedRandomPick, buildQuizChoices, shuffle } from '../utils/quiz.js'
 import { playCharAudio } from '../utils/audio.js';
 import { useEnterKey } from '../utils/useEnterKey.js';
 import { useChoiceKeys } from '../utils/useChoiceKeys.js';
+import { useSwipe } from '../utils/useSwipe.js';
 import ChartModal from './ChartModal.jsx';
 import MatchingGame from './MatchingGame.jsx';
 
@@ -78,6 +79,9 @@ function IntroStep({ level, progress, onStart }) {
     onStart();
   }
 
+  useEnterKey(!!currentChar, next);
+  const swipeHandlers = useSwipe(next, prev);
+
   if (!currentChar) return null;
 
   const nextLabel = isLastInRow && isLastRow ? 'Start Practice →'
@@ -91,7 +95,7 @@ function IntroStep({ level, progress, onStart }) {
         <span className="lesson-teach-family">{currentRow.baseName} family</span>
       </div>
 
-      <div className="lesson-teach-card">
+      <div className="lesson-teach-card" {...swipeHandlers}>
         <div className="lesson-teach-char">{currentChar.char}</div>
         <div className="lesson-teach-rom">{currentChar.romanization}</div>
         <div className="lesson-teach-hint">

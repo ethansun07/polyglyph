@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { LEVELS, getLevelRows, VOWEL_ORDERS } from '../data/fidel.js';
 import { isLevelUnlocked, getCharState, isCharMastered } from '../utils/progress.js';
 import { playCharAudio } from '../utils/audio.js';
+import { useSwipe } from '../utils/useSwipe.js';
 import RowDrill from './RowDrill.jsx';
 
 export default function LearnMode({ progress, onProgressUpdate, initialLevel }) {
@@ -36,6 +37,11 @@ export default function LearnMode({ progress, onProgressUpdate, initialLevel }) 
     setSelectedLevel(lvl);
     setRowIndex(0);
   }
+
+  const swipeHandlers = useSwipe(
+    () => setRowIndex(i => Math.min(i + 1, rows.length - 1)),
+    () => setRowIndex(i => Math.max(i - 1, 0)),
+  );
 
   return (
     <div className="page">
@@ -121,7 +127,7 @@ export default function LearnMode({ progress, onProgressUpdate, initialLevel }) 
       )}
 
       {/* Character cards */}
-      <div className="char-cards-grid">
+      <div className="char-cards-grid" {...swipeHandlers}>
         {chars.map(c => {
           const state = getCharState(progress, c.id);
           const mastered = isCharMastered(progress, c.id);
