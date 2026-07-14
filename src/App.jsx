@@ -197,20 +197,13 @@ export default function App() {
   }
 
   function computeBadges() {
-    const highestUnlocked = getHighestUnlockedLevel(progress);
     const hasSeen = Object.values(progress.chars || {}).some(c => c.seen > 0);
-    const seenDrills = getSeenDrills();
-    const readPending = Object.keys(LEVEL_WORDS).some(lvl => {
-      const l = Number(lvl);
-      return isDrillEligible(l, highestUnlocked, progress) && !seenDrills.includes(l);
-    });
     const readSeen = loadReadSeen();
     const hasUnreadContent = [...SENTENCES, ...DIALOGUES].some(item => !readSeen.has(item.id));
     return {
-      write:     hasSeen && !localStorage.getItem('amharic_write_visited'),
-      wordDrill: readPending, // Dashboard "new word drill" nudge — independent of Read mode's own unlock state
-      read:      hasUnreadContent && isReadModeUnlocked(progress), // 📜 Read nav-tab dot — unread sentences/dialogues, only once that page is unlocked
-      phrases:   hasSeen && !localStorage.getItem('amharic_phrases_visited'),
+      write:   hasSeen && !localStorage.getItem('amharic_write_visited'),
+      read:    hasUnreadContent && isReadModeUnlocked(progress), // 📜 Read nav-tab dot — unread sentences/dialogues, only once that page is unlocked
+      phrases: hasSeen && !localStorage.getItem('amharic_phrases_visited'),
     };
   }
 

@@ -73,7 +73,7 @@ export default function Dashboard({ progress, onNavigate, onLevelAction, badges 
       </div>
 
       {/* Nudge cards */}
-      {(badges.write || badges.wordDrill || badges.phrases) && (
+      {(badges.write || badges.phrases) && (
         <div className="nudge-cards">
           {badges.write && (
             <button className="nudge-card" onClick={() => onNavigate('write')}>
@@ -81,16 +81,6 @@ export default function Dashboard({ progress, onNavigate, onLevelAction, badges 
               <span className="nudge-text">
                 <strong>Try writing practice</strong>
                 <span>Reinforce characters by drawing them</span>
-              </span>
-              <span className="nudge-arrow">→</span>
-            </button>
-          )}
-          {badges.wordDrill && (
-            <button className="nudge-card" onClick={() => onNavigate('wordread')}>
-              <span className="nudge-icon">📖</span>
-              <span className="nudge-text">
-                <strong>New word drill</strong>
-                <span>Practice recognizing full Amharic words</span>
               </span>
               <span className="nudge-arrow">→</span>
             </button>
