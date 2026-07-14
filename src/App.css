@@ -1973,6 +1973,23 @@ code {
   letter-spacing: 0.02em;
 }
 
+.toast {
+  position: fixed;
+  top: calc(var(--header-h) + 0.75rem);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  background: var(--text);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.7rem 1.1rem;
+  border-radius: 999px;
+  box-shadow: var(--shadow-lg);
+  max-width: calc(100vw - 2rem);
+  text-align: center;
+}
+
 .summary-signin-nudge {
   display: flex;
   flex-direction: column;

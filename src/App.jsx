@@ -45,10 +45,11 @@ export default function App() {
   const [page, setPage] = useState('dashboard');
   const [learnLevel, setLearnLevel] = useState(null);
   const [quizLevel, setQuizLevel] = useState(null);
-  const [progress, setProgress] = useState(() => {
-    const p = loadProgress();
-    return updateStreak(p);
-  });
+  // Streak is deliberately NOT computed here — doing so from local-only data
+  // before we know the real auth state let a stale/empty local cache race
+  // against onAuthChange's cloud-merged (correct) streak and sometimes win,
+  // freezing the count. onAuthChange below is the single source of truth.
+  const [progress, setProgress] = useState(() => loadProgress());
   const [user, setUser] = useState(null);
   const [wordDrillLevel, setWordDrillLevel]     = useState(null);
   const [wordDrillScope, setWordDrillScope]     = useState('level');
@@ -57,11 +58,14 @@ export default function App() {
   const [phrasesInitialMode, setPhrasesInitialMode] = useState(null);
   const prevHighestLevel  = useRef(getHighestUnlockedLevel(progress));
   const pendingDrillLevel = useRef(null);
+  const [toast, setToast] = useState(null);
+  const toastTimer = useRef(null);
 
-  // Persist streak update on mount
-  useEffect(() => {
-    saveProgress(progress);
-  }, []); // eslint-disable-line
+  function showToast(message) {
+    clearTimeout(toastTimer.current);
+    setToast(message);
+    toastTimer.current = setTimeout(() => setToast(null), 2800);
+  }
 
   // Auth state + cloud sync on login
   useEffect(() => {
@@ -72,7 +76,9 @@ export default function App() {
         // Fires both on real sign-out and on initial load for a never-signed-in
         // guest — restore from localStorage rather than blanking the in-memory
         // state, or a guest's progress gets wiped out on every page reload.
-        setProgress(updateStreak(loadProgress()));
+        const loaded = updateStreak(loadProgress());
+        setProgress(loaded);
+        saveProgress(loaded);
         return;
       }
 
@@ -191,15 +197,18 @@ export default function App() {
     if (newPage === 'phrases') { setPhrasesInitialMode(initialMode); localStorage.setItem('amharic_phrases_visited', '1'); }
     if (newPage === 'wordread') {
       const highestUnlocked = getHighestUnlockedLevel(progress);
+      setPage('dashboard');
       if (initialMode === 'all') {
         // Quick Start: jump straight into an all-levels drill covering every unlocked level.
         const lvl = Object.keys(LEVEL_WORDS).map(Number).filter(l => isDrillEligible(l, highestUnlocked, progress)).pop();
-        if (lvl) { setWordDrillLevel(lvl); setWordDrillScope('all'); setPage('dashboard'); }
+        if (lvl) { setWordDrillLevel(lvl); setWordDrillScope('all'); }
+        else showToast('📖 Finish Level 1 to unlock Read Practice');
         return;
       }
       const seenDrills = getSeenDrills();
       const lvl = Object.keys(LEVEL_WORDS).map(Number).find(l => isDrillEligible(l, highestUnlocked, progress) && !seenDrills.includes(l));
-      if (lvl) { setWordDrillLevel(lvl); setWordDrillScope('level'); setPage('dashboard'); }
+      if (lvl) { setWordDrillLevel(lvl); setWordDrillScope('level'); }
+      else showToast('📖 Finish a level to unlock its Read Practice drill');
       return;
     }
 
@@ -300,6 +309,8 @@ export default function App() {
 
   return (
     <div className="app">
+      {toast && <div className="toast">{toast}</div>}
+
       {/* ── Header ── */}
       <header className="app-header">
         <div className="header-brand">
