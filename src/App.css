@@ -407,6 +407,9 @@ a { color: var(--primary); }
 /* Writing quiz: same reachability fix as .quiz-page, for the Reveal/grade bar */
 .writing-quiz-page { padding-bottom: 6rem; }
 
+/* Numbers quiz: same reachability fix as .quiz-page, for the Next bar */
+.numbers-quiz-page { padding-bottom: 6rem; }
+
 .level-cards-list { display: flex; flex-direction: column; gap: 0.8rem; }
 
 .dashboard-footer {

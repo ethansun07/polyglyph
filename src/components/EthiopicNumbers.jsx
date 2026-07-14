@@ -264,7 +264,7 @@ function NumberValueQuiz({ progress, settings, onProgressUpdate, onDone }) {
   useEnterKey(answered && !showSummary, handleNext);
 
   return (
-    <div>
+    <div className="numbers-quiz-page">
       <div className="num-range-tabs">
         <button
           className={`num-range-btn ${modes.has('word') ? 'active' : ''}`}
@@ -322,9 +322,11 @@ function NumberValueQuiz({ progress, settings, onProgressUpdate, onDone }) {
       )}
 
       {answered && (
-        <button className="btn btn-primary btn-next" onClick={handleNext}>
-          {isLastQuestion ? '📊 See Results' : 'Next →'}
-        </button>
+        <div className="quiz-next-bar">
+          <button className="btn btn-primary btn-next" onClick={handleNext}>
+            {isLastQuestion ? '📊 See Results' : 'Next →'}
+          </button>
+        </div>
       )}
     </div>
   );
@@ -394,7 +396,7 @@ function CombosQuiz({ settings }) {
   const display = q.displayMode === 'word' ? q.amharic : q.symbol;
 
   return (
-    <div>
+    <div className="numbers-quiz-page">
       <div className="num-range-tabs">
         <button
           className={`num-range-btn ${rangeKeys.has('2digit') ? 'active' : ''}`}
@@ -470,7 +472,9 @@ function CombosQuiz({ settings }) {
       )}
 
       {answered && (
-        <button className="btn btn-primary btn-next" onClick={handleNext}>Next →</button>
+        <div className="quiz-next-bar">
+          <button className="btn btn-primary btn-next" onClick={handleNext}>Next →</button>
+        </div>
       )}
     </div>
   );
