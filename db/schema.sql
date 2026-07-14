@@ -66,6 +66,14 @@ CREATE TABLE IF NOT EXISTS user_settings (
   phrase_flashcard_high_scores  JSONB DEFAULT '{}'::jsonb
 );
 
+CREATE TABLE IF NOT EXISTS guest_sessions (
+  anon_id       TEXT PRIMARY KEY,
+  first_seen    TIMESTAMPTZ DEFAULT now(),
+  last_seen     TIMESTAMPTZ DEFAULT now(),
+  highest_level INT DEFAULT 1,
+  chars_seen    INT DEFAULT 0
+);
+
 CREATE TABLE IF NOT EXISTS logs (
   id         SERIAL PRIMARY KEY,
   uid        TEXT REFERENCES users(uid),

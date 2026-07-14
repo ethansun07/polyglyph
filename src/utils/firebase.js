@@ -58,6 +58,10 @@ export function loadAllUsersWithProgress() {
   return apiFetch('/users/all');
 }
 
+// ── Guest sessions (signed-out usage) ──────────────────────────────────────────
+export const pingGuestSession    = (data) => apiFetch('/guests/ping', { method: 'POST', body: JSON.stringify(data) });
+export const loadAllGuestSessions = ()    => apiFetch('/guests/all');
+
 // ── Progress ──────────────────────────────────────────────────────────────────
 export const loadMainProgressFromCloud   = ()       => apiFetch('/progress');
 export const saveMainProgressToCloud     = (_, data) => apiFetch('/progress', { method: 'PUT', body: JSON.stringify(data) });

@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { loadProgress, saveProgress, updateStreak, makeDefaultProgress, mergeProgress } from './utils/progress.js';
+import { loadProgress, saveProgress, updateStreak, mergeProgress } from './utils/progress.js';
 import {
   onAuthChange,
   loadMainProgressFromCloud, saveMainProgressToCloud,
-  upsertUserDoc, ADMIN_EMAIL,
+  upsertUserDoc, ADMIN_EMAIL, pingGuestSession,
 } from './utils/firebase.js';
+import { getAnonId } from './utils/guest.js';
 import AuthButton from './components/AuthButton.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import LearnMode from './components/LearnMode.jsx';
@@ -68,8 +69,10 @@ export default function App() {
       setUser(firebaseUser);
 
       if (!firebaseUser) {
-        // Signed out — reset UI; localStorage untouched (guest progress stays)
-        setProgress(makeDefaultProgress());
+        // Fires both on real sign-out and on initial load for a never-signed-in
+        // guest — restore from localStorage rather than blanking the in-memory
+        // state, or a guest's progress gets wiped out on every page reload.
+        setProgress(updateStreak(loadProgress()));
         return;
       }
 
@@ -99,6 +102,20 @@ export default function App() {
     });
   }, []);
 
+  function pingGuest(p) {
+    pingGuestSession({
+      anonId:       getAnonId(),
+      highestLevel: getHighestUnlockedLevel(p),
+      charsSeen:    Object.keys(p.chars || {}).length,
+    }).catch(() => {});
+  }
+
+  // Guests have no Firebase account, so this is the admin dashboard's only
+  // visibility into signed-out usage.
+  useEffect(() => {
+    if (!user) pingGuest(progress);
+  }, []); // eslint-disable-line
+
   function getSeenDrills() {
     try { return JSON.parse(localStorage.getItem('amharic_word_drills_seen') || '[]'); }
     catch { return []; }
@@ -124,6 +141,8 @@ export default function App() {
     saveProgress(toSave); // always cache locally, signed-in or not
     if (user) {
       saveMainProgressToCloud(user.uid, toSave).catch(() => {});
+    } else {
+      pingGuest(toSave);
     }
 
     // Levels 1-6 finish their drill when the next level unlocks. Level 7 has

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { loadAllUsersWithProgress } from '../utils/firebase.js';
+import { loadAllUsersWithProgress, loadAllGuestSessions } from '../utils/firebase.js';
 
 function getStats(user) {
   const masteredCount  = Number(user.mastered_chars)  || 0;
@@ -22,14 +22,26 @@ function getStats(user) {
   return { masteredCount, totalReviews, accuracy, phraseCount, writingCount, streak, highestLevel, joined, lastSeen };
 }
 
+function getGuestStats(guest) {
+  const joined = guest.first_seen ? new Date(guest.first_seen).toLocaleDateString() : '—';
+  const lastSeen = guest.last_seen ? new Date(guest.last_seen).toLocaleDateString() : '—';
+  return { joined, lastSeen };
+}
+
 export default function AdminDashboard() {
   const [users, setUsers] = useState(null);
+  const [guests, setGuests] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadAllUsersWithProgress()
-      .then(data => { setUsers(data); setLoading(false); })
-      .catch(() => setLoading(false));
+    Promise.all([
+      loadAllUsersWithProgress().catch(() => []),
+      loadAllGuestSessions().catch(() => []),
+    ]).then(([usersData, guestsData]) => {
+      setUsers(usersData);
+      setGuests(guestsData);
+      setLoading(false);
+    });
   }, []);
 
   if (loading) return <div className="page"><p>Loading users…</p></div>;
@@ -81,6 +93,38 @@ export default function AdminDashboard() {
           </tbody>
         </table>
       </div>
+
+      <h2 className="page-title">👤 Guests — {guests?.length || 0} session{guests?.length !== 1 ? 's' : ''}</h2>
+
+      {!guests?.length ? <p>No guest sessions yet.</p> : (
+        <div className="admin-table-wrap">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Anon ID</th>
+                <th>First seen</th>
+                <th>Level</th>
+                <th>Chars seen</th>
+                <th>Last seen</th>
+              </tr>
+            </thead>
+            <tbody>
+              {guests.map(guest => {
+                const s = getGuestStats(guest);
+                return (
+                  <tr key={guest.anon_id}>
+                    <td className="admin-user-cell">{guest.anon_id.slice(0, 8)}</td>
+                    <td className="admin-center">{s.joined}</td>
+                    <td className="admin-center">Lv {guest.highest_level}</td>
+                    <td className="admin-center">{guest.chars_seen}</td>
+                    <td className="admin-center">{s.lastSeen}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
