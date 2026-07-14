@@ -2219,7 +2219,9 @@ code {
   box-shadow: var(--shadow-lg);
   width: 100%;
   max-width: 420px;
-  overflow: hidden;
+  max-height: 85vh;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .wr-header {

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { shuffle } from '../utils/quiz.js';
 import { playCharAudio } from '../utils/audio.js';
+import { useEnterKey } from '../utils/useEnterKey.js';
+import { useChoiceKeys } from '../utils/useChoiceKeys.js';
 
 function buildRounds(chars) {
   return shuffle([...chars]).map(char => {
@@ -37,6 +39,9 @@ export default function RowDrill({ row, chars, progress, onClose }) {
     if (choice === chosen)                  return 'choice-btn choice-wrong';
     return 'choice-btn choice-dim';
   }
+
+  useEnterKey(!done && chosen !== null, advance);
+  useChoiceKeys(!done && chosen === null, round?.choices.length ?? 0, i => handleChoice(round.choices[i]));
 
   function scoreLabel(s, t) {
     const pct = s / t;
