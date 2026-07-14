@@ -96,18 +96,6 @@ export const SENTENCES = [
     ],
   },
   {
-    id: 'speak_amharic',
-    type: 'sentence',
-    amharic: 'ትንሽ አማርኛ እናገራለሁ።',
-    meaning: 'I speak a little Amharic.',
-    phraseIds: ['amarenna'],
-    words: [
-      { amharic: 'ትንሽ',        meaning: 'a little' },
-      { amharic: 'አማርኛ',      meaning: 'Amharic' },
-      { amharic: 'እናገራለሁ',   meaning: 'I speak' },
-    ],
-  },
-  {
     id: 'restroom_where',
     type: 'sentence',
     amharic: 'ሽንት ቤቱ የት ነው?',
