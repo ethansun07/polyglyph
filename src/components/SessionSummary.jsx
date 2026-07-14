@@ -1,5 +1,6 @@
 import { isCharMastered, getCharState } from '../utils/progress.js';
 import { isWritingMastered, getWritingState } from '../utils/writingProgress.js';
+import { auth, signInWithGoogle } from '../utils/firebase.js';
 
 export const SESSION_SIZE = 20;
 
@@ -52,6 +53,13 @@ export default function SessionSummary({
               🔓 Level {lvl} unlocked!
             </div>
           ))}
+        </div>
+      )}
+
+      {newlyUnlockedLevels.length > 0 && !auth.currentUser && (
+        <div className="summary-signin-nudge">
+          <p>You're making real progress as a guest — sign in to save it across devices, forever.</p>
+          <button className="btn btn-accent" onClick={signInWithGoogle}>Sign in with Google</button>
         </div>
       )}
 

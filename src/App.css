@@ -1954,6 +1954,20 @@ code {
   letter-spacing: 0.02em;
 }
 
+.summary-signin-nudge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--gold-light);
+  border: 1px solid var(--gold);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-top: 0.75rem;
+  text-align: center;
+}
+.summary-signin-nudge p { font-size: 0.85rem; color: var(--text-sec); }
+
 .summary-score-display {
   display: flex;
   flex-direction: column;
