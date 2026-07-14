@@ -2098,7 +2098,16 @@ code {
 }
 
 /* Admin */
-.admin-table-wrap { margin-top: 1rem; }
+.admin-section { margin-top: 2.5rem; }
+.admin-section:first-child { margin-top: 0; }
+.admin-section-sub { color: var(--text-sec); font-size: 0.85rem; margin-top: -0.2rem; margin-bottom: 0.8rem; }
+.admin-table-wrap {
+  margin-top: 1rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
 .admin-table {
   width: 100%;
   border-collapse: collapse;
@@ -2122,11 +2131,10 @@ code {
 }
 .admin-table tr:hover td { background: var(--surface); }
 .admin-user-cell { display: flex; align-items: center; gap: 0.6rem; }
-.admin-avatar { width: 32px; height: 32px; border-radius: 50%; }
 .admin-name { font-weight: 600; font-size: 0.8rem; }
-.admin-center { white-space: nowrap; }
+.admin-center { white-space: nowrap; text-align: center; }
 .admin-email { font-size: 0.75rem; color: var(--text-sec); }
-.admin-center { text-align: center; }
+.admin-anon-id { font-family: monospace; font-size: 0.75rem; color: var(--text-sec); }
 
 /* ─── Word Reading Exercise ─────────────────────────────────────────────── */
 .wr-overlay {

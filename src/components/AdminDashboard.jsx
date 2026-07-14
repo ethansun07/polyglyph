@@ -49,74 +49,45 @@ export default function AdminDashboard() {
 
   return (
     <div className="page">
-      <h2 className="page-title">🛠️ Admin — {users.length} user{users.length !== 1 ? 's' : ''}</h2>
+      <section className="admin-section">
+        <h2 className="page-title">🛠️ Admin — {users.length} user{users.length !== 1 ? 's' : ''}</h2>
+        <p className="admin-section-sub">Signed-in users with saved progress.</p>
 
-      <div className="admin-table-wrap">
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>User</th>
-              <th>Joined</th>
-              <th>Level</th>
-              <th>Chars ⭐</th>
-              <th>Accuracy</th>
-              <th>Reviews</th>
-              <th>Phrases</th>
-              <th>Writing</th>
-              <th>Streak</th>
-              <th>Last seen</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map(user => {
-              const s = getStats(user);
-              return (
-                <tr key={user.uid}>
-                  <td className="admin-user-cell">
-                    <div>
-                      <div className="admin-name">{user.display_name || '—'}</div>
-                      <div className="admin-email">{user.email || '—'}</div>
-                    </div>
-                  </td>
-                  <td className="admin-center">{s.joined}</td>
-                  <td className="admin-center">Lv {s.highestLevel}</td>
-                  <td className="admin-center">{s.masteredCount}</td>
-                  <td className="admin-center">{s.accuracy !== null ? `${s.accuracy}%` : '—'}</td>
-                  <td className="admin-center">{s.totalReviews > 0 ? s.totalReviews.toLocaleString() : '—'}</td>
-                  <td className="admin-center">{s.phraseCount > 0 ? s.phraseCount : '—'}</td>
-                  <td className="admin-center">{s.writingCount > 0 ? s.writingCount : '—'}</td>
-                  <td className="admin-center">{s.streak > 0 ? `🔥 ${s.streak}` : '—'}</td>
-                  <td className="admin-center">{s.lastSeen}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      <h2 className="page-title">👤 Guests — {guests?.length || 0} session{guests?.length !== 1 ? 's' : ''}</h2>
-
-      {!guests?.length ? <p>No guest sessions yet.</p> : (
         <div className="admin-table-wrap">
           <table className="admin-table">
             <thead>
               <tr>
-                <th>Anon ID</th>
-                <th>First seen</th>
+                <th>User</th>
+                <th>Joined</th>
                 <th>Level</th>
-                <th>Chars seen</th>
+                <th>Chars ⭐</th>
+                <th>Accuracy</th>
+                <th>Reviews</th>
+                <th>Phrases</th>
+                <th>Writing</th>
+                <th>Streak</th>
                 <th>Last seen</th>
               </tr>
             </thead>
             <tbody>
-              {guests.map(guest => {
-                const s = getGuestStats(guest);
+              {users.map(user => {
+                const s = getStats(user);
                 return (
-                  <tr key={guest.anon_id}>
-                    <td className="admin-user-cell">{guest.anon_id.slice(0, 8)}</td>
+                  <tr key={user.uid}>
+                    <td className="admin-user-cell">
+                      <div>
+                        <div className="admin-name">{user.display_name || '—'}</div>
+                        <div className="admin-email">{user.email || '—'}</div>
+                      </div>
+                    </td>
                     <td className="admin-center">{s.joined}</td>
-                    <td className="admin-center">Lv {guest.highest_level}</td>
-                    <td className="admin-center">{guest.chars_seen}</td>
+                    <td className="admin-center">Lv {s.highestLevel}</td>
+                    <td className="admin-center">{s.masteredCount}</td>
+                    <td className="admin-center">{s.accuracy !== null ? `${s.accuracy}%` : '—'}</td>
+                    <td className="admin-center">{s.totalReviews > 0 ? s.totalReviews.toLocaleString() : '—'}</td>
+                    <td className="admin-center">{s.phraseCount > 0 ? s.phraseCount : '—'}</td>
+                    <td className="admin-center">{s.writingCount > 0 ? s.writingCount : '—'}</td>
+                    <td className="admin-center">{s.streak > 0 ? `🔥 ${s.streak}` : '—'}</td>
                     <td className="admin-center">{s.lastSeen}</td>
                   </tr>
                 );
@@ -124,7 +95,42 @@ export default function AdminDashboard() {
             </tbody>
           </table>
         </div>
-      )}
+      </section>
+
+      <section className="admin-section">
+        <h2 className="page-title">👤 Guests — {guests?.length || 0} session{guests?.length !== 1 ? 's' : ''}</h2>
+        <p className="admin-section-sub">Signed-out visitors, tracked by browser only.</p>
+
+        {!guests?.length ? <p>No guest sessions yet.</p> : (
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Anon ID</th>
+                  <th>First seen</th>
+                  <th>Level</th>
+                  <th>Chars seen</th>
+                  <th>Last seen</th>
+                </tr>
+              </thead>
+              <tbody>
+                {guests.map(guest => {
+                  const s = getGuestStats(guest);
+                  return (
+                    <tr key={guest.anon_id}>
+                      <td className="admin-anon-id">{guest.anon_id.slice(0, 8)}</td>
+                      <td className="admin-center">{s.joined}</td>
+                      <td className="admin-center">Lv {guest.highest_level}</td>
+                      <td className="admin-center">{guest.chars_seen}</td>
+                      <td className="admin-center">{s.lastSeen}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
     </div>
   );
 }
