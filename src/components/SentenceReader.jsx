@@ -5,6 +5,23 @@ import { auth, ADMIN_EMAIL } from '../utils/firebase.js';
 import { PUNCTUATION } from '../data/fidel.js';
 import { playSentenceAudio, playDialogueLineAudio } from '../utils/audio.js';
 
+// ─── Read-seen tracking (local only, mirrors phrase browse-seen) ─────────────
+const READ_SEEN_KEY = 'amharic_read_seen_v1';
+
+function loadReadSeen() {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(READ_SEEN_KEY) || '[]'));
+  } catch { return new Set(); }
+}
+
+function markReadSeen(id, currentSet) {
+  if (currentSet.has(id)) return currentSet;
+  const next = new Set(currentSet);
+  next.add(id);
+  localStorage.setItem(READ_SEEN_KEY, JSON.stringify([...next]));
+  return next;
+}
+
 // ─── Grammar Note (collapsible) ───────────────────────────────────────────────
 function GrammarNote() {
   const [open, setOpen] = useState(false);
@@ -47,11 +64,12 @@ function PunctuationNote() {
 }
 
 // ─── Individual Sentence Card (word-by-word reveal) ───────────────────────────
-function SentenceCard({ sentence, settings }) {
+function SentenceCard({ sentence, settings, read, onRead }) {
   const [revealed, setRevealed]   = useState(new Set());
   const [showMeaning, setMeaning] = useState(false);
 
   function toggleWord(i) {
+    onRead();
     setRevealed(prev => {
       const next = new Set(prev);
       if (next.has(i)) next.delete(i); else next.add(i);
@@ -62,7 +80,8 @@ function SentenceCard({ sentence, settings }) {
   const anyRevealed = revealed.size > 0 || showMeaning;
 
   return (
-    <div className="sentence-card">
+    <div className={`sentence-card ${read ? 'read-card-seen' : ''}`}>
+      {read && <span className="read-seen-check" title="Already read">✓</span>}
       <div className="sentence-words">
         {sentence.words.map((word, i) => {
           const isOpen = revealed.has(i);
@@ -86,7 +105,7 @@ function SentenceCard({ sentence, settings }) {
       <div className="sentence-card-actions">
         <button
           className="btn btn-secondary btn-sm"
-          onClick={() => setMeaning(m => !m)}
+          onClick={() => { onRead(); setMeaning(m => !m); }}
         >
           {showMeaning ? 'Hide translation' : 'Show translation'}
         </button>
@@ -107,11 +126,12 @@ function SentenceCard({ sentence, settings }) {
 }
 
 // ─── Dialogue Card (line-by-line reveal, chat-bubble style) ──────────────────
-function DialogueCard({ dialogue, settings }) {
+function DialogueCard({ dialogue, settings, read, onRead }) {
   const [revealed, setRevealed] = useState(new Set());
   const [showAll, setShowAll]   = useState(false);
 
   function toggleLine(i) {
+    onRead();
     setRevealed(prev => {
       const next = new Set(prev);
       if (next.has(i)) next.delete(i); else next.add(i);
@@ -122,7 +142,8 @@ function DialogueCard({ dialogue, settings }) {
   const anyRevealed = revealed.size > 0 || showAll;
 
   return (
-    <div className="dialogue-card">
+    <div className={`dialogue-card ${read ? 'read-card-seen' : ''}`}>
+      {read && <span className="read-seen-check" title="Already read">✓</span>}
       <div className="dialogue-card-title">
         <span className="para-title-amharic">{dialogue.title}</span>
         <span className="para-title-meaning">{dialogue.titleMeaning}</span>
@@ -156,7 +177,7 @@ function DialogueCard({ dialogue, settings }) {
       <div className="sentence-card-actions">
         <button
           className="btn btn-secondary btn-sm"
-          onClick={() => setShowAll(a => !a)}
+          onClick={() => { onRead(); setShowAll(a => !a); }}
         >
           {showAll ? 'Hide all translations' : 'Show all translations'}
         </button>
@@ -210,8 +231,16 @@ function LockedScreen({ progress, onAdminUnlock }) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function SentenceReader({ progress, onProgressUpdate }) {
   const [tab, setTab] = useState('sentences');
+  const [readSeen, setReadSeen] = useState(() => loadReadSeen());
   const unlocked = isReadModeUnlocked(progress);
   const isAdmin  = auth.currentUser?.email === ADMIN_EMAIL;
+
+  function markRead(id) {
+    setReadSeen(prev => markReadSeen(id, prev));
+  }
+
+  const sentencesReadCount = SENTENCES.filter(s => readSeen.has(s.id)).length;
+  const dialoguesReadCount = DIALOGUES.filter(d => readSeen.has(d.id)).length;
 
   function handleAdminUnlock() {
     if (onProgressUpdate) {
@@ -254,17 +283,23 @@ export default function SentenceReader({ progress, onProgressUpdate }) {
         <button
           className={`writing-mode-tab ${tab === 'sentences' ? 'active' : ''}`}
           onClick={() => setTab('sentences')}
-        >Sentences</button>
+        >Sentences ({sentencesReadCount}/{SENTENCES.length})</button>
         <button
           className={`writing-mode-tab ${tab === 'dialogues' ? 'active' : ''}`}
           onClick={() => setTab('dialogues')}
-        >Dialogues</button>
+        >Dialogues ({dialoguesReadCount}/{DIALOGUES.length})</button>
       </div>
 
       {tab === 'sentences' && (
         <div className="sentence-list">
           {SENTENCES.map(s => (
-            <SentenceCard key={s.id} sentence={s} settings={progress.settings} />
+            <SentenceCard
+              key={s.id}
+              sentence={s}
+              settings={progress.settings}
+              read={readSeen.has(s.id)}
+              onRead={() => markRead(s.id)}
+            />
           ))}
         </div>
       )}
@@ -272,7 +307,13 @@ export default function SentenceReader({ progress, onProgressUpdate }) {
       {tab === 'dialogues' && (
         <div className="dialogue-list">
           {DIALOGUES.map(d => (
-            <DialogueCard key={d.id} dialogue={d} settings={progress.settings} />
+            <DialogueCard
+              key={d.id}
+              dialogue={d}
+              settings={progress.settings}
+              read={readSeen.has(d.id)}
+              onRead={() => markRead(d.id)}
+            />
           ))}
         </div>
       )}
