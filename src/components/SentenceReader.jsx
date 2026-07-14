@@ -3,7 +3,7 @@ import { SENTENCES, DIALOGUES, CONNECTOR_NOTE } from '../data/readingSentences.j
 import { isReadModeUnlocked, isLevel7Mastered, loadReadSeen, markReadSeen } from '../utils/progress.js';
 import { auth, ADMIN_EMAIL } from '../utils/firebase.js';
 import { PUNCTUATION } from '../data/fidel.js';
-import { playSentenceAudio, playDialogueLineAudio } from '../utils/audio.js';
+import { playSentenceAudio, playSentenceWordAudio, playDialogueLineAudio } from '../utils/audio.js';
 
 // ─── Grammar Note (collapsible) ───────────────────────────────────────────────
 function GrammarNote() {
@@ -55,7 +55,12 @@ function SentenceCard({ sentence, settings, read, onRead }) {
     onRead();
     setRevealed(prev => {
       const next = new Set(prev);
-      if (next.has(i)) next.delete(i); else next.add(i);
+      if (next.has(i)) {
+        next.delete(i);
+      } else {
+        next.add(i);
+        playSentenceWordAudio(sentence.id, i, sentence.words[i].amharic, settings);
+      }
       return next;
     });
   }
@@ -117,7 +122,12 @@ function DialogueCard({ dialogue, settings, read, onRead }) {
     onRead();
     setRevealed(prev => {
       const next = new Set(prev);
-      if (next.has(i)) next.delete(i); else next.add(i);
+      if (next.has(i)) {
+        next.delete(i);
+      } else {
+        next.add(i);
+        playDialogueLineAudio(dialogue.id, i, dialogue.lines[i].amharic, settings);
+      }
       return next;
     });
   }

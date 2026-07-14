@@ -179,6 +179,26 @@ export async function playSentenceAudio(sentence, settings) {
   if (voice) speakWithAmharicVoice(sentence.amharic, voice);
 }
 
+export async function playSentenceWordAudio(sentenceId, wordIndex, amharic, settings) {
+  if (!settings?.audioEnabled) return;
+
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+
+  const path = `/audio/sentence-words/${sentenceId}_w${wordIndex}.mp3`;
+  const audio = new Audio(path);
+  currentAudio = audio;
+  try {
+    await audio.play();
+    return;
+  } catch {
+    currentAudio = null;
+  }
+
+  const voice = await resolveAmharicVoice();
+  if (voice) speakWithAmharicVoice(amharic, voice);
+}
+
 export async function playDialogueLineAudio(dialId, lineIndex, amharic, settings) {
   if (!settings?.audioEnabled) return;
 

@@ -42,6 +42,9 @@ for (const p of PHRASES) {
 // ── Sentences ────────────────────────────────────────────────────────────
 for (const s of SENTENCES) {
   check(`sentences/${s.id}.mp3`, s.amharic, { kind: 'sentence', id: s.id });
+  s.words.forEach((word, i) => {
+    check(`sentence-words/${s.id}_w${i}.mp3`, word.amharic, { kind: 'sentence-word', id: s.id, index: i });
+  });
 }
 
 // ── Dialogue lines ──────────────────────────────────────────────────────
