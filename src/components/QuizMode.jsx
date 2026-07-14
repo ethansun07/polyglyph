@@ -213,7 +213,7 @@ export default function QuizMode({ progress, onProgressUpdate, initialLevel, onD
   }
 
   return (
-    <div className="page">
+    <div className="page quiz-page">
       {showChart && <ChartModal progress={progress} onClose={() => setShowChart(false)} />}
       <div className="page-title-row">
         <h2 className="page-title">❓ Quiz</h2>
@@ -338,9 +338,11 @@ export default function QuizMode({ progress, onProgressUpdate, initialLevel, onD
       )}
 
       {answered && (
-        <button className="btn btn-primary btn-next" onClick={handleNext}>
-          {isLastQuestion ? '📊 See Results' : 'Next →'}
-        </button>
+        <div className="quiz-next-bar">
+          <button className="btn btn-primary btn-next" onClick={handleNext}>
+            {isLastQuestion ? '📊 See Results' : 'Next →'}
+          </button>
+        </div>
       )}
     </div>
   );

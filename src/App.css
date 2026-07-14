@@ -378,6 +378,25 @@ a { color: var(--primary); }
   font-size: 1rem;
 }
 
+/* Quiz: keep "Next" reachable without scrolling, even when the feedback
+   note pushes it past the fold on a phone screen. */
+.quiz-page { padding-bottom: 6rem; }
+.quiz-next-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
+}
+.quiz-next-bar .btn-next {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
 .level-cards-list { display: flex; flex-direction: column; gap: 0.8rem; }
 
 .dashboard-footer {
