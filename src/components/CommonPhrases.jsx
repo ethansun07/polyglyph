@@ -6,7 +6,7 @@ import {
 import { getHighestUnlockedLevel } from '../utils/progress.js';
 import { playPhraseAudio } from '../utils/audio.js';
 import { loadPhraseProgress, savePhraseProgress, recordPhraseResult, loadBrowseSeen, markBrowseSeen, mergePhraseProgress, getPhraseState, getPhraseWeight } from '../utils/phraseProgress.js';
-import { auth, loadPhraseProgressFromCloud, savePhraseProgressToCloud, ADMIN_EMAIL } from '../utils/firebase.js';
+import { auth, onAuthChange, loadPhraseProgressFromCloud, savePhraseProgressToCloud, ADMIN_EMAIL } from '../utils/firebase.js';
 
 // ─── Browse Mode ──────────────────────────────────────────────────────────────
 function BrowseMode({ pool, settings, newestLevel, onPhraseSeen }) {
@@ -1094,13 +1094,17 @@ export default function CommonPhrases({ progress, initialMode = 'browse', onProg
   const [browseSeen, setBrowseSeen] = useState(() => loadBrowseSeen());
 
   useEffect(() => {
-    if (!auth.currentUser) return;
-    loadPhraseProgressFromCloud().then(data => {
-      const merged = mergePhraseProgress(loadPhraseProgress(), data);
-      phraseProgressRef.current = merged;
-      savePhraseProgress(merged);
-      savePhraseProgressToCloud(null, merged).catch(() => {});
-    }).catch(() => {});
+    // Listen for the actual sign-in event, not just the state at mount time —
+    // a guest can sign in while already sitting on this page.
+    return onAuthChange(firebaseUser => {
+      if (!firebaseUser) return;
+      loadPhraseProgressFromCloud().then(data => {
+        const merged = mergePhraseProgress(loadPhraseProgress(), data);
+        phraseProgressRef.current = merged;
+        savePhraseProgress(merged);
+        savePhraseProgressToCloud(null, merged).catch(() => {});
+      }).catch(() => {});
+    });
   }, []);
 
   function onPhraseSeen(phraseId) {

@@ -9,7 +9,7 @@ import {
   weightedPickChar,
   getWritingStats,
 } from '../utils/writingProgress.js';
-import { auth, loadWritingProgressFromCloud, saveWritingProgressFromCloud } from '../utils/firebase.js';
+import { auth, onAuthChange, loadWritingProgressFromCloud, saveWritingProgressFromCloud } from '../utils/firebase.js';
 import DrawingCanvas from './DrawingCanvas.jsx';
 import { playCharAudio } from '../utils/audio.js';
 
@@ -448,13 +448,17 @@ export default function WritingPractice({ progress, initialMode = 'copy' }) {
   const [writingProgress, setWritingProgress] = useState(() => loadWritingProgress());
 
   useEffect(() => {
-    if (!auth.currentUser) return;
-    loadWritingProgressFromCloud().then(data => {
-      const merged = mergeWritingProgress(loadWritingProgress(), data);
-      setWritingProgress(merged);
-      saveWritingProgress(merged);
-      saveWritingProgressFromCloud(merged).catch(() => {});
-    }).catch(() => {});
+    // Listen for the actual sign-in event, not just the state at mount time —
+    // a guest can sign in while already sitting on this page.
+    return onAuthChange(firebaseUser => {
+      if (!firebaseUser) return;
+      loadWritingProgressFromCloud().then(data => {
+        const merged = mergeWritingProgress(loadWritingProgress(), data);
+        setWritingProgress(merged);
+        saveWritingProgress(merged);
+        saveWritingProgressFromCloud(merged).catch(() => {});
+      }).catch(() => {});
+    });
   }, []);
 
   const unlockedLevels = LEVELS.filter(l => isLevelUnlocked(progress, l.level));

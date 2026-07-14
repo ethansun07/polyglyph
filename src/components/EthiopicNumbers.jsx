@@ -11,7 +11,7 @@ import {
   recordNumberAnswer, isNumberMastered, getNumberNet,
   weightedPickSymbol, getTotalNumberStats, getNumberState,
 } from '../utils/numberProgress.js';
-import { auth, loadNumberProgressFromCloud, saveNumberProgressToCloud } from '../utils/firebase.js';
+import { auth, onAuthChange, loadNumberProgressFromCloud, saveNumberProgressToCloud } from '../utils/firebase.js';
 
 const SESSION_SIZE = 20;
 
@@ -473,13 +473,17 @@ export default function EthiopicNumbers({ settings }) {
   const [numberProgress, setNumberProgress] = useState(() => loadNumberProgress());
 
   useEffect(() => {
-    if (!auth.currentUser) return;
-    loadNumberProgressFromCloud().then(data => {
-      const merged = mergeNumberProgress(loadNumberProgress(), data);
-      setNumberProgress(merged);
-      saveNumberProgress(merged);
-      saveNumberProgressToCloud(null, merged).catch(() => {});
-    }).catch(() => {});
+    // Listen for the actual sign-in event, not just the state at mount time —
+    // a guest can sign in while already sitting on this page.
+    return onAuthChange(firebaseUser => {
+      if (!firebaseUser) return;
+      loadNumberProgressFromCloud().then(data => {
+        const merged = mergeNumberProgress(loadNumberProgress(), data);
+        setNumberProgress(merged);
+        saveNumberProgress(merged);
+        saveNumberProgressToCloud(null, merged).catch(() => {});
+      }).catch(() => {});
+    });
   }, []);
 
   function handleProgressUpdate(newProgress) {
