@@ -195,6 +195,23 @@ export function isLevel7Mastered(progress) {
   return masteredCount / level7Chars.length >= LEVEL_UNLOCK_THRESHOLD;
 }
 
+// ─── Read mode: which sentences/dialogues have been opened (local only) ──────
+const READ_SEEN_KEY = 'amharic_read_seen_v1';
+
+export function loadReadSeen() {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(READ_SEEN_KEY) || '[]'));
+  } catch { return new Set(); }
+}
+
+export function markReadSeen(id, currentSet) {
+  if (currentSet.has(id)) return currentSet;
+  const next = new Set(currentSet);
+  next.add(id);
+  localStorage.setItem(READ_SEEN_KEY, JSON.stringify([...next]));
+  return next;
+}
+
 export function isReadModeUnlocked(progress) {
   if (progress.readUnlockedByAdmin) return true;
   return isLevel7Mastered(progress) && progress.phraseTestPassed === true;

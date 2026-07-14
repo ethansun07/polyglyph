@@ -1,26 +1,9 @@
 import { useState, useRef } from 'react';
 import { SENTENCES, DIALOGUES, CONNECTOR_NOTE } from '../data/readingSentences.js';
-import { isReadModeUnlocked, isLevel7Mastered } from '../utils/progress.js';
+import { isReadModeUnlocked, isLevel7Mastered, loadReadSeen, markReadSeen } from '../utils/progress.js';
 import { auth, ADMIN_EMAIL } from '../utils/firebase.js';
 import { PUNCTUATION } from '../data/fidel.js';
 import { playSentenceAudio, playDialogueLineAudio } from '../utils/audio.js';
-
-// ─── Read-seen tracking (local only, mirrors phrase browse-seen) ─────────────
-const READ_SEEN_KEY = 'amharic_read_seen_v1';
-
-function loadReadSeen() {
-  try {
-    return new Set(JSON.parse(localStorage.getItem(READ_SEEN_KEY) || '[]'));
-  } catch { return new Set(); }
-}
-
-function markReadSeen(id, currentSet) {
-  if (currentSet.has(id)) return currentSet;
-  const next = new Set(currentSet);
-  next.add(id);
-  localStorage.setItem(READ_SEEN_KEY, JSON.stringify([...next]));
-  return next;
-}
 
 // ─── Grammar Note (collapsible) ───────────────────────────────────────────────
 function GrammarNote() {

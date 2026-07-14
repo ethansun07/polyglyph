@@ -19,7 +19,8 @@ import WordReadingExercise from './components/WordReadingExercise.jsx';
 import LessonMode from './components/LessonMode.jsx';
 import SentenceReader from './components/SentenceReader.jsx';
 import { LEVEL_WORDS } from './data/levelWords.js';
-import { getHighestUnlockedLevel, isReadModeUnlocked, isLevel7Mastered } from './utils/progress.js';
+import { SENTENCES, DIALOGUES } from './data/readingSentences.js';
+import { getHighestUnlockedLevel, isReadModeUnlocked, isLevel7Mastered, loadReadSeen } from './utils/progress.js';
 
 // Levels 1-6 finish their word drill when the next level unlocks. Level 7 has
 // no level 8 to unlock, so it's eligible once level 7 mastery itself is hit.
@@ -203,10 +204,12 @@ export default function App() {
       const l = Number(lvl);
       return isDrillEligible(l, highestUnlocked, progress) && !seenDrills.includes(l);
     });
+    const readSeen = loadReadSeen();
+    const hasUnreadContent = [...SENTENCES, ...DIALOGUES].some(item => !readSeen.has(item.id));
     return {
       write:     hasSeen && !localStorage.getItem('amharic_write_visited'),
       wordDrill: readPending, // Dashboard "new word drill" nudge — independent of Read mode's own unlock state
-      read:      readPending && isReadModeUnlocked(progress), // 📜 Read nav-tab dot — only meaningful once that page is actually unlocked
+      read:      hasUnreadContent && isReadModeUnlocked(progress), // 📜 Read nav-tab dot — unread sentences/dialogues, only once that page is unlocked
       phrases:   hasSeen && !localStorage.getItem('amharic_phrases_visited'),
     };
   }
