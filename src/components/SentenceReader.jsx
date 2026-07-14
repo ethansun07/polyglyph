@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { SENTENCES, DIALOGUES, CONNECTOR_NOTE } from '../data/readingSentences.js';
 import { isReadModeUnlocked, isLevel7Mastered } from '../utils/progress.js';
 import { auth, ADMIN_EMAIL } from '../utils/firebase.js';
@@ -242,6 +242,14 @@ export default function SentenceReader({ progress, onProgressUpdate }) {
   const sentencesReadCount = SENTENCES.filter(s => readSeen.has(s.id)).length;
   const dialoguesReadCount = DIALOGUES.filter(d => readSeen.has(d.id)).length;
 
+  const cardRefs = useRef(new Map());
+
+  function scrollToFirstUnread(list) {
+    const target = list.find(item => !readSeen.has(item.id));
+    if (!target) return;
+    cardRefs.current.get(target.id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
   function handleAdminUnlock() {
     if (onProgressUpdate) {
       onProgressUpdate({ ...progress, readUnlockedByAdmin: true });
@@ -291,31 +299,51 @@ export default function SentenceReader({ progress, onProgressUpdate }) {
       </div>
 
       {tab === 'sentences' && (
-        <div className="sentence-list">
-          {SENTENCES.map(s => (
-            <SentenceCard
-              key={s.id}
-              sentence={s}
-              settings={progress.settings}
-              read={readSeen.has(s.id)}
-              onRead={() => markRead(s.id)}
-            />
-          ))}
-        </div>
+        <>
+          {sentencesReadCount < SENTENCES.length && (
+            <button
+              className="btn btn-secondary btn-sm"
+              style={{ marginBottom: '0.75rem' }}
+              onClick={() => scrollToFirstUnread(SENTENCES)}
+            >Continue → (skip to next unread)</button>
+          )}
+          <div className="sentence-list">
+            {SENTENCES.map(s => (
+              <div key={s.id} ref={el => { if (el) cardRefs.current.set(s.id, el); }}>
+                <SentenceCard
+                  sentence={s}
+                  settings={progress.settings}
+                  read={readSeen.has(s.id)}
+                  onRead={() => markRead(s.id)}
+                />
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       {tab === 'dialogues' && (
-        <div className="dialogue-list">
-          {DIALOGUES.map(d => (
-            <DialogueCard
-              key={d.id}
-              dialogue={d}
-              settings={progress.settings}
-              read={readSeen.has(d.id)}
-              onRead={() => markRead(d.id)}
-            />
-          ))}
-        </div>
+        <>
+          {dialoguesReadCount < DIALOGUES.length && (
+            <button
+              className="btn btn-secondary btn-sm"
+              style={{ marginBottom: '0.75rem' }}
+              onClick={() => scrollToFirstUnread(DIALOGUES)}
+            >Continue → (skip to next unread)</button>
+          )}
+          <div className="dialogue-list">
+            {DIALOGUES.map(d => (
+              <div key={d.id} ref={el => { if (el) cardRefs.current.set(d.id, el); }}>
+                <DialogueCard
+                  dialogue={d}
+                  settings={progress.settings}
+                  read={readSeen.has(d.id)}
+                  onRead={() => markRead(d.id)}
+                />
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
