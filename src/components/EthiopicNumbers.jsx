@@ -6,6 +6,7 @@ import {
 } from '../data/ethiopicNumbers.js';
 import { PUNCTUATION } from '../data/fidel.js';
 import { playNumberAudio } from '../utils/audio.js';
+import { useEnterKey } from '../utils/useEnterKey.js';
 import {
   loadNumberProgress, saveNumberProgress, mergeNumberProgress,
   recordNumberAnswer, isNumberMastered, getNumberNet,
@@ -257,6 +258,8 @@ function NumberValueQuiz({ progress, settings, onProgressUpdate, onDone }) {
   const wasCorrect = answered && selected === q.symbol.value;
   const isLastQuestion = sessionLog.length >= SESSION_SIZE;
 
+  useEnterKey(answered && !showSummary, handleNext);
+
   return (
     <div>
       <div className="num-range-tabs">
@@ -382,6 +385,8 @@ function CombosQuiz({ settings }) {
 
   const answered = selected !== null;
   const wasCorrect = answered && selected === q.value;
+
+  useEnterKey(answered, handleNext);
   const display = q.displayMode === 'word' ? q.amharic : q.symbol;
 
   return (

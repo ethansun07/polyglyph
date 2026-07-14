@@ -12,6 +12,7 @@ import {
 import { auth, onAuthChange, loadWritingProgressFromCloud, saveWritingProgressFromCloud } from '../utils/firebase.js';
 import DrawingCanvas from './DrawingCanvas.jsx';
 import { playCharAudio } from '../utils/audio.js';
+import { useEnterKey } from '../utils/useEnterKey.js';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 // selectedLevels: Set<number> — empty means "all unlocked"
@@ -284,6 +285,8 @@ function WritingQuizMode({ chars, writingProgress, onResultSaved, recognitionPro
 
   const ws  = getWritingState(writingProgress, char.id);
   const qNum = sessionLog.length + 1;
+
+  useEnterKey(!revealed && !showChart, () => setRevealed(true));
 
   return (
     <div className="writing-mode-content">

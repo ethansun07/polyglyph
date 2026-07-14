@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { getLevelChars, getLevelRows, VOWEL_ORDERS } from '../data/fidel.js';
 import { weightedRandomPick, buildQuizChoices, shuffle } from '../utils/quiz.js';
 import { playCharAudio } from '../utils/audio.js';
+import { useEnterKey } from '../utils/useEnterKey.js';
 import ChartModal from './ChartModal.jsx';
 import MatchingGame from './MatchingGame.jsx';
 
@@ -203,6 +204,8 @@ function QuizStep({ chars, progress, onComplete }) {
   const answered   = chosen !== null;
   const isCorrect  = answered && chosen === q.char.romanization;
 
+  useEnterKey(answered && !showChart, handleNext);
+
   return (
     <div className="lesson-step">
       {showChart && <ChartModal progress={progress} onClose={() => setShowChart(false)} />}
@@ -316,6 +319,8 @@ function AudioStep({ chars, progress, onComplete }) {
 
   const answered  = chosen !== null;
   const isCorrect = answered && chosen === q.char.id;
+
+  useEnterKey(answered, handleNext);
 
   return (
     <div className="lesson-step">

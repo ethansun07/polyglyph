@@ -7,6 +7,7 @@ import {
   shuffle,
 } from '../utils/quiz.js';
 import { playCharAudio } from '../utils/audio.js';
+import { useEnterKey } from '../utils/useEnterKey.js';
 import {
   loadWritingProgress,
   saveWritingProgress,
@@ -222,6 +223,9 @@ export default function MixedReview({ progress, onProgressUpdate, onDone }) {
     ? answered && selected !== 'wrong'
     : answered && selected === q.char.romanization;
   const isLastQuestion = sessionLog.length >= SESSION_SIZE;
+
+  useEnterKey(q.type === 'write' && !writeRevealed, handleWriteCheck);
+  useEnterKey(answered && q.type !== 'write' && !showChart && !showSummary, handleNext);
 
   const typeBadge = q.type === 'write'  ? '✏️ Write'
     : q.type === 'audio'  ? '🔊 Listen'

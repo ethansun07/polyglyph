@@ -8,6 +8,7 @@ import {
   buildReverseChoices,
 } from '../utils/quiz.js';
 import { playCharAudio } from '../utils/audio.js';
+import { useEnterKey } from '../utils/useEnterKey.js';
 import SessionSummary, { SESSION_SIZE } from './SessionSummary.jsx';
 import ChartModal from './ChartModal.jsx';
 
@@ -175,6 +176,8 @@ export default function QuizMode({ progress, onProgressUpdate, initialLevel, onD
     currentType === 'forward' ? selected === q.char.romanization : selected === q.char.id
   );
   const isLastQuestion = sessionLog.length >= SESSION_SIZE;
+
+  useEnterKey(answered && !showChart && !showSummary, handleNext);
 
   if (!q) {
     return (
