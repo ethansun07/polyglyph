@@ -826,13 +826,13 @@ export const PHRASES = [
 
   // ── Level 5 additions ─────────────────────────────────────────────────────
   {
-    id:              'dabo',
-    amharic:         'ዳቦ',
-    transliteration: 'dabo',
-    meaning:         'bread',
-    category:        'food',
+    id:              'wendeme',
+    amharic:         'ወንድሜ',
+    transliteration: 'wändəme',
+    meaning:         'my brother',
+    category:        'basics',
     requiredLevel:   5,
-    note:            'A wheat bread distinct from injera (እንጀራ), found at bakeries and cafés across Ethiopia. Commonly eaten for breakfast, often alongside šahi (ሻሂ, tea) or buna (ቡና, coffee). While injera is the staple of main meals, dabo is the everyday snack and breakfast bread. You will find it sold fresh at small bakeries throughout Ethiopian towns.',
+    note:            'ወንድሜ (wändəme) means "my brother": ወንድም (wändəm, brother) plus the same first-person possessive suffix you already saw in ስሜ (səme, "my name," from sime_new). Family is a warm, central topic in Ethiopian conversation. Introducing your ወንድሜ is a natural way to bring family into a chat.',
     travelEssential: true,
   },
   {
@@ -849,10 +849,10 @@ export const PHRASES = [
     id:              'yihonahal',
     amharic:         'ይሆናል',
     transliteration: 'yəhonal',
-    meaning:         'okay / it\'ll work / sure',
+    meaning:         'okay / it\'ll work / maybe',
     category:        'basics',
     requiredLevel:   5,
-    note:            'One of the most frequently heard words in Ethiopian daily life. Softer and more flexible than እሺ (əši) , carrying a sense of "it will be fine" or "that works." Used to agree to a plan, accept an offer, or reassure someone. ይሆናል as a response to a request signals warm agreement without the directness of አዎ (äwo). You will hear it dozens of times a day.',
+    note:            'From ሆነ (honä, to become / to be), literally "it will become" or "it will happen." One of the most frequently heard words in Ethiopian daily life. Softer and more flexible than እሺ (əši), carrying a sense of "it will be fine" or "that works." Used to agree to a plan, accept an offer, or reassure someone, but because of that literal "will happen" root, it can also hedge like "maybe" or "we\'ll see" about something uncertain, not just firm agreement. Context tells you which sense is meant. You will hear it dozens of times a day.',
     travelEssential: true,
   },
 

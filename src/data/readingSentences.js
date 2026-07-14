@@ -444,6 +444,17 @@ export const SENTENCES = [
       { amharic: 'ገበያው ቅርብ ነው', meaning: 'the market is close' },
     ],
   },
+  {
+    id: 'brother_well',
+    type: 'sentence',
+    amharic: 'ወንድሜ ደህና ነው?',
+    meaning: 'Is my brother well?',
+    phraseIds: ['wendeme', 'dehna_neh'],
+    words: [
+      { amharic: 'ወንድሜ',    meaning: 'my brother' },
+      { amharic: 'ደህና ነው', meaning: 'is well' },
+    ],
+  },
 ];
 
 // ─── Dialogues ────────────────────────────────────────────────────────────────
@@ -671,11 +682,11 @@ export const DIALOGUES = [
   {
     id: 'dial_breakfast',
     type: 'dialogue',
-    title: 'ዳቦ እና ሻሂ',
-    titleMeaning: 'Bread and Tea',
-    phraseIds: ['selam', 'dabo', 'you_want', 'awo', 'shahi', 'ifelgalehu', 'shiro', 'misir', 'betam_tiru', 'injera', 'iwedalehu', 'egzabihir_yemisgen'],
+    title: 'ወንድሜ',
+    titleMeaning: 'My Brother',
+    phraseIds: ['selam', 'wendeme', 'you_want', 'awo', 'shahi', 'ifelgalehu', 'shiro', 'misir', 'betam_tiru', 'injera', 'iwedalehu', 'egzabihir_yemisgen'],
     lines: [
-      { speaker: 'A', amharic: 'ሰላም! ዳቦ ትፈልጋለህ?',                    meaning: 'Hi! Do you want bread?' },
+      { speaker: 'A', amharic: 'ሰላም ወንድሜ! ሻሂ ትፈልጋለህ?',              meaning: 'Hi, my brother! Do you want tea?' },
       { speaker: 'B', amharic: 'አዎ! ሻሂ እፈልጋለሁ።',                     meaning: 'Yes! I want tea.' },
       { speaker: 'A', amharic: 'ሽሮ ጥሩ ነው?',                           meaning: 'Is the shiro good?' },
       { speaker: 'B', amharic: 'አዎ፣ ሚስር በጣም ጥሩ ነው!',                meaning: 'Yes, the misir is very good!' },
