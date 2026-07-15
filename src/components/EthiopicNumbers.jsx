@@ -184,6 +184,12 @@ function NumberValueQuiz({ progress, settings, onProgressUpdate, onDone }) {
     setSelected(null);
   }
 
+  // These must run on every render, before the showSummary early return below —
+  // conditionally skipping a hook call breaks React's rules of hooks and
+  // crashes to a blank screen once showSummary flips to true.
+  useChoiceKeys(selected === null && !showSummary, q.choices.length, i => handleAnswer(q.choices[i]));
+  useEnterKey(selected !== null && !showSummary, handleNext);
+
   if (showSummary) {
     const pct = sessionTotal > 0 ? Math.round((sessionCorrect / sessionTotal) * 100) : 0;
     const seenMap = new Map();
@@ -258,10 +264,6 @@ function NumberValueQuiz({ progress, settings, onProgressUpdate, onDone }) {
   const answered = selected !== null;
   const wasCorrect = answered && selected === q.symbol.value;
   const isLastQuestion = sessionLog.length >= SESSION_SIZE;
-
-  useChoiceKeys(!answered, q.choices.length, i => handleAnswer(q.choices[i]));
-
-  useEnterKey(answered && !showSummary, handleNext);
 
   return (
     <div className="numbers-quiz-page">

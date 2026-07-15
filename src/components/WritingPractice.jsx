@@ -268,6 +268,11 @@ function WritingQuizMode({ chars, writingProgress, onResultSaved, recognitionPro
     }
   }
 
+  // Must run on every render, before the early returns below — conditionally
+  // skipping a hook call breaks React's rules of hooks and crashes to a
+  // blank screen once showSummary flips to true or char becomes null.
+  useEnterKey(!!char && !revealed && !showChart && !showSummary, () => setRevealed(true));
+
   if (showSummary) {
     return (
       <WritingSessionSummary
@@ -291,8 +296,6 @@ function WritingQuizMode({ chars, writingProgress, onResultSaved, recognitionPro
 
   const ws  = getWritingState(writingProgress, char.id);
   const qNum = sessionLog.length + 1;
-
-  useEnterKey(!revealed && !showChart, () => setRevealed(true));
 
   return (
     <div className="writing-mode-content writing-quiz-page">
