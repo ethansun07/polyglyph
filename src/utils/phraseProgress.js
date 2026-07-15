@@ -15,6 +15,11 @@ export function savePhraseProgress(p) {
   localStorage.setItem(PHRASE_KEY, JSON.stringify(p));
 }
 
+export function resetPhraseProgress() {
+  localStorage.removeItem(PHRASE_KEY);
+  localStorage.removeItem(BROWSE_SEEN_KEY);
+}
+
 // Merge per-phrase, keeping whichever side saw it more recently — a stale
 // cloud snapshot must never clobber more-advanced local progress.
 export function mergePhraseProgress(local, cloud) {

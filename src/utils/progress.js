@@ -30,6 +30,10 @@ export function saveProgress(p) {
 
 export function resetProgress() {
   localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(READ_SEEN_KEY);
+  localStorage.removeItem('amharic_word_drills_seen');
+  localStorage.removeItem('amharic_write_visited');
+  localStorage.removeItem('amharic_phrases_visited');
 }
 
 // ─── Merge cloud + local ──────────────────────────────────────────────────────

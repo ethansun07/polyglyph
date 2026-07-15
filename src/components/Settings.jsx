@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { resetProgress } from '../utils/progress.js';
+import { resetWritingProgress } from '../utils/writingProgress.js';
+import { resetPhraseProgress } from '../utils/phraseProgress.js';
+import { resetNumberProgress } from '../utils/numberProgress.js';
 import { deleteMainProgressFromCloud } from '../utils/firebase.js';
 
 export default function Settings({ progress, onProgressUpdate, user }) {
@@ -14,7 +17,11 @@ export default function Settings({ progress, onProgressUpdate, user }) {
 
   async function handleReset() {
     resetProgress();
+    resetWritingProgress();
+    resetPhraseProgress();
+    resetNumberProgress();
     if (user) {
+      // Single endpoint wipes char/phrase/number/writing progress + settings server-side
       await deleteMainProgressFromCloud();
     }
     window.location.reload();

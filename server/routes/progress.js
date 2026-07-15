@@ -117,10 +117,11 @@ router.delete('/', async (req, res) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    await client.query('DELETE FROM char_progress   WHERE uid = $1', [uid]);
-    await client.query('DELETE FROM phrase_progress  WHERE uid = $1', [uid]);
-    await client.query('DELETE FROM number_progress  WHERE uid = $1', [uid]);
-    await client.query('DELETE FROM user_settings    WHERE uid = $1', [uid]);
+    await client.query('DELETE FROM char_progress    WHERE uid = $1', [uid]);
+    await client.query('DELETE FROM phrase_progress   WHERE uid = $1', [uid]);
+    await client.query('DELETE FROM number_progress   WHERE uid = $1', [uid]);
+    await client.query('DELETE FROM writing_progress  WHERE uid = $1', [uid]);
+    await client.query('DELETE FROM user_settings     WHERE uid = $1', [uid]);
     await client.query(`
       INSERT INTO logs (uid, action, table_name, detail)
       VALUES ($1, 'reset_progress', 'all', '{}')

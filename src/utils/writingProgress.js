@@ -14,6 +14,10 @@ export function saveWritingProgress(p) {
   localStorage.setItem(WRITING_KEY, JSON.stringify(p));
 }
 
+export function resetWritingProgress() {
+  localStorage.removeItem(WRITING_KEY);
+}
+
 // Merge per-char, keeping whichever side practiced it more recently — a stale
 // cloud snapshot must never clobber more-advanced local progress.
 export function mergeWritingProgress(local, cloud) {

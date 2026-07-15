@@ -12,6 +12,10 @@ export function saveNumberProgress(p) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(p));
 }
 
+export function resetNumberProgress() {
+  localStorage.removeItem(STORAGE_KEY);
+}
+
 // Numbers carry no per-item timestamp, so merge by whichever side has seen
 // the number more (a monotonically increasing proxy for "more advanced") —
 // a stale cloud snapshot must never clobber more-advanced local progress.
