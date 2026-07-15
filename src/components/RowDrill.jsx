@@ -99,9 +99,11 @@ export default function RowDrill({ row, chars, progress, onClose }) {
             </div>
 
             {chosen !== null && (
-              <button className="btn btn-primary" onClick={advance}>
-                {idx + 1 >= total ? '📊 See Results' : 'Next →'}
-              </button>
+              <div className="wr-sticky-footer">
+                <button className="btn btn-primary" onClick={advance}>
+                  {idx + 1 >= total ? '📊 See Results' : 'Next →'}
+                </button>
+              </div>
             )}
           </>
         )}

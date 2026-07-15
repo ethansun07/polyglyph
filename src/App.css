@@ -2375,6 +2375,19 @@ code {
   margin: 0.75rem auto 1.4rem;
   display: block;
 }
+/* Row drill: keep "Next" reachable without scrolling the modal, same idea
+   as .quiz-next-bar but scoped to this scrollable modal's own bottom edge. */
+.wr-sticky-footer {
+  position: sticky;
+  bottom: 0;
+  background: var(--surface);
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+  margin-top: 0.5rem;
+}
+.wr-sticky-footer .btn-primary {
+  margin: 0 auto 0.75rem;
+}
 .wr-modal .pfc-grade-btns {
   margin: 0.75rem 1.2rem 1.4rem;
   justify-content: center;
