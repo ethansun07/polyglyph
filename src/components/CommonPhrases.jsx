@@ -6,7 +6,7 @@ import {
 import { getHighestUnlockedLevel } from '../utils/progress.js';
 import { playPhraseAudio } from '../utils/audio.js';
 import { useChoiceKeys } from '../utils/useChoiceKeys.js';
-import { loadPhraseProgress, savePhraseProgress, recordPhraseResult, loadBrowseSeen, markBrowseSeen, mergePhraseProgress, getPhraseState, getPhraseWeight } from '../utils/phraseProgress.js';
+import { loadPhraseProgress, savePhraseProgress, resetPhraseProgress, recordPhraseResult, loadBrowseSeen, markBrowseSeen, mergePhraseProgress, getPhraseState, getPhraseWeight } from '../utils/phraseProgress.js';
 import { auth, onAuthChange, loadPhraseProgressFromCloud, savePhraseProgressToCloud, ADMIN_EMAIL } from '../utils/firebase.js';
 
 // ─── Browse Mode ──────────────────────────────────────────────────────────────
@@ -1105,12 +1105,29 @@ export default function CommonPhrases({ progress, initialMode = 'browse', onProg
   const [mode, setMode] = useState(initialMode);
   const phraseProgressRef = useRef(loadPhraseProgress());
   const [browseSeen, setBrowseSeen] = useState(() => loadBrowseSeen());
+  const prevUid = useRef(null);
 
   useEffect(() => {
     // Listen for the actual sign-in event, not just the state at mount time —
     // a guest can sign in while already sitting on this page.
     return onAuthChange(firebaseUser => {
-      if (!firebaseUser) return;
+      if (!firebaseUser) {
+        if (prevUid.current) {
+          // Real sign-out — this device's cache reflects the account that
+          // just signed out. Clear it so it never re-attaches to whoever
+          // signs in next (same account or a different one).
+          resetPhraseProgress();
+          phraseProgressRef.current = {};
+          prevUid.current = null;
+        }
+        return;
+      }
+      if (prevUid.current && prevUid.current !== firebaseUser.uid) {
+        // Switched directly to a different account, no sign-out in between.
+        resetPhraseProgress();
+        phraseProgressRef.current = {};
+      }
+      prevUid.current = firebaseUser.uid;
       loadPhraseProgressFromCloud().then(data => {
         // Bail if the signed-in account changed while this fetch was in
         // flight — applying a stale response would leak one user's phrase

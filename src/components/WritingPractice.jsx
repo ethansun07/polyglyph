@@ -3,6 +3,7 @@ import { LEVELS, FIDEL_ROWS, getAllChars } from '../data/fidel.js';
 import { isLevelUnlocked } from '../utils/progress.js';
 import {
   loadWritingProgress, saveWritingProgress, mergeWritingProgress,
+  resetWritingProgress,
   recordWritingResult,
   isWritingMastered,
   getWritingState,
@@ -460,12 +461,29 @@ export default function WritingPractice({ progress, initialMode = 'copy' }) {
   const [mode, setMode]                       = useState(initialMode);
   const [selectedLevels, setSelectedLevels]   = useState(() => new Set());
   const [writingProgress, setWritingProgress] = useState(() => loadWritingProgress());
+  const prevUid = useRef(null);
 
   useEffect(() => {
     // Listen for the actual sign-in event, not just the state at mount time —
     // a guest can sign in while already sitting on this page.
     return onAuthChange(firebaseUser => {
-      if (!firebaseUser) return;
+      if (!firebaseUser) {
+        if (prevUid.current) {
+          // Real sign-out — this device's cache reflects the account that
+          // just signed out. Clear it so it never re-attaches to whoever
+          // signs in next (same account or a different one).
+          resetWritingProgress();
+          setWritingProgress({});
+          prevUid.current = null;
+        }
+        return;
+      }
+      if (prevUid.current && prevUid.current !== firebaseUser.uid) {
+        // Switched directly to a different account, no sign-out in between.
+        resetWritingProgress();
+        setWritingProgress({});
+      }
+      prevUid.current = firebaseUser.uid;
       loadWritingProgressFromCloud().then(data => {
         // Bail if the signed-in account changed while this fetch was in
         // flight — applying a stale response would leak one user's writing

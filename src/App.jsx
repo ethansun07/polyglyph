@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { loadProgress, saveProgress, updateStreak, mergeProgress } from './utils/progress.js';
+import { loadProgress, saveProgress, updateStreak, mergeProgress, resetProgress } from './utils/progress.js';
+import { resetWritingProgress } from './utils/writingProgress.js';
+import { resetPhraseProgress } from './utils/phraseProgress.js';
+import { resetNumberProgress } from './utils/numberProgress.js';
 import {
   auth, onAuthChange,
   loadMainProgressFromCloud, saveMainProgressToCloud,
@@ -59,6 +62,12 @@ export default function App() {
   const [phrasesInitialMode, setPhrasesInitialMode] = useState(null);
   const prevHighestLevel  = useRef(getHighestUnlockedLevel(progress));
   const pendingDrillLevel = useRef(null);
+  // Tracks the previously signed-in uid (or null), so we can tell a real
+  // sign-out or a direct switch to a different account (clear everything —
+  // this device's cache must not keep re-attaching one account's history to
+  // whichever account is active next) apart from the very first load of a
+  // guest who's never signed in.
+  const prevUid = useRef(null);
   const [toast, setToast] = useState(null);
   const toastTimer = useRef(null);
 
@@ -74,6 +83,17 @@ export default function App() {
       setUser(firebaseUser);
 
       if (!firebaseUser) {
+        if (prevUid.current) {
+          // A real sign-out, not just the initial "never signed in" guest
+          // load — this device's cache reflects the account that just
+          // signed out. Clear it so a future sign-in (same account or a
+          // different one) never re-attaches that history to anyone else.
+          resetProgress();
+          resetWritingProgress();
+          resetPhraseProgress();
+          resetNumberProgress();
+          prevUid.current = null;
+        }
         // Fires both on real sign-out and on initial load for a never-signed-in
         // guest — restore from localStorage rather than blanking the in-memory
         // state, or a guest's progress gets wiped out on every page reload.
@@ -83,6 +103,16 @@ export default function App() {
         return;
       }
 
+      if (prevUid.current && prevUid.current !== firebaseUser.uid) {
+        // Switched directly to a different account with no sign-out event in
+        // between — same risk as above, clear the previous account's cache
+        // before merging this one in.
+        resetProgress();
+        resetWritingProgress();
+        resetPhraseProgress();
+        resetNumberProgress();
+      }
+      prevUid.current = firebaseUser.uid;
       upsertUserDoc(firebaseUser.uid, {
         displayName: firebaseUser.displayName,
         email: firebaseUser.email,

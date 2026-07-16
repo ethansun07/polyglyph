@@ -9,7 +9,7 @@ import { playNumberAudio } from '../utils/audio.js';
 import { useEnterKey } from '../utils/useEnterKey.js';
 import { useChoiceKeys } from '../utils/useChoiceKeys.js';
 import {
-  loadNumberProgress, saveNumberProgress, mergeNumberProgress,
+  loadNumberProgress, saveNumberProgress, mergeNumberProgress, resetNumberProgress,
   recordNumberAnswer, isNumberMastered, getNumberNet,
   weightedPickSymbol, getTotalNumberStats, getNumberState,
 } from '../utils/numberProgress.js';
@@ -486,12 +486,29 @@ function CombosQuiz({ settings }) {
 export default function EthiopicNumbers({ settings }) {
   const [tab, setTab] = useState('learn');
   const [numberProgress, setNumberProgress] = useState(() => loadNumberProgress());
+  const prevUid = useRef(null);
 
   useEffect(() => {
     // Listen for the actual sign-in event, not just the state at mount time —
     // a guest can sign in while already sitting on this page.
     return onAuthChange(firebaseUser => {
-      if (!firebaseUser) return;
+      if (!firebaseUser) {
+        if (prevUid.current) {
+          // Real sign-out — this device's cache reflects the account that
+          // just signed out. Clear it so it never re-attaches to whoever
+          // signs in next (same account or a different one).
+          resetNumberProgress();
+          setNumberProgress({});
+          prevUid.current = null;
+        }
+        return;
+      }
+      if (prevUid.current && prevUid.current !== firebaseUser.uid) {
+        // Switched directly to a different account, no sign-out in between.
+        resetNumberProgress();
+        setNumberProgress({});
+      }
+      prevUid.current = firebaseUser.uid;
       loadNumberProgressFromCloud().then(data => {
         // Bail if the signed-in account changed while this fetch was in
         // flight — applying a stale response would leak one user's number
