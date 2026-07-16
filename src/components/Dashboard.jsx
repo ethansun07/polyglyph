@@ -7,7 +7,7 @@ const extCharCount = FIDEL_ROWS.filter(r => r.archaic || r.labiovelar)
   .reduce((sum, r) => sum + r.chars.filter(Boolean).length, 0);
 import LevelCard from './LevelCard.jsx';
 
-export default function Dashboard({ progress, onNavigate, onLevelAction, badges = {} }) {
+export default function Dashboard({ progress, onNavigate, onLevelAction }) {
   const stats = getTotalStats(progress);
   const highestUnlocked = getHighestUnlockedLevel(progress);
   const streak = progress.streak?.count || 0;
@@ -71,32 +71,6 @@ export default function Dashboard({ progress, onNavigate, onLevelAction, badges 
           </button>
         </div>
       </div>
-
-      {/* Nudge cards */}
-      {(badges.write || badges.phrases) && (
-        <div className="nudge-cards">
-          {badges.write && (
-            <button className="nudge-card" onClick={() => onNavigate('write')}>
-              <span className="nudge-icon">✏️</span>
-              <span className="nudge-text">
-                <strong>Try writing practice</strong>
-                <span>Reinforce characters by drawing them</span>
-              </span>
-              <span className="nudge-arrow">→</span>
-            </button>
-          )}
-          {badges.phrases && (
-            <button className="nudge-card" onClick={() => onNavigate('phrases')}>
-              <span className="nudge-icon">🗣️</span>
-              <span className="nudge-text">
-                <strong>Explore common phrases</strong>
-                <span>Learn everyday Amharic expressions</span>
-              </span>
-              <span className="nudge-arrow">→</span>
-            </button>
-          )}
-        </div>
-      )}
 
       {/* Level cards */}
       <h2 className="section-title">Levels</h2>

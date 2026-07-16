@@ -23,8 +23,7 @@ import WordReadingExercise from './components/WordReadingExercise.jsx';
 import LessonMode from './components/LessonMode.jsx';
 import SentenceReader from './components/SentenceReader.jsx';
 import { LEVEL_WORDS } from './data/levelWords.js';
-import { SENTENCES, DIALOGUES } from './data/readingSentences.js';
-import { getHighestUnlockedLevel, isReadModeUnlocked, isLevel7Mastered, loadReadSeen } from './utils/progress.js';
+import { getHighestUnlockedLevel, isReadModeUnlocked, isLevel7Mastered } from './utils/progress.js';
 
 // Levels 1-6 finish their word drill when the next level unlocks. Level 7 has
 // no level 8 to unlock, so it's eligible once level 7 mastery itself is hit.
@@ -189,8 +188,8 @@ export default function App() {
     if (newPage !== 'lesson')  setLessonLevel(null);
     setPage(newPage);
 
-    if (newPage === 'write')   { setWriteInitialMode(initialMode);   localStorage.setItem('amharic_write_visited', '1'); }
-    if (newPage === 'phrases') { setPhrasesInitialMode(initialMode); localStorage.setItem('amharic_phrases_visited', '1'); }
+    if (newPage === 'write')   setWriteInitialMode(initialMode);
+    if (newPage === 'phrases') setPhrasesInitialMode(initialMode);
     if (newPage === 'wordread') {
       const highestUnlocked = getHighestUnlockedLevel(progress);
       setPage('dashboard');
@@ -220,19 +219,6 @@ export default function App() {
     }
   }
 
-  function computeBadges() {
-    const hasSeen = Object.values(progress.chars || {}).some(c => c.seen > 0);
-    const readSeen = loadReadSeen();
-    const hasUnreadContent = [...SENTENCES, ...DIALOGUES].some(item => !readSeen.has(item.id));
-    return {
-      write:   hasSeen && !localStorage.getItem('amharic_write_visited'),
-      read:    hasUnreadContent && isReadModeUnlocked(progress), // 📜 Read nav-tab dot — unread sentences/dialogues, only once that page is unlocked
-      phrases: hasSeen && !localStorage.getItem('amharic_phrases_visited'),
-    };
-  }
-
-  const badges = computeBadges();
-
   function renderPage() {
     switch (page) {
       case 'dashboard':
@@ -241,7 +227,6 @@ export default function App() {
             progress={progress}
             onNavigate={navigate}
             onLevelAction={handleLevelAction}
-            badges={badges}
           />
         );
       case 'learn':
