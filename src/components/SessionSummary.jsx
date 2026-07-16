@@ -42,6 +42,13 @@ export default function SessionSummary({
 
   const scoreClass = pct >= 80 ? 'score-great' : pct >= 60 ? 'score-ok' : 'score-low';
 
+  // Nudge on a level-up (existing behavior) OR on the very first-ever
+  // completed session, detected by having touched zero characters before
+  // this session started — catches guests earlier, since leveling up alone
+  // can take many sessions and a lot of people churn before ever hitting it.
+  const isFirstSession = Object.keys(preSessionProgress?.chars || {}).length === 0;
+  const showSignInNudge = (newlyUnlockedLevels.length > 0 || isFirstSession) && auth.currentUser?.isAnonymous;
+
   return (
     <div className="page session-summary">
       <h2 className="session-summary-title">Session Complete!</h2>
@@ -56,7 +63,7 @@ export default function SessionSummary({
         </div>
       )}
 
-      {newlyUnlockedLevels.length > 0 && auth.currentUser?.isAnonymous && (
+      {showSignInNudge && (
         <div className="summary-signin-nudge">
           <p>You're making real progress as a guest: sign in to save it across devices, forever.</p>
           <button className="btn btn-accent" onClick={signInWithGoogle}>Sign in with Google</button>
