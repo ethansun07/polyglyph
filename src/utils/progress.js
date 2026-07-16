@@ -135,12 +135,6 @@ export function getTotalStats(progress) {
   };
 }
 
-/** Count of seen characters whose SRS review is due now. */
-export function getDueCount(progress) {
-  const now = Date.now();
-  return Object.values(progress.chars).filter(s => s.seen > 0 && (!s.due || s.due <= now)).length;
-}
-
 // ─── Read mode unlock ────────────────────────────────────────────────────────
 
 export function isLevel7Mastered(progress) {

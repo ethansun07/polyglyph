@@ -1,4 +1,4 @@
-import { getTotalStats, getHighestUnlockedLevel, getDueCount } from '../utils/progress.js';
+import { getTotalStats, getHighestUnlockedLevel } from '../utils/progress.js';
 import { LEVELS, FIDEL_ROWS } from '../data/fidel.js';
 
 const coreCharCount = FIDEL_ROWS.filter(r => !r.archaic && !r.labiovelar)
@@ -11,7 +11,6 @@ export default function Dashboard({ progress, onNavigate, onLevelAction }) {
   const stats = getTotalStats(progress);
   const highestUnlocked = getHighestUnlockedLevel(progress);
   const streak = progress.streak?.count || 0;
-  const dueCount = getDueCount(progress);
 
   const accuracyPct = Math.round(stats.accuracy * 100);
 
