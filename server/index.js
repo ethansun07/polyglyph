@@ -8,6 +8,7 @@ import numberRoutes        from './routes/numberProgress.js';
 import writingRoutes       from './routes/writingProgress.js';
 import usersRoutes         from './routes/users.js';
 import guestsRoutes        from './routes/guests.js';
+import feedbackRoutes      from './routes/feedback.js';
 
 const app  = express();
 const PORT = process.env.PORT || 3001;
@@ -25,6 +26,7 @@ app.use('/api/number-progress',  requireAuth, numberRoutes);
 app.use('/api/writing-progress', requireAuth, writingRoutes);
 app.use('/api/users',            requireAuth, usersRoutes);
 app.use('/api/guests',           guestsRoutes); // no blanket requireAuth: /ping is used by signed-out guests
+app.use('/api/feedback',         feedbackRoutes); // no blanket requireAuth: guests can submit feedback too
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
 

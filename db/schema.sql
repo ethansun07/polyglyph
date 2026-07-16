@@ -74,6 +74,14 @@ CREATE TABLE IF NOT EXISTS guest_sessions (
   chars_seen    INT DEFAULT 0
 );
 
+CREATE TABLE IF NOT EXISTS feedback (
+  id         SERIAL PRIMARY KEY,
+  uid        TEXT REFERENCES users(uid),
+  anon_id    TEXT,
+  message    TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS logs (
   id         SERIAL PRIMARY KEY,
   uid        TEXT REFERENCES users(uid),

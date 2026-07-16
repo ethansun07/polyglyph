@@ -3,10 +3,26 @@ import { resetProgress } from '../utils/progress.js';
 import { resetWritingProgress } from '../utils/writingProgress.js';
 import { resetPhraseProgress } from '../utils/phraseProgress.js';
 import { resetNumberProgress } from '../utils/numberProgress.js';
-import { deleteMainProgressFromCloud } from '../utils/firebase.js';
+import { deleteMainProgressFromCloud, submitFeedback } from '../utils/firebase.js';
+import { getAnonId } from '../utils/guest.js';
 
 export default function Settings({ progress, onProgressUpdate, user }) {
   const [showConfirm, setShowConfirm] = useState(false);
+  const [feedbackText, setFeedbackText] = useState('');
+  const [feedbackStatus, setFeedbackStatus] = useState(null); // null | 'sending' | 'sent' | 'error'
+
+  async function handleSendFeedback() {
+    const message = feedbackText.trim();
+    if (!message) return;
+    setFeedbackStatus('sending');
+    try {
+      await submitFeedback(message, getAnonId());
+      setFeedbackText('');
+      setFeedbackStatus('sent');
+    } catch {
+      setFeedbackStatus('error');
+    }
+  }
 
   function toggleSetting(key) {
     onProgressUpdate({
@@ -59,6 +75,30 @@ export default function Settings({ progress, onProgressUpdate, user }) {
           <p>A level <strong>unlocks</strong> when 85% of the previous level's characters reach reading mastery.</p>
           <p>Weak characters appear more often in quizzes; mastered ones appear occasionally for review.</p>
         </div>
+      </div>
+
+      {/* Feedback */}
+      <div className="settings-section">
+        <h3 className="settings-section-title">💬 Feedback</h3>
+        <p className="settings-row-desc">
+          Found a bug, or something you wish worked differently? Let me know.
+        </p>
+        <textarea
+          className="feedback-textarea"
+          placeholder="What's on your mind?"
+          value={feedbackText}
+          onChange={e => { setFeedbackText(e.target.value); if (feedbackStatus) setFeedbackStatus(null); }}
+          rows={4}
+        />
+        <button
+          className="btn btn-primary"
+          onClick={handleSendFeedback}
+          disabled={!feedbackText.trim() || feedbackStatus === 'sending'}
+        >
+          {feedbackStatus === 'sending' ? 'Sending…' : 'Send feedback'}
+        </button>
+        {feedbackStatus === 'sent'  && <p className="feedback-status feedback-status-ok">✓ Thanks — feedback sent!</p>}
+        {feedbackStatus === 'error' && <p className="feedback-status feedback-status-err">Couldn't send that — try again in a bit.</p>}
       </div>
 
       {/* Reset */}

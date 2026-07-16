@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { loadAllUsersWithProgress, loadAllGuestSessions } from '../utils/firebase.js';
+import { loadAllUsersWithProgress, loadAllGuestSessions, loadAllFeedback } from '../utils/firebase.js';
 
 function getStats(user) {
   const masteredCount  = Number(user.mastered_chars)  || 0;
@@ -31,15 +31,18 @@ function getGuestStats(guest) {
 export default function AdminDashboard() {
   const [users, setUsers] = useState(null);
   const [guests, setGuests] = useState(null);
+  const [feedback, setFeedback] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
       loadAllUsersWithProgress().catch(() => []),
       loadAllGuestSessions().catch(() => []),
-    ]).then(([usersData, guestsData]) => {
+      loadAllFeedback().catch(() => []),
+    ]).then(([usersData, guestsData, feedbackData]) => {
       setUsers(usersData);
       setGuests(guestsData);
+      setFeedback(feedbackData);
       setLoading(false);
     });
   }, []);
@@ -128,6 +131,25 @@ export default function AdminDashboard() {
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+      </section>
+
+      <section className="admin-section">
+        <h2 className="page-title">💬 Feedback — {feedback?.length || 0} submission{feedback?.length !== 1 ? 's' : ''}</h2>
+        <p className="admin-section-sub">From the Settings page, guests and signed-in users alike.</p>
+
+        {!feedback?.length ? <p>No feedback yet.</p> : (
+          <div className="admin-feedback-list">
+            {feedback.map(f => (
+              <div key={f.id} className="admin-feedback-card">
+                <p className="admin-feedback-message">{f.message}</p>
+                <div className="admin-feedback-meta">
+                  <span>{f.display_name || f.email || (f.anon_id ? `guest ${f.anon_id.slice(0, 8)}` : 'guest')}</span>
+                  <span>{new Date(f.created_at).toLocaleString()}</span>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </section>
