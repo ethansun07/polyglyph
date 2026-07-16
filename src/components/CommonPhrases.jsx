@@ -1112,6 +1112,10 @@ export default function CommonPhrases({ progress, initialMode = 'browse', onProg
     return onAuthChange(firebaseUser => {
       if (!firebaseUser) return;
       loadPhraseProgressFromCloud().then(data => {
+        // Bail if the signed-in account changed while this fetch was in
+        // flight — applying a stale response would leak one user's phrase
+        // history onto a different account.
+        if (auth.currentUser?.uid !== firebaseUser.uid) return;
         const merged = mergePhraseProgress(loadPhraseProgress(), data);
         phraseProgressRef.current = merged;
         savePhraseProgress(merged);

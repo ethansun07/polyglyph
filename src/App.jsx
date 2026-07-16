@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { loadProgress, saveProgress, updateStreak, mergeProgress } from './utils/progress.js';
 import {
-  onAuthChange,
+  auth, onAuthChange,
   loadMainProgressFromCloud, saveMainProgressToCloud,
   upsertUserDoc, ADMIN_EMAIL, pingGuestSession,
 } from './utils/firebase.js';
@@ -100,6 +100,11 @@ export default function App() {
       } catch {
         // backend unreachable on sign-in — fall back to local cache below
       }
+      // The signed-in account can change while the fetch above was in flight
+      // (sign out + sign back in as someone else). If so, this stale response
+      // is for the WRONG account — applying it would leak one user's progress
+      // onto another's, so bail and let the newer auth event handle it instead.
+      if (auth.currentUser?.uid !== firebaseUser.uid) return;
       const local = loadProgress();
       const loaded = updateStreak(mergeProgress(local, cloud));
       setProgress(loaded);

@@ -467,6 +467,10 @@ export default function WritingPractice({ progress, initialMode = 'copy' }) {
     return onAuthChange(firebaseUser => {
       if (!firebaseUser) return;
       loadWritingProgressFromCloud().then(data => {
+        // Bail if the signed-in account changed while this fetch was in
+        // flight — applying a stale response would leak one user's writing
+        // history onto a different account.
+        if (auth.currentUser?.uid !== firebaseUser.uid) return;
         const merged = mergeWritingProgress(loadWritingProgress(), data);
         setWritingProgress(merged);
         saveWritingProgress(merged);

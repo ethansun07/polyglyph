@@ -493,6 +493,10 @@ export default function EthiopicNumbers({ settings }) {
     return onAuthChange(firebaseUser => {
       if (!firebaseUser) return;
       loadNumberProgressFromCloud().then(data => {
+        // Bail if the signed-in account changed while this fetch was in
+        // flight — applying a stale response would leak one user's number
+        // history onto a different account.
+        if (auth.currentUser?.uid !== firebaseUser.uid) return;
         const merged = mergeNumberProgress(loadNumberProgress(), data);
         setNumberProgress(merged);
         saveNumberProgress(merged);
