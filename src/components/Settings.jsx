@@ -7,6 +7,7 @@ import { deleteMainProgressFromCloud, submitFeedback } from '../utils/firebase.j
 
 export default function Settings({ progress, onProgressUpdate, user }) {
   const [showConfirm, setShowConfirm] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [feedbackText, setFeedbackText] = useState('');
   const [feedbackStatus, setFeedbackStatus] = useState(null); // null | 'sending' | 'sent' | 'error'
 
@@ -31,6 +32,7 @@ export default function Settings({ progress, onProgressUpdate, user }) {
   }
 
   async function handleReset() {
+    setResetting(true);
     resetProgress();
     resetWritingProgress();
     resetPhraseProgress();
@@ -114,10 +116,10 @@ export default function Settings({ progress, onProgressUpdate, user }) {
           <div className="confirm-box">
             <p>Are you sure? All progress will be lost.</p>
             <div className="confirm-btns">
-              <button className="btn btn-danger" onClick={handleReset}>
-                Yes, reset everything
+              <button className="btn btn-danger" onClick={handleReset} disabled={resetting}>
+                {resetting ? 'Resetting…' : 'Yes, reset everything'}
               </button>
-              <button className="btn btn-secondary" onClick={() => setShowConfirm(false)}>
+              <button className="btn btn-secondary" onClick={() => setShowConfirm(false)} disabled={resetting}>
                 Cancel
               </button>
             </div>
