@@ -633,7 +633,7 @@ function TypingMode({ pool, settings, onPhraseResult, progress, onProgressUpdate
   }
 
   return (
-    <div className="flashcard-mode">
+    <div className="flashcard-mode phrases-typing-page">
       <div className="level-selector">
         <button
           className={`level-pill ${selectedLevels.size === 0 ? 'active' : ''}`}
@@ -689,10 +689,12 @@ function TypingMode({ pool, settings, onPhraseResult, progress, onProgressUpdate
         </div>
       )}
 
-      {!result
-        ? <button className="btn btn-primary btn-next" onClick={checkAnswer} disabled={!input.trim()}>Check →</button>
-        : <button className="btn btn-primary btn-next" onClick={next}>Next →</button>
-      }
+      <div className="quiz-next-bar">
+        {!result
+          ? <button className="btn btn-primary btn-next" onClick={checkAnswer} disabled={!input.trim()}>Check →</button>
+          : <button className="btn btn-primary btn-next" onClick={next}>Next →</button>
+        }
+      </div>
 
       <GeezKeyboardGuide />
     </div>

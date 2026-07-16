@@ -57,7 +57,6 @@ export default function RowDrill({ row, chars, progress, onClose }) {
         <div className="wr-header">
           <div>
             <div className="wr-title">{row.baseName} — row drill</div>
-            <div className="wr-subtitle">All choices come from the same row — train your eye on the differences</div>
           </div>
           <button className="wr-close" onClick={onClose}>✕</button>
         </div>

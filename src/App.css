@@ -374,6 +374,9 @@ a { color: var(--primary); }
 /* Numbers quiz: same reachability fix as .quiz-page, for the Next bar */
 .numbers-quiz-page { padding-bottom: 6rem; }
 
+/* Phrases typing mode: same reachability fix as .quiz-page, for the Check/Next bar */
+.phrases-typing-page { padding-bottom: 6rem; }
+
 .level-cards-list { display: flex; flex-direction: column; gap: 0.8rem; }
 
 .dashboard-footer {
@@ -2217,7 +2220,7 @@ code {
   box-shadow: var(--shadow-lg);
   width: 100%;
   max-width: 420px;
-  max-height: 85vh;
+  max-height: calc(100dvh - 2rem);
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -2234,12 +2237,6 @@ code {
   font-weight: 700;
   font-size: 1rem;
   color: var(--text);
-}
-
-.wr-subtitle {
-  font-size: 0.72rem;
-  color: var(--text-dim);
-  margin-top: 0.15rem;
 }
 
 .romanization-key {
@@ -2394,7 +2391,7 @@ code {
   margin: 0.75rem 1.2rem 1.4rem;
 }
 .rd-choice-grid {
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr;
 }
 
 .wr-scope-toggle {
