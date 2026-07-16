@@ -54,7 +54,7 @@ export default function Settings({ progress, onProgressUpdate, user }) {
         <div className="settings-row">
           <div>
             <div className="settings-row-label">Extended characters</div>
-            <div className="settings-row-desc">Adds labiovelar (ቋ, ጓ, ኋ, ኳ) and archaic (ኸ) character families to lessons and quizzes. Each labiovelar family has 5 orders — only the wa-form appears in common words; the other orders are rare. Off by default.</div>
+            <div className="settings-row-desc">Adds labiovelar (ቋ, ጓ, ኋ, ኳ) and archaic (ኸ) character families to lessons and quizzes. Each labiovelar family has 5 orders: only the wa-form appears in common words; the other orders are rare. Off by default.</div>
           </div>
           <button
             className={`toggle-btn ${progress.settings?.extendedChars ? 'toggle-on' : ''}`}

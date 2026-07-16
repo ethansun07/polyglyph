@@ -98,7 +98,7 @@ export default function AdminDashboard() {
 
       <section className="admin-section">
         <h2 className="page-title">👤 Guests — {guests.length} session{guests.length !== 1 ? 's' : ''}</h2>
-        <p className="admin-section-sub">Anonymous accounts — real, backend-tracked, just never signed in with Google.</p>
+        <p className="admin-section-sub">Anonymous accounts (real, backend-tracked) that just never signed in with Google.</p>
 
         {!guests.length ? <p>No guest sessions yet.</p> : (
           <div className="admin-table-wrap">

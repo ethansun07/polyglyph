@@ -18,7 +18,7 @@ export default class ErrorBoundary extends Component {
         <div className="page error-boundary">
           <h2 className="page-title">😕 Something went wrong</h2>
           <p className="page-sub">
-            This screen hit an unexpected error. Your progress is saved — reloading should fix it.
+            This screen hit an unexpected error. Your progress is saved, and reloading should fix it.
           </p>
           <button className="btn btn-primary" onClick={() => window.location.reload()}>
             Reload
