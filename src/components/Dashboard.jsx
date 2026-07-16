@@ -1,4 +1,4 @@
-import { Flame, Star, Eye, Target, PenLine, BookOpen, Keyboard } from 'lucide-react';
+import { Flame, Star, Eye, Target, PenLine, BookOpen, Layers } from 'lucide-react';
 import { getTotalStats, getHighestUnlockedLevel } from '../utils/progress.js';
 import { LEVELS, FIDEL_ROWS } from '../data/fidel.js';
 
@@ -65,9 +65,9 @@ export default function Dashboard({ progress, onNavigate, onLevelAction }) {
             <span className="btn-xl-label"><BookOpen size={20} strokeWidth={2.25} /> Read Practice</span>
             <span className="btn-sub">Word drill, all levels</span>
           </button>
-          <button className="btn btn-xl btn-eth-blue" onClick={() => onNavigate('phrases', 'type')}>
-            <span className="btn-xl-label"><Keyboard size={20} strokeWidth={2.25} /> Typing</span>
-            <span className="btn-sub">Type in Amharic</span>
+          <button className="btn btn-xl btn-eth-blue" onClick={() => onNavigate('phrases', 'flashcard')}>
+            <span className="btn-xl-label"><Layers size={20} strokeWidth={2.25} /> Flashcards</span>
+            <span className="btn-sub">Practice common phrases</span>
           </button>
         </div>
       </div>
