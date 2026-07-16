@@ -275,6 +275,15 @@ a { color: var(--primary); }
 .nav-sheet-item:active { background: var(--bg); }
 .nav-sheet-item.nav-active { background: var(--green-light); border-bottom-color: transparent; }
 
+/* On phones, the extra nav items live in the "More" sheet instead of the
+   bar. On wider screens there's room to just show everything, old-style,
+   so these reveal and the More button/sheet trigger hides. */
+.nav-item-overflow { display: none; }
+@media (min-width: 768px) {
+  .nav-item-overflow { display: flex; }
+  .nav-more-btn { display: none; }
+}
+
 /* Main content */
 .app-main {
   flex: 1;

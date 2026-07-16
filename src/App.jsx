@@ -305,6 +305,32 @@ export default function App() {
   const readUnlocked = isReadModeUnlocked(progress);
   const isMoreActive = NAV_MORE.some(item => item.id === page) || page === 'admin';
 
+  // Renders a NAV_MORE item. Shared by the always-in-DOM copy that CSS
+  // reveals on wide screens (so desktop shows the full old-style bar with
+  // no "More" button needed) and the mobile "More" sheet copy.
+  function renderNavMoreItem(item, extraClass, onClick) {
+    const isReadLocked = item.id === 'read' && !readUnlocked;
+    const NavIcon = item.icon;
+    return (
+      <button
+        key={item.id}
+        className={`nav-item ${extraClass} ${page === item.id ? 'nav-active' : ''} ${isReadLocked ? 'nav-locked' : ''}`}
+        onClick={onClick}
+      >
+        <span className="nav-icon-wrap">
+          <span className="nav-icon">
+            {isReadLocked
+              ? <Lock size={20} strokeWidth={2.25} />
+              : item.id === 'numbers'
+                ? <span className="nav-icon-glyph">፩</span>
+                : <NavIcon size={20} strokeWidth={2.25} />}
+          </span>
+        </span>
+        <span className="nav-label">{item.label}</span>
+      </button>
+    );
+  }
+
   return (
     <div className="app">
       {toast && <div className="toast">{toast}</div>}
@@ -325,7 +351,11 @@ export default function App() {
         </div>
       </header>
 
-      {/* ── Nav bar ── */}
+      {/* ── Nav bar ──
+          Mobile: NAV_PRIMARY + a "More" button opening the sheet below.
+          Desktop (see .nav-item-overflow / .nav-more-btn in App.css): all
+          9 items show directly in the bar, old-style, and the More button
+          and sheet are simply never revealed. */}
       <nav className="app-nav">
         {NAV_PRIMARY.map(item => {
           const NavIcon = item.icon;
@@ -342,8 +372,20 @@ export default function App() {
             </button>
           );
         })}
+        {NAV_MORE.map(item => renderNavMoreItem(item, 'nav-item-overflow', () => navigate(item.id)))}
+        {user?.email === ADMIN_EMAIL && (
+          <button
+            className="nav-item nav-item-overflow nav-item-overflow-admin"
+            onClick={() => navigate('admin')}
+          >
+            <span className="nav-icon-wrap">
+              <span className="nav-icon"><Wrench size={20} strokeWidth={2.25} /></span>
+            </span>
+            <span className="nav-label">Admin</span>
+          </button>
+        )}
         <button
-          className={`nav-item ${isMoreActive ? 'nav-active' : ''}`}
+          className={`nav-item nav-more-btn ${isMoreActive ? 'nav-active' : ''}`}
           onClick={() => setMoreOpen(true)}
         >
           <span className="nav-icon-wrap">
@@ -363,28 +405,7 @@ export default function App() {
               </button>
             </div>
             <div className="nav-sheet-grid">
-              {NAV_MORE.map(item => {
-                const isReadLocked = item.id === 'read' && !readUnlocked;
-                const NavIcon = item.icon;
-                return (
-                  <button
-                    key={item.id}
-                    className={`nav-item nav-sheet-item ${page === item.id ? 'nav-active' : ''} ${isReadLocked ? 'nav-locked' : ''}`}
-                    onClick={() => navigateAndCloseMore(item.id)}
-                  >
-                    <span className="nav-icon-wrap">
-                      <span className="nav-icon">
-                        {isReadLocked
-                          ? <Lock size={20} strokeWidth={2.25} />
-                          : item.id === 'numbers'
-                            ? <span className="nav-icon-glyph">፩</span>
-                            : <NavIcon size={20} strokeWidth={2.25} />}
-                      </span>
-                    </span>
-                    <span className="nav-label">{item.label}</span>
-                  </button>
-                );
-              })}
+              {NAV_MORE.map(item => renderNavMoreItem(item, 'nav-sheet-item', () => navigateAndCloseMore(item.id)))}
               {user?.email === ADMIN_EMAIL && (
                 <button
                   className={`nav-item nav-sheet-item ${page === 'admin' ? 'nav-active' : ''}`}
