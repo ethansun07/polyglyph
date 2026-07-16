@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { BookOpen, Info, Target, Star, Volume2 } from 'lucide-react';
 import { LEVELS, getLevelRows, VOWEL_ORDERS } from '../data/fidel.js';
 import { isLevelUnlocked, getCharState, isCharMastered } from '../utils/progress.js';
 import { playCharAudio } from '../utils/audio.js';
@@ -54,7 +55,7 @@ export default function LearnMode({ progress, onProgressUpdate, initialLevel }) 
           onClose={() => setDrillRow(null)}
         />
       )}
-      <h2 className="page-title">📖 Learn Mode</h2>
+      <h2 className="page-title"><BookOpen size={22} className="page-title-icon" /> Learn Mode</h2>
 
       {/* Level selector */}
       <div className="level-selector">
@@ -71,7 +72,7 @@ export default function LearnMode({ progress, onProgressUpdate, initialLevel }) 
 
       {/* Vowel orders explainer */}
       <details className="tip-box">
-        <summary>ℹ️ How the 7 orders work</summary>
+        <summary><Info size={15} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> How the 7 orders work</summary>
         <p>
           Every Fidel row shows the same consonant paired with each of 7 vowels, in this order:
         </p>
@@ -117,7 +118,7 @@ export default function LearnMode({ progress, onProgressUpdate, initialLevel }) 
           className="btn btn-lesson row-drill-btn"
           onClick={() => setDrillRow({ row: currentRow, chars })}
         >
-          🎯 Drill this row
+          <Target size={16} strokeWidth={2.25} /> Drill this row
         </button>
       )}
 
@@ -139,7 +140,7 @@ export default function LearnMode({ progress, onProgressUpdate, initialLevel }) 
               <div className="cc-order-badge">
                 {c.order}
               </div>
-              {mastered && <div className="cc-mastery-star">⭐</div>}
+              {mastered && <div className="cc-mastery-star"><Star size={14} strokeWidth={2.25} fill="currentColor" /></div>}
               <div className="cc-char">{c.char}</div>
               <div className="cc-rom">{c.romanization}</div>
               <div className="cc-hint">{c.vowelSymbol} · {c.vowelHint}</div>
@@ -148,7 +149,7 @@ export default function LearnMode({ progress, onProgressUpdate, initialLevel }) 
                 title="Hear pronunciation"
                 onClick={() => playCharAudio(c, progress.settings)}
               >
-                🔊
+                <Volume2 size={16} strokeWidth={2.25} />
               </button>
             </div>
           );

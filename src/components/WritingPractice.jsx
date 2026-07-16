@@ -1,4 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
+import {
+  X, Undo2, Trash2, Star, Volume2, Grid3x3, Check, XCircle, CheckCircle2,
+  Lock, Copy, PenLine,
+} from 'lucide-react';
 import { LEVELS, FIDEL_ROWS, getAllChars } from '../data/fidel.js';
 import { isLevelUnlocked } from '../utils/progress.js';
 import {
@@ -37,10 +41,10 @@ function CanvasToolbar({ onClear, onUndo, hasStrokes, extra }) {
   return (
     <div className="canvas-toolbar">
       <button className="btn btn-secondary canvas-tool-btn" onClick={onUndo} disabled={!hasStrokes}>
-        ↩ Undo
+        <Undo2 size={16} strokeWidth={2.25} /> Undo
       </button>
       <button className="btn btn-secondary canvas-tool-btn" onClick={onClear} disabled={!hasStrokes}>
-        🗑 Clear
+        <Trash2 size={16} strokeWidth={2.25} /> Clear
       </button>
       {extra}
     </div>
@@ -104,7 +108,7 @@ function CopyMode({ chars, writingProgress, settings }) {
       <div className="writing-char-info">
         <span className="wci-char">{char?.char}</span>
         <span className="wci-rom">{char?.romanization}</span>
-        {mastered && <span className="wci-badge wci-mastered">⭐ Mastered</span>}
+        {mastered && <span className="wci-badge wci-mastered"><Star size={12} strokeWidth={2.25} /> Mastered</span>}
       </div>
 
       {char?.note && <div className="row-note" style={{marginBottom:'0.75rem'}}>{char.note}</div>}
@@ -124,7 +128,7 @@ function CopyMode({ chars, writingProgress, settings }) {
             className="btn btn-secondary canvas-tool-btn"
             onClick={() => char && playCharAudio(char, settings)}
           >
-            🔊
+            <Volume2 size={16} strokeWidth={2.25} />
           </button>
         }
       />
@@ -172,7 +176,7 @@ function WritingSessionSummary({ sessionLog, preProgress, currentProgress, onKee
 
       {newlyMastered.length > 0 && (
         <div className="summary-section">
-          <h3 className="summary-section-title">⭐ Newly Mastered</h3>
+          <h3 className="summary-section-title"><Star size={17} strokeWidth={2.25} /> Newly Mastered</h3>
           <div className="summary-char-grid">
             {newlyMastered.map(({ charId, char, romanization }) => (
               <div key={charId} className="summary-char-badge badge-mastered">
@@ -302,7 +306,7 @@ function WritingQuizMode({ chars, writingProgress, onResultSaved, recognitionPro
 
       <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', width:'100%'}}>
         <div className="session-progress-pill">{qNum}/{WRITING_SESSION_SIZE}</div>
-        {revealed && <button className="chart-peek-btn" onClick={() => setShowChart(true)}>📊 Chart</button>}
+        {revealed && <button className="chart-peek-btn" onClick={() => setShowChart(true)}><Grid3x3 size={15} strokeWidth={2.25} /> Chart</button>}
       </div>
 
       {/* Prompt */}
@@ -311,7 +315,7 @@ function WritingQuizMode({ chars, writingProgress, onResultSaved, recognitionPro
         <button
           className="quiz-audio-btn"
           onClick={() => playCharAudio(char, settings)}
-        >🔊</button>
+        ><Volume2 size={20} strokeWidth={2.25} /></button>
 
         {revealed && (
           <div className="wq-answer-reveal">
@@ -345,9 +349,9 @@ function WritingQuizMode({ chars, writingProgress, onResultSaved, recognitionPro
         <div className="quiz-next-bar">
           <p className="wq-grade-label">How did you do?</p>
           <div className="wq-grade-btns">
-            <button className="btn wq-btn-wrong"   onClick={() => grade('wrong')}>✗ Wrong</button>
+            <button className="btn wq-btn-wrong"   onClick={() => grade('wrong')}><X size={16} strokeWidth={2.25} /> Wrong</button>
             <button className="btn wq-btn-almost"  onClick={() => grade('almost')}>≈ Almost</button>
-            <button className="btn wq-btn-correct" onClick={() => grade('correct')}>✓ Correct</button>
+            <button className="btn wq-btn-correct" onClick={() => grade('correct')}><Check size={16} strokeWidth={2.25} /> Correct</button>
           </div>
         </div>
       )}
@@ -377,7 +381,7 @@ function WritingProgressGrid({ writingProgress, recognitionProgress, settings })
           <div key={lvl.level} className={`chart-level ${unlocked ? '' : 'chart-level-locked'}`}>
             <div className="chart-level-header">
               <span className="chart-level-badge">
-                {unlocked ? `Level ${lvl.level}` : `🔒 Level ${lvl.level}`}
+                {unlocked ? `Level ${lvl.level}` : <><Lock size={13} strokeWidth={2.25} /> Level {lvl.level}</>}
               </span>
             </div>
             <div className="chart-rows">
@@ -403,7 +407,7 @@ function WritingProgressGrid({ writingProgress, recognitionProgress, settings })
                         >
                           <span className="chart-cell-char">{char}</span>
                           <span className="chart-cell-rom">{row.romanizations[i]}</span>
-                          {mastered && <span className="chart-cell-star">⭐</span>}
+                          {mastered && <span className="chart-cell-star"><Star size={11} strokeWidth={2.25} fill="currentColor" /></span>}
                           {attempted && (
                             <div className="chart-cell-bar">
                               <div
@@ -437,7 +441,7 @@ function WritingChartModal({ writingProgress, recognitionProgress, settings, onC
   return (
     <div className="chart-modal-backdrop" onClick={onClose}>
       <div className="chart-modal-sheet" onClick={e => e.stopPropagation()}>
-        <button className="chart-modal-close" onClick={onClose}>✕ Close</button>
+        <button className="chart-modal-close" onClick={onClose}><X size={16} strokeWidth={2.25} /> Close</button>
         <WritingProgressGrid
           writingProgress={writingProgress}
           recognitionProgress={recognitionProgress}
@@ -450,9 +454,9 @@ function WritingChartModal({ writingProgress, recognitionProgress, settings, onC
 
 // ─── Main component ───────────────────────────────────────────────────────────
 const MODES = [
-  { id: 'copy',     label: '📋 Copy'     },
-  { id: 'quiz',     label: '✏️ Quiz'     },
-  { id: 'progress', label: '📊 Progress' },
+  { id: 'copy',     label: 'Copy',     icon: Copy },
+  { id: 'quiz',     label: 'Quiz',     icon: PenLine },
+  { id: 'progress', label: 'Progress', icon: Grid3x3 },
 ];
 
 export default function WritingPractice({ progress, initialMode = 'copy' }) {
@@ -508,7 +512,7 @@ export default function WritingPractice({ progress, initialMode = 'copy' }) {
   if (unlockedLevels.length === 0 || pool.length === 0) {
     return (
       <div className="page">
-        <h2 className="page-title">✏️ Writing Practice</h2>
+        <h2 className="page-title"><PenLine size={22} className="page-title-icon" /> Writing Practice</h2>
         <div className="empty-state">
           Complete Level 1 recognition quizzes first to unlock writing practice.
         </div>
@@ -518,19 +522,22 @@ export default function WritingPractice({ progress, initialMode = 'copy' }) {
 
   return (
     <div className="page">
-      <h2 className="page-title">✏️ Writing Practice</h2>
+      <h2 className="page-title"><PenLine size={22} className="page-title-icon" /> Writing Practice</h2>
 
       {/* Mode tabs */}
       <div className="writing-mode-tabs">
-        {MODES.map(m => (
-          <button
-            key={m.id}
-            className={`writing-mode-tab ${mode === m.id ? 'active' : ''}`}
-            onClick={() => handleModeChange(m.id)}
-          >
-            {m.label}
-          </button>
-        ))}
+        {MODES.map(m => {
+          const ModeIcon = m.icon;
+          return (
+            <button
+              key={m.id}
+              className={`writing-mode-tab ${mode === m.id ? 'active' : ''}`}
+              onClick={() => handleModeChange(m.id)}
+            >
+              <ModeIcon size={15} strokeWidth={2.25} /> {m.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Level selector — hidden in progress tab */}

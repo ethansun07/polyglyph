@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Grid3x3, Star, Lock } from 'lucide-react';
 import { FIDEL_ROWS, LEVELS, VOWEL_ORDERS } from '../data/fidel.js';
 import { isLevelUnlocked, isCharMastered, getCharState } from '../utils/progress.js';
 import { playCharAudio } from '../utils/audio.js';
@@ -45,7 +46,7 @@ export default function FullChart({ progress }) {
                 }}
                 title={unlocked
                   ? mastered
-                    ? `${char} = ${row.romanizations[i]} · Mastered ⭐`
+                    ? `${char} = ${row.romanizations[i]} · Mastered`
                     : state && state.seen > 0
                       ? `${char} = ${row.romanizations[i]} · ${Math.max(0, state.correct - state.wrong)}/5`
                       : `${char} = ${row.romanizations[i]}`
@@ -54,7 +55,7 @@ export default function FullChart({ progress }) {
               >
                 <span className="chart-cell-char">{char}</span>
                 <span className="chart-cell-rom">{row.romanizations[i]}</span>
-                {mastered && <span className="chart-cell-star">⭐</span>}
+                {mastered && <span className="chart-cell-star"><Star size={11} strokeWidth={2.25} fill="currentColor" /></span>}
                 {seen && !mastered && (
                   <div className="chart-cell-bar">
                     <div
@@ -73,7 +74,7 @@ export default function FullChart({ progress }) {
 
   return (
     <div className="page">
-      <h2 className="page-title">📊 Full Fidel Chart</h2>
+      <h2 className="page-title"><Grid3x3 size={22} className="page-title-icon" /> Full Fidel Chart</h2>
       <p className="page-sub">
         {coreRows.length} core rows · {coreCharCount} characters + {extCharCount} extended. Locked levels are shown dimmed.
       </p>
@@ -97,7 +98,7 @@ export default function FullChart({ progress }) {
           <div key={lvl.level} className={`chart-level ${unlocked ? '' : 'chart-level-locked'}`}>
             <div className="chart-level-header">
               <span className="chart-level-badge">
-                {unlocked ? `Level ${lvl.level}` : `🔒 Level ${lvl.level}`}
+                {unlocked ? `Level ${lvl.level}` : <><Lock size={13} strokeWidth={2.25} /> Level {lvl.level}</>}
               </span>
               {!unlocked && (
                 <span className="chart-locked-msg">

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { X, Undo2, Volume2, Check } from 'lucide-react';
 import { shuffleArray } from '../data/levelWords.js';
 import { playWordAudio } from '../utils/audio.js';
 import { useEnterKey } from '../utils/useEnterKey.js';
@@ -75,7 +76,7 @@ export default function WordReadingExercise({ level, words, allWords, onClose, a
             </div>
             <div className="wr-subtitle">Goal: practice sounding out the script — not memorizing meanings</div>
           </div>
-          <button className="wr-close" onClick={onClose} aria-label="Close">✕</button>
+          <button className="wr-close" onClick={onClose} aria-label="Close"><X size={18} strokeWidth={2.25} /></button>
         </div>
 
         <div className="wr-scope-toggle">
@@ -106,7 +107,7 @@ export default function WordReadingExercise({ level, words, allWords, onClose, a
             <div className="wr-counter">{score} / {total}</div>
 
             <div className={`wr-card ${revealed ? 'wr-card-revealed' : ''}`}>
-              {wrongIds.has(word.amharic) && <span className="retry-badge">↩ retry</span>}
+              {wrongIds.has(word.amharic) && <span className="retry-badge"><Undo2 size={11} strokeWidth={2.25} /> retry</span>}
               <div className="wr-word">{word.amharic}</div>
 
               {!revealed && (
@@ -120,7 +121,7 @@ export default function WordReadingExercise({ level, words, allWords, onClose, a
                   <button
                     className="phrase-audio-btn"
                     onClick={() => playWordAudio(word, { audioEnabled: audioEnabled !== false })}
-                  >🔊</button>
+                  ><Volume2 size={18} strokeWidth={2.25} /></button>
                 </div>
               )}
             </div>
@@ -129,8 +130,8 @@ export default function WordReadingExercise({ level, words, allWords, onClose, a
               <button className="btn btn-primary" onClick={reveal}>Reveal</button>
             ) : (
               <div className="pfc-grade-btns">
-                <button className="pfc-btn-wrong"   onClick={() => grade(false)}>✗ Wrong</button>
-                <button className="pfc-btn-correct" onClick={() => grade(true)}>✓ Got it</button>
+                <button className="pfc-btn-wrong"   onClick={() => grade(false)}><X size={16} strokeWidth={2.25} /> Wrong</button>
+                <button className="pfc-btn-correct" onClick={() => grade(true)}><Check size={16} strokeWidth={2.25} /> Got it</button>
               </div>
             )}
           </>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Settings as SettingsIcon, Type, MessageCircle, AlertTriangle, Info, Star, Check } from 'lucide-react';
 import { resetProgress } from '../utils/progress.js';
 import { resetWritingProgress } from '../utils/writingProgress.js';
 import { resetPhraseProgress } from '../utils/phraseProgress.js';
@@ -46,11 +47,11 @@ export default function Settings({ progress, onProgressUpdate, user }) {
 
   return (
     <div className="page">
-      <h2 className="page-title">⚙️ Settings</h2>
+      <h2 className="page-title"><SettingsIcon size={22} className="page-title-icon" /> Settings</h2>
 
       {/* Extended characters */}
       <div className="settings-section">
-        <h3 className="settings-section-title">🔤 Characters</h3>
+        <h3 className="settings-section-title"><Type size={16} /> Characters</h3>
         <div className="settings-row">
           <div>
             <div className="settings-row-label">Extended characters</div>
@@ -67,12 +68,12 @@ export default function Settings({ progress, onProgressUpdate, user }) {
 
       {/* Mastery */}
       <div className="settings-section">
-        <h3 className="settings-section-title">ℹ️ About Mastery</h3>
+        <h3 className="settings-section-title"><Info size={16} /> About Mastery</h3>
         <div className="settings-info-box">
-          <p><strong>Reading mastery ⭐</strong> — net score (correct − wrong) reaches <strong>5</strong>. Affects level unlocks.</p>
-          <p><strong>Writing mastery ⭐</strong> — net score reaches <strong>3</strong>. Tracked separately, does not affect level unlocks.</p>
-          <p><strong>Number mastery ⭐</strong> — net score reaches <strong>5</strong>. Tracked separately, does not affect level unlocks.</p>
-          <p>Mastery can be lost — getting enough wrong answers drops your net score below the threshold.</p>
+          <p><strong>Reading mastery <Star size={13} strokeWidth={2.25} style={{ verticalAlign: 'middle', color: 'var(--gold)' }} /></strong>: net score (correct − wrong) reaches <strong>5</strong>. Affects level unlocks.</p>
+          <p><strong>Writing mastery <Star size={13} strokeWidth={2.25} style={{ verticalAlign: 'middle', color: 'var(--gold)' }} /></strong>: net score reaches <strong>3</strong>. Tracked separately, does not affect level unlocks.</p>
+          <p><strong>Number mastery <Star size={13} strokeWidth={2.25} style={{ verticalAlign: 'middle', color: 'var(--gold)' }} /></strong>: net score reaches <strong>5</strong>. Tracked separately, does not affect level unlocks.</p>
+          <p>Mastery can be lost: getting enough wrong answers drops your net score below the threshold.</p>
           <p>A level <strong>unlocks</strong> when 85% of the previous level's characters reach reading mastery.</p>
           <p>Weak characters appear more often in quizzes; mastered ones appear occasionally for review.</p>
         </div>
@@ -80,7 +81,7 @@ export default function Settings({ progress, onProgressUpdate, user }) {
 
       {/* Feedback */}
       <div className="settings-section">
-        <h3 className="settings-section-title">💬 Feedback</h3>
+        <h3 className="settings-section-title"><MessageCircle size={16} /> Feedback</h3>
         <p className="settings-row-desc">
           Found a bug, or something you wish worked differently? Let me know.
         </p>
@@ -98,13 +99,13 @@ export default function Settings({ progress, onProgressUpdate, user }) {
         >
           {feedbackStatus === 'sending' ? 'Sending…' : 'Send feedback'}
         </button>
-        {feedbackStatus === 'sent'  && <p className="feedback-status feedback-status-ok">✓ Thanks — feedback sent!</p>}
+        {feedbackStatus === 'sent'  && <p className="feedback-status feedback-status-ok"><Check size={14} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> Thanks, feedback sent!</p>}
         {feedbackStatus === 'error' && <p className="feedback-status feedback-status-err">Couldn't send that — try again in a bit.</p>}
       </div>
 
       {/* Reset */}
       <div className="settings-section settings-danger">
-        <h3 className="settings-section-title">⚠️ Reset Progress</h3>
+        <h3 className="settings-section-title"><AlertTriangle size={16} /> Reset Progress</h3>
         <p className="settings-row-desc">
           Deletes all progress, streak, and mastery data. Cannot be undone.
         </p>

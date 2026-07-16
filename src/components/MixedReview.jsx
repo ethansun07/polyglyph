@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Shuffle, Grid3x3, PenLine, Volume2, HelpCircle, Check, X, Undo2, Trash2, CheckCircle2, XCircle } from 'lucide-react';
 import { LEVELS, getAllChars } from '../data/fidel.js';
 import { isLevelUnlocked, recordAnswer } from '../utils/progress.js';
 import {
@@ -181,7 +182,7 @@ export default function MixedReview({ progress, onProgressUpdate, onDone }) {
   if (!q) {
     return (
       <div className="page">
-        <h2 className="page-title">🎲 Mixed Review</h2>
+        <h2 className="page-title"><Shuffle size={22} className="page-title-icon" /> Mixed Review</h2>
         <div className="empty-state">
           Not enough characters unlocked yet.<br />
           Complete Level 1 first!
@@ -227,27 +228,27 @@ export default function MixedReview({ progress, onProgressUpdate, onDone }) {
   useEnterKey(q.type === 'write' && !writeRevealed, handleWriteCheck);
   useEnterKey(answered && q.type !== 'write' && !showChart && !showSummary, handleNext);
 
-  const typeBadge = q.type === 'write'  ? '✏️ Write'
-    : q.type === 'audio'  ? '🔊 Listen'
-    : '❓ Forward';
+  const typeBadge = q.type === 'write'  ? <><PenLine size={13} strokeWidth={2.25} /> Write</>
+    : q.type === 'audio'  ? <><Volume2 size={13} strokeWidth={2.25} /> Listen</>
+    : <><HelpCircle size={13} strokeWidth={2.25} /> Forward</>;
 
   return (
     <div className="page">
       {showChart && <ChartModal progress={progress} onClose={() => setShowChart(false)} />}
       <div className="page-title-row">
-        <h2 className="page-title">🎲 Mixed Review</h2>
+        <h2 className="page-title"><Shuffle size={22} className="page-title-icon" /> Mixed Review</h2>
         <div className="mr-header-btns">
           <button
             className={`mr-toggle-btn ${includeWriting ? 'mr-toggle-on' : 'mr-toggle-off'}`}
             onClick={() => setIncludeWriting(w => !w)}
             title="Toggle writing questions"
           >
-            ✏️ {includeWriting ? 'Writing: on' : 'Writing: off'}
+            <PenLine size={14} strokeWidth={2.25} /> {includeWriting ? 'Writing: on' : 'Writing: off'}
           </button>
-          {answered && <button className="chart-peek-btn" onClick={() => setShowChart(true)}>📊 Chart</button>}
+          {answered && <button className="chart-peek-btn" onClick={() => setShowChart(true)}><Grid3x3 size={15} strokeWidth={2.25} /> Chart</button>}
         </div>
       </div>
-      <p className="page-sub">Reading, listening, and writing — weak characters appear more often.</p>
+      <p className="page-sub">Reading, listening, and writing: weak characters appear more often.</p>
 
       <div className="level-selector">
         <button
@@ -264,7 +265,7 @@ export default function MixedReview({ progress, onProgressUpdate, onDone }) {
       </div>
 
       <div className="score-bar">
-        <span className="score-correct">{sessionCorrect} ✓</span>
+        <span className="score-correct">{sessionCorrect} <Check size={14} strokeWidth={2.5} style={{ verticalAlign: 'middle' }} /></span>
         <span className="score-total">/ {sessionTotal}</span>
         {sessionTotal > 0 && (
           <span className="score-pct">
@@ -283,7 +284,7 @@ export default function MixedReview({ progress, onProgressUpdate, onDone }) {
 
             {answered && (
               <button className="quiz-audio-btn" onClick={() => playCharAudio(q.char, progress.settings)}>
-                🔊
+                <Volume2 size={20} strokeWidth={2.25} />
               </button>
             )}
           </div>
@@ -311,7 +312,7 @@ export default function MixedReview({ progress, onProgressUpdate, onDone }) {
           <div className={`quiz-card ${writeRevealed ? 'quiz-card-revealed' : ''}`}>
             <div className="wq-prompt-rom">{q.char.romanization}</div>
             <button className="quiz-audio-btn" onClick={() => playCharAudio(q.char, progress.settings)}>
-              🔊
+              <Volume2 size={20} strokeWidth={2.25} />
             </button>
             {writeRevealed && (
               <div className="wq-answer-reveal">
@@ -328,14 +329,14 @@ export default function MixedReview({ progress, onProgressUpdate, onDone }) {
               onClick={() => setWriteStrokes(s => s.slice(0, -1))}
               disabled={writeStrokes.length === 0}
             >
-              ↩ Undo
+              <Undo2 size={16} strokeWidth={2.25} /> Undo
             </button>
             <button
               className="btn btn-secondary canvas-tool-btn"
               onClick={() => setWriteStrokes([])}
               disabled={writeStrokes.length === 0}
             >
-              🗑 Clear
+              <Trash2 size={16} strokeWidth={2.25} /> Clear
             </button>
           </div>
 
@@ -347,9 +348,9 @@ export default function MixedReview({ progress, onProgressUpdate, onDone }) {
             <>
               <p className="wq-grade-label">How did you do?</p>
               <div className="wq-grade-btns">
-                <button className="btn wq-btn-wrong"   onClick={() => handleWriteGrade('wrong')}>✗ Wrong</button>
+                <button className="btn wq-btn-wrong"   onClick={() => handleWriteGrade('wrong')}><X size={16} strokeWidth={2.25} /> Wrong</button>
                 <button className="btn wq-btn-almost"  onClick={() => handleWriteGrade('almost')}>≈ Almost</button>
-                <button className="btn wq-btn-correct" onClick={() => handleWriteGrade('correct')}>✓ Correct</button>
+                <button className="btn wq-btn-correct" onClick={() => handleWriteGrade('correct')}><Check size={16} strokeWidth={2.25} /> Correct</button>
               </div>
             </>
           )}
@@ -361,7 +362,7 @@ export default function MixedReview({ progress, onProgressUpdate, onDone }) {
           <div className={`quiz-card ${answered ? (wasCorrect ? 'quiz-correct' : 'quiz-wrong') : ''}`}>
             <p className="quiz-prompt">Which character makes this sound?</p>
             <button className="audio-step-play" onClick={() => playCharAudio(q.char, progress.settings)}>
-              🔊 Play again
+              <Volume2 size={16} strokeWidth={2.25} /> Play again
             </button>
             {answered && (
               <div className="audio-step-reveal">{q.char.char} = {q.char.romanization}</div>
@@ -399,8 +400,8 @@ export default function MixedReview({ progress, onProgressUpdate, onDone }) {
       {answered && q.type === 'forward' && (
         <div className={`feedback-box ${wasCorrect ? 'feedback-correct' : 'feedback-wrong'}`}>
           {wasCorrect
-            ? `✅ Correct! ${q.char.char} = ${q.char.romanization}`
-            : `❌ Not quite. ${q.char.char} = ${q.char.romanization} (you chose "${selected}")`
+            ? <><CheckCircle2 size={17} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> Correct! {q.char.char} = {q.char.romanization}</>
+            : <><XCircle size={17} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> Not quite. {q.char.char} = {q.char.romanization} (you chose "{selected}")</>
           }
           {q.char.note && <p className="feedback-note">{q.char.note}</p>}
         </div>
@@ -409,8 +410,8 @@ export default function MixedReview({ progress, onProgressUpdate, onDone }) {
       {answered && q.type === 'audio' && (
         <div className={`feedback-box ${wasCorrect ? 'feedback-correct' : 'feedback-wrong'}`}>
           {wasCorrect
-            ? `✅ Correct! "${q.char.romanization}" = ${q.char.char}`
-            : `❌ Not quite. "${q.char.romanization}" = ${q.char.char}`
+            ? <><CheckCircle2 size={17} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> Correct! "{q.char.romanization}" = {q.char.char}</>
+            : <><XCircle size={17} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> Not quite. "{q.char.romanization}" = {q.char.char}</>
           }
           {q.char.note && <p className="feedback-note">{q.char.note}</p>}
         </div>
@@ -418,7 +419,7 @@ export default function MixedReview({ progress, onProgressUpdate, onDone }) {
 
       {answered && (
         <button className="btn btn-primary btn-next" onClick={handleNext}>
-          {isLastQuestion ? '📊 See Results' : 'Next →'}
+          {isLastQuestion ? <><Grid3x3 size={16} strokeWidth={2.25} /> See Results</> : 'Next →'}
         </button>
       )}
     </div>

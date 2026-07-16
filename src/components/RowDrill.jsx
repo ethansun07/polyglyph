@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { X, Grid3x3 } from 'lucide-react';
 import { shuffle } from '../utils/quiz.js';
 import { playCharAudio } from '../utils/audio.js';
 import { useEnterKey } from '../utils/useEnterKey.js';
@@ -58,7 +59,7 @@ export default function RowDrill({ row, chars, progress, onClose }) {
           <div>
             <div className="wr-title">{row.baseName} — row drill</div>
           </div>
-          <button className="wr-close" onClick={onClose}>✕</button>
+          <button className="wr-close" onClick={onClose}><X size={18} strokeWidth={2.25} /></button>
         </div>
 
         {done ? (
@@ -100,7 +101,7 @@ export default function RowDrill({ row, chars, progress, onClose }) {
             {chosen !== null && (
               <div className="wr-sticky-footer">
                 <button className="btn btn-primary" onClick={advance}>
-                  {idx + 1 >= total ? '📊 See Results' : 'Next →'}
+                  {idx + 1 >= total ? <><Grid3x3 size={16} strokeWidth={2.25} /> See Results</> : 'Next →'}
                 </button>
               </div>
             )}

@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { ScrollText, Check, Circle, Lock, MessagesSquare, Volume2, Wrench } from 'lucide-react';
 import { SENTENCES, DIALOGUES, CONNECTOR_NOTE } from '../data/readingSentences.js';
 import { isReadModeUnlocked, isLevel7Mastered, loadReadSeen, markReadSeen } from '../utils/progress.js';
 import { auth, ADMIN_EMAIL } from '../utils/firebase.js';
@@ -69,7 +70,7 @@ function SentenceCard({ sentence, settings, read, onRead }) {
 
   return (
     <div className={`sentence-card ${read ? 'read-card-seen' : ''}`}>
-      {read && <span className="read-seen-check" title="Already read">✓</span>}
+      {read && <span className="read-seen-check" title="Already read"><Check size={15} strokeWidth={2.5} /></span>}
       <div className="sentence-words">
         {sentence.words.map((word, i) => {
           const isOpen = revealed.has(i);
@@ -101,7 +102,7 @@ function SentenceCard({ sentence, settings, read, onRead }) {
           className="btn btn-ghost btn-sm"
           onClick={() => playSentenceAudio(sentence, settings)}
           title="Play audio"
-        >🔊</button>
+        ><Volume2 size={15} strokeWidth={2.25} /></button>
         {anyRevealed && (
           <button
             className="btn btn-ghost btn-sm"
@@ -136,7 +137,7 @@ function DialogueCard({ dialogue, settings, read, onRead }) {
 
   return (
     <div className={`dialogue-card ${read ? 'read-card-seen' : ''}`}>
-      {read && <span className="read-seen-check" title="Already read">✓</span>}
+      {read && <span className="read-seen-check" title="Already read"><Check size={15} strokeWidth={2.5} /></span>}
       <div className="dialogue-card-title">
         <span className="para-title-amharic">{dialogue.title}</span>
         <span className="para-title-meaning">{dialogue.titleMeaning}</span>
@@ -160,7 +161,7 @@ function DialogueCard({ dialogue, settings, read, onRead }) {
                   className="btn btn-ghost btn-sm dialogue-audio-btn"
                   onClick={() => playDialogueLineAudio(dialogue.id, i, line.amharic, settings)}
                   title="Play audio"
-                >🔊</button>
+                ><Volume2 size={15} strokeWidth={2.25} /></button>
               </div>
             </div>
           );
@@ -193,28 +194,28 @@ function LockedScreen({ progress, onAdminUnlock }) {
 
   return (
     <div className="read-locked">
-      <div className="read-locked-icon">🔒</div>
+      <div className="read-locked-icon"><Lock size={45} strokeWidth={1.75} /></div>
       <h3 className="read-locked-title">Read Mode Locked</h3>
       <p className="read-locked-sub">Complete both steps to unlock:</p>
 
       <ul className="read-locked-checklist">
         <li className={level7Done ? 'check-done' : 'check-todo'}>
-          {level7Done ? '✓' : '○'} Master all Level 7 characters (85% threshold)
+          {level7Done ? <Check size={15} strokeWidth={2.5} /> : <Circle size={15} strokeWidth={2.25} />} Master all Level 7 characters (85% threshold)
         </li>
         <li className={testDone ? 'check-done' : 'check-todo'}>
-          {testDone ? '✓' : '○'} Pass the Common Phrases final test (85% score)
+          {testDone ? <Check size={15} strokeWidth={2.5} /> : <Circle size={15} strokeWidth={2.25} />} Pass the Common Phrases final test (85% score)
         </li>
       </ul>
 
       {!testDone && (
         <p className="read-locked-hint">
-          Head to 🗣️ Phrases → browse all phrases → take the Final Test.
+          Head to <MessagesSquare size={13} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> Phrases → browse all phrases → take the Final Test.
         </p>
       )}
 
       {isAdmin && (
         <button className="btn btn-secondary read-admin-unlock" onClick={onAdminUnlock}>
-          🛠 Admin: unlock now
+          <Wrench size={15} strokeWidth={2.25} /> Admin: unlock now
         </button>
       )}
     </div>
@@ -258,7 +259,7 @@ export default function SentenceReader({ progress, onProgressUpdate }) {
   if (!unlocked) {
     return (
       <div className="page">
-        <h2 className="page-title">📜 Read</h2>
+        <h2 className="page-title"><ScrollText size={22} className="page-title-icon" /> Read</h2>
         <LockedScreen progress={progress} onAdminUnlock={handleAdminUnlock} />
       </div>
     );
@@ -266,14 +267,14 @@ export default function SentenceReader({ progress, onProgressUpdate }) {
 
   return (
     <div className="page">
-      <h2 className="page-title">📜 Read</h2>
+      <h2 className="page-title"><ScrollText size={22} className="page-title-icon" /> Read</h2>
       <p className="page-sub">
         Tap any word or sentence to reveal its meaning. Try reading aloud first.
       </p>
 
       {isAdmin && progress.readUnlockedByAdmin && (
         <button className="btn btn-secondary read-admin-unlock" onClick={handleAdminRelock}>
-          🛠 Admin: relock Read mode
+          <Wrench size={15} strokeWidth={2.25} /> Admin: relock Read mode
         </button>
       )}
 

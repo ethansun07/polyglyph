@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Star, Check, Volume2, CheckCircle2, XCircle, Grid3x3 } from 'lucide-react';
 import {
   ALL_BASE_SYMBOLS, ETHIOPIC_DIGITS, ETHIOPIC_TENS, ETHIOPIC_HUNDREDS, ETHIOPIC_THOUSANDS,
   ETHIOPIC_TEN_THOUSANDS, ETHIOPIC_LARGE_ROUND,
@@ -47,7 +48,7 @@ function LearnNumbers({ progress, settings }) {
                   <span className="num-amharic">{item.amharic}</span>
                   <span className="num-name">{item.name}</span>
                   {mastered
-                    ? <span className="num-star">⭐</span>
+                    ? <span className="num-star"><Star size={14} strokeWidth={2.25} fill="currentColor" /></span>
                     : seen
                       ? (
                         <div className="num-card-bar">
@@ -214,7 +215,7 @@ function NumberValueQuiz({ progress, settings, onProgressUpdate, onDone }) {
         </div>
         {newlyMastered.length > 0 && (
           <div className="summary-section">
-            <h3 className="summary-section-title">⭐ Newly Mastered</h3>
+            <h3 className="summary-section-title"><Star size={17} strokeWidth={2.25} /> Newly Mastered</h3>
             <div className="num-summary-row">
               {newlyMastered.map(e => (
                 <div key={e.value} className="num-summary-badge badge-mastered">
@@ -279,7 +280,7 @@ function NumberValueQuiz({ progress, settings, onProgressUpdate, onDone }) {
       </div>
 
       <div className="score-bar">
-        <span className="score-correct">{sessionCorrect} ✓</span>
+        <span className="score-correct">{sessionCorrect} <Check size={14} strokeWidth={2.5} style={{ verticalAlign: 'middle' }} /></span>
         <span className="score-total">/ {sessionTotal}</span>
         {sessionTotal > 0 && (
           <span className="score-pct">{Math.round(sessionCorrect / sessionTotal * 100)}%</span>
@@ -296,7 +297,7 @@ function NumberValueQuiz({ progress, settings, onProgressUpdate, onDone }) {
           className="quiz-audio-btn"
           onClick={() => playNumberAudio(q.symbol.value, q.symbol.amharic, settings)}
           title="Hear pronunciation"
-        >🔊</button>
+        ><Volume2 size={20} strokeWidth={2.25} /></button>
       </div>
 
       <div className="choice-grid">
@@ -318,15 +319,15 @@ function NumberValueQuiz({ progress, settings, onProgressUpdate, onDone }) {
       {answered && (
         <div className={`feedback-box ${wasCorrect ? 'feedback-correct' : 'feedback-wrong'}`}>
           {wasCorrect
-            ? `✅ Correct! ${q.displayMode === 'word' ? q.symbol.amharic : q.symbol.symbol} = ${q.symbol.value}`
-            : `❌ That's ${q.displayMode === 'word' ? q.symbol.amharic : q.symbol.symbol} = ${q.symbol.value}`}
+            ? <><CheckCircle2 size={17} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> Correct! {q.displayMode === 'word' ? q.symbol.amharic : q.symbol.symbol} = {q.symbol.value}</>
+            : <><XCircle size={17} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> That's {q.displayMode === 'word' ? q.symbol.amharic : q.symbol.symbol} = {q.symbol.value}</>}
         </div>
       )}
 
       {answered && (
         <div className="quiz-next-bar">
           <button className="btn btn-primary btn-next" onClick={handleNext}>
-            {isLastQuestion ? '📊 See Results' : 'Next →'}
+            {isLastQuestion ? <><Grid3x3 size={16} strokeWidth={2.25} /> See Results</> : 'Next →'}
           </button>
         </div>
       )}
@@ -432,7 +433,7 @@ function CombosQuiz({ settings }) {
       </div>
 
       <div className="score-bar">
-        <span className="score-correct">{sessionCorrect} ✓</span>
+        <span className="score-correct">{sessionCorrect} <Check size={14} strokeWidth={2.5} style={{ verticalAlign: 'middle' }} /></span>
         <span className="score-total">/ {sessionTotal}</span>
         {sessionTotal > 0 && (
           <span className="score-pct">{Math.round(sessionCorrect / sessionTotal * 100)}%</span>
@@ -446,7 +447,7 @@ function CombosQuiz({ settings }) {
           className="quiz-audio-btn"
           onClick={() => playNumberAudio(q.value, q.amharic, settings)}
           title="Hear pronunciation"
-        >🔊</button>
+        ><Volume2 size={20} strokeWidth={2.25} /></button>
       </div>
 
       <div className="choice-grid">
@@ -468,8 +469,8 @@ function CombosQuiz({ settings }) {
       {answered && (
         <div className={`feedback-box ${wasCorrect ? 'feedback-correct' : 'feedback-wrong'}`}>
           {wasCorrect
-            ? `✅ Correct! ${display} = ${q.value}`
-            : `❌ That's ${display} = ${q.value}`}
+            ? <><CheckCircle2 size={17} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> Correct! {display} = {q.value}</>
+            : <><XCircle size={17} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> That's {display} = {q.value}</>}
         </div>
       )}
 
@@ -520,7 +521,7 @@ export default function EthiopicNumbers({ settings }) {
 
   return (
     <div className="page">
-      <h2 className="page-title">፩ Ethiopic Numbers</h2>
+      <h2 className="page-title"><span className="page-title-icon page-title-glyph">፩</span> Ethiopic Numbers</h2>
       <p className="page-sub">{stats.mastered}/{stats.total} base symbols mastered</p>
 
       <div className="writing-mode-tabs">

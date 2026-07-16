@@ -1,5 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import {
+  X, MessagesSquare, Lightbulb, Volume2, Check, Undo2, XCircle,
+  Trophy, ScrollText, PartyPopper, BookOpen, Grid3x3, Target, Layers, Keyboard,
+} from 'lucide-react';
+import {
   CATEGORIES, CATEGORY_ORDER, PHRASES,
   getUnlockedPhrases, shuffleArray,
 } from '../data/amharicPhrases.js';
@@ -70,11 +74,11 @@ function BrowseMode({ pool, settings, newestLevel, onPhraseSeen }) {
                       <div className="phrase-card-detail" onClick={e => e.stopPropagation()}>
                         <div className="phrase-translit">{phrase.transliteration}</div>
                         <div className="phrase-meaning">{phrase.meaning}</div>
-                        {phrase.note && <div className="phrase-note">💡 {phrase.note}</div>}
+                        {phrase.note && <div className="phrase-note"><Lightbulb size={13} strokeWidth={2.25} style={{ verticalAlign: 'middle', color: 'var(--gold)' }} /> {phrase.note}</div>}
                         <button
                           className="phrase-audio-btn"
                           onClick={() => playPhraseAudio(phrase, settings)}
-                        >🔊</button>
+                        ><Volume2 size={16} strokeWidth={2.25} /></button>
                       </div>
                     )}
                   </div>
@@ -249,16 +253,16 @@ function FlashcardMode({ pool, settings, onPhraseResult, progress, onProgressUpd
         <button
           className={`pq-dir-btn ${direction === 'forward' ? 'active' : ''}`}
           onClick={() => switchDirection('forward')}
-        >🇪🇹 → 🇬🇧</button>
+        >Amharic → English</button>
         <button
           className={`pq-dir-btn ${direction === 'reverse' ? 'active' : ''}`}
           onClick={() => switchDirection('reverse')}
-        >🇬🇧 → 🇪🇹</button>
+        >English → Amharic</button>
       </div>
 
       <div className="score-bar">
         {session.total > 0 && <>
-          <span className="score-correct">{session.correct} ✓</span>
+          <span className="score-correct">{session.correct} <Check size={14} strokeWidth={2.5} style={{ verticalAlign: 'middle' }} /></span>
           <span className="score-total">/ {session.total}</span>
           <span className="score-pct">{Math.round((session.correct / session.total) * 100)}%</span>
         </>}
@@ -271,7 +275,7 @@ function FlashcardMode({ pool, settings, onPhraseResult, progress, onProgressUpd
       >
         {!flipped ? (
           <>
-            {wrongIds.has(phrase.id) && <span className="retry-badge">↩ retry</span>}
+            {wrongIds.has(phrase.id) && <span className="retry-badge"><Undo2 size={11} strokeWidth={2.25} /> retry</span>}
             {direction === 'forward'
               ? <div className="pfc-amharic">{phrase.amharic}</div>
               : <div className="pfc-meaning pfc-front-meaning">{phrase.meaning}</div>
@@ -291,19 +295,19 @@ function FlashcardMode({ pool, settings, onPhraseResult, progress, onProgressUpd
                 <div className="pfc-translit">{phrase.transliteration}</div>
               </>
             )}
-            {phrase.note && <div className="phrase-note pfc-note">💡 {phrase.note}</div>}
+            {phrase.note && <div className="phrase-note pfc-note"><Lightbulb size={13} strokeWidth={2.25} style={{ verticalAlign: 'middle', color: 'var(--gold)' }} /> {phrase.note}</div>}
             <button
               className="phrase-audio-btn"
               onClick={e => { e.stopPropagation(); playPhraseAudio(phrase, settings); }}
-            >🔊</button>
+            ><Volume2 size={16} strokeWidth={2.25} /></button>
           </div>
         )}
       </div>
 
       {flipped && !graded && (
         <div className="pfc-grade-btns">
-          <button className="pfc-btn-wrong"   onClick={() => grade('wrong')}>✗ Wrong</button>
-          <button className="pfc-btn-correct" onClick={() => grade('correct')}>✓ Got it</button>
+          <button className="pfc-btn-wrong"   onClick={() => grade('wrong')}><X size={16} strokeWidth={2.25} /> Wrong</button>
+          <button className="pfc-btn-correct" onClick={() => grade('correct')}><Check size={16} strokeWidth={2.25} /> Got it</button>
         </div>
       )}
 
@@ -377,7 +381,7 @@ function GeezKeyboardGuide() {
   return (
     <div className="geez-guide">
       <button className="geez-guide-toggle" onClick={() => setOpen(o => !o)}>
-        ⌨ Ge'ez keyboard guide {open ? '▲' : '▼'}
+        <Keyboard size={14} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> Ge'ez keyboard guide {open ? '▲' : '▼'}
       </button>
       {open && (
         <div className="geez-guide-body">
@@ -622,9 +626,9 @@ function TypingMode({ pool, settings, onPhraseResult, progress, onProgressUpdate
           <div className="ss-score">{session.correct}/{session.total}</div>
           <div className="ss-label">correct this session</div>
           {finalScore?.isNew ? (
-            <div className="phrase-test-high-score phrase-test-high-score-new">🏆 New high score!</div>
+            <div className="phrase-test-high-score phrase-test-high-score-new"><Trophy size={15} strokeWidth={2.25} /> New high score!</div>
           ) : finalScore ? (
-            <div className="phrase-test-high-score">🏆 Best: {finalScore.correct} / {finalScore.total} ({Math.round(finalScore.pct * 100)}%)</div>
+            <div className="phrase-test-high-score"><Trophy size={15} strokeWidth={2.25} /> Best: {finalScore.correct} / {finalScore.total} ({Math.round(finalScore.pct * 100)}%)</div>
           ) : null}
           <button className="btn btn-primary" onClick={() => reset(selectedLevels)}>Again →</button>
         </div>
@@ -650,7 +654,7 @@ function TypingMode({ pool, settings, onPhraseResult, progress, onProgressUpdate
 
       <div className="score-bar">
         {session.total > 0 && <>
-          <span className="score-correct">{session.correct} ✓</span>
+          <span className="score-correct">{session.correct} <Check size={14} strokeWidth={2.5} style={{ verticalAlign: 'middle' }} /></span>
           <span className="score-total">/ {session.total}</span>
           <span className="score-pct">{Math.round((session.correct / session.total) * 100)}%</span>
         </>}
@@ -658,7 +662,7 @@ function TypingMode({ pool, settings, onPhraseResult, progress, onProgressUpdate
       </div>
 
       <div className="phrase-flashcard phrase-typing-card">
-        {wrongIds.has(phrase.id) && <span className="retry-badge">↩ retry</span>}
+        {wrongIds.has(phrase.id) && <span className="retry-badge"><Undo2 size={11} strokeWidth={2.25} /> retry</span>}
         <div className="pfc-meaning pfc-front-meaning">{phrase.meaning}</div>
       </div>
 
@@ -676,16 +680,16 @@ function TypingMode({ pool, settings, onPhraseResult, progress, onProgressUpdate
       {result && (
         <div className="typing-feedback">
           {result === 'correct'
-            ? <span className="typing-result-correct">✓ Correct!</span>
+            ? <span className="typing-result-correct"><Check size={15} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> Correct!</span>
             : <span className="typing-result-wrong">
-                ✗ <span className="typing-answer">{phraseVariants(phrase).join(' / ')}</span>
+                <XCircle size={15} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> <span className="typing-answer">{phraseVariants(phrase).join(' / ')}</span>
               </span>
           }
           <div className="typing-translit">{phrase.transliteration}</div>
           <button
             className="phrase-audio-btn"
             onClick={() => playPhraseAudio(phrase, settings)}
-          >🔊</button>
+          ><Volume2 size={16} strokeWidth={2.25} /></button>
         </div>
       )}
 
@@ -890,21 +894,21 @@ function PhraseTestMode({ pool, progress, phraseProgress, onProgressUpdate, alre
     return (
       <div className="phrase-test-done">
         <div className={`phrase-test-result ${finalPassed ? 'test-pass' : 'test-fail'}`}>
-          {finalPassed ? '🎉' : '📖'}
+          {finalPassed ? <PartyPopper size={48} strokeWidth={1.75} /> : <BookOpen size={48} strokeWidth={1.75} />}
         </div>
         <div className="phrase-test-score">{score} / {total}</div>
         <div className="phrase-test-score-pct">{Math.round((score / total) * 100)}%</div>
         {newHighScore ? (
-          <div className="phrase-test-high-score phrase-test-high-score-new">🏆 New high score!</div>
+          <div className="phrase-test-high-score phrase-test-high-score-new"><Trophy size={15} strokeWidth={2.25} /> New high score!</div>
         ) : tiedBest ? (
-          <div className="phrase-test-high-score phrase-test-high-score-new">🏆 Matched your best!</div>
+          <div className="phrase-test-high-score phrase-test-high-score-new"><Trophy size={15} strokeWidth={2.25} /> Matched your best!</div>
         ) : bestForLevel ? (
-          <div className="phrase-test-high-score">🏆 Best: {bestForLevel.score} / {bestForLevel.total} ({Math.round(bestForLevel.pct * 100)}%)</div>
+          <div className="phrase-test-high-score"><Trophy size={15} strokeWidth={2.25} /> Best: {bestForLevel.score} / {bestForLevel.total} ({Math.round(bestForLevel.pct * 100)}%)</div>
         ) : null}
         {finalPassed ? (
           <>
             <div className="phrase-test-msg phrase-test-msg-pass">
-              Read mode unlocked! Head to the 📜 Read tab.
+              Read mode unlocked! Head to the <ScrollText size={14} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> Read tab.
             </div>
           </>
         ) : (
@@ -921,7 +925,7 @@ function PhraseTestMode({ pool, progress, phraseProgress, onProgressUpdate, alre
   return (
     <div className="phrase-test-mode">
       {alreadyPassed && (
-        <div className="phrase-test-passed-banner">✓ Read mode already unlocked — retaking for fun</div>
+        <div className="phrase-test-passed-banner"><Check size={14} strokeWidth={2.5} style={{ verticalAlign: 'middle' }} /> Read mode already unlocked, retaking for fun</div>
       )}
       <div className="phrase-test-progress">
         Question {questionsSoFar + 1}{step.type === 'match' ? `–${questionsSoFar + step.phrases.length}` : ''} of {total}
@@ -989,9 +993,10 @@ function PhraseBreakdown() {
           fontSize: '0.72rem', padding: '0.2rem 0.6rem', marginBottom: '0.5rem',
           background: 'transparent', border: '1px solid #555',
           borderRadius: '4px', color: '#aaa', cursor: 'pointer',
+          display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
         }}
       >
-        📊 Breakdown
+        <Grid3x3 size={13} strokeWidth={2.25} /> Breakdown
       </button>
 
       {open && (
@@ -1013,7 +1018,7 @@ function PhraseBreakdown() {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0.8rem', borderBottom: '1px solid #2a2a2a' }}>
               <span style={{ color: '#ccc', fontWeight: 600 }}>Phrase Breakdown — {PHRASES.length} total</span>
-              <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
+              <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', display: 'inline-flex' }}><X size={16} strokeWidth={2.25} /></button>
             </div>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
@@ -1070,7 +1075,7 @@ function HighScorePanel({ progress }) {
   return (
     <div className="grammar-note">
       <button className="grammar-note-toggle" onClick={() => setOpen(o => !o)}>
-        🏆 High Scores {open ? '▲' : '▼'}
+        <span><Trophy size={14} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> High Scores</span> {open ? '▲' : '▼'}
       </button>
       {open && (
         <ul className="grammar-note-body">
@@ -1078,7 +1083,7 @@ function HighScorePanel({ progress }) {
             const s = testScores[lvl];
             return (
               <li key={`test-${lvl}`}>
-                🎯 Final Test · Level {lvl}: {s.score} / {s.total} ({Math.round(s.pct * 100)}%)
+                <Target size={13} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> Final Test · Level {lvl}: {s.score} / {s.total} ({Math.round(s.pct * 100)}%)
               </li>
             );
           })}
@@ -1086,7 +1091,7 @@ function HighScorePanel({ progress }) {
             const s = typingScores[key];
             return (
               <li key={`type-${key}`}>
-                ⌨️ Typing · {levelKeyLabel(key)}: {s.correct} / {s.total} ({Math.round(s.pct * 100)}%)
+                <Keyboard size={13} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> Typing · {levelKeyLabel(key)}: {s.correct} / {s.total} ({Math.round(s.pct * 100)}%)
               </li>
             );
           })}
@@ -1098,9 +1103,9 @@ function HighScorePanel({ progress }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 const BASE_MODES = [
-  { id: 'browse',    label: '📖 Browse'    },
-  { id: 'flashcard', label: '🃏 Flashcard' },
-  { id: 'type',      label: '⌨️ Type'      },
+  { id: 'browse',    label: 'Browse',    icon: BookOpen },
+  { id: 'flashcard', label: 'Flashcard', icon: Layers },
+  { id: 'type',      label: 'Type',      icon: Keyboard },
 ];
 
 export default function CommonPhrases({ progress, initialMode = 'browse', onProgressUpdate }) {
@@ -1155,13 +1160,13 @@ export default function CommonPhrases({ progress, initialMode = 'browse', onProg
   const alreadyPassed = !!progress.phraseTestPassed;
 
   const MODES = testUnlocked
-    ? [...BASE_MODES, { id: 'test', label: alreadyPassed ? '✓ Test' : '🎯 Final Test' }]
+    ? [...BASE_MODES, { id: 'test', label: alreadyPassed ? 'Test' : 'Final Test', icon: alreadyPassed ? Check : Target }]
     : BASE_MODES;
 
   if (highestLevel < 2) {
     return (
       <div className="page">
-        <h2 className="page-title">🗣️ Common Phrases</h2>
+        <h2 className="page-title"><MessagesSquare size={22} className="page-title-icon" /> Common Phrases</h2>
         <div className="empty-state">
           Complete Level 1 to unlock your first phrases!
         </div>
@@ -1172,20 +1177,23 @@ export default function CommonPhrases({ progress, initialMode = 'browse', onProg
   return (
     <div className="page">
       <div className="phrases-header">
-        <h2 className="page-title">🗣️ Common Phrases</h2>
+        <h2 className="page-title"><MessagesSquare size={22} className="page-title-icon" /> Common Phrases</h2>
       </div>
 
       {auth.currentUser?.email === ADMIN_EMAIL && <PhraseBreakdown />}
       <HighScorePanel progress={progress} />
 
       <div className="writing-mode-tabs" style={{marginBottom:'0.6rem'}}>
-        {MODES.map(m => (
-          <button
-            key={m.id}
-            className={`writing-mode-tab ${mode === m.id ? 'active' : ''}`}
-            onClick={() => setMode(m.id)}
-          >{m.label}</button>
-        ))}
+        {MODES.map(m => {
+          const ModeIcon = m.icon;
+          return (
+            <button
+              key={m.id}
+              className={`writing-mode-tab ${mode === m.id ? 'active' : ''}`}
+              onClick={() => setMode(m.id)}
+            ><ModeIcon size={15} strokeWidth={2.25} /> {m.label}</button>
+          );
+        })}
       </div>
 
       {pool.length > 0 && mode !== 'test' && (

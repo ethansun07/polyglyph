@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { HelpCircle, Grid3x3, Eye, Volume2, Check, CheckCircle2, XCircle } from 'lucide-react';
 import { LEVELS, getAllChars } from '../data/fidel.js';
 import { isLevelUnlocked, recordAnswer } from '../utils/progress.js';
 import {
@@ -14,8 +15,8 @@ import SessionSummary, { SESSION_SIZE } from './SessionSummary.jsx';
 import ChartModal from './ChartModal.jsx';
 
 const QUIZ_MODES = [
-  { id: 'forward', label: '👁 Forward' },
-  { id: 'audio',   label: '🔊 Audio'   },
+  { id: 'forward', label: 'Forward', icon: Eye },
+  { id: 'audio',   label: 'Audio',   icon: Volume2 },
 ];
 
 function buildPool(selectedLevels, unlockedLevels, includeExtended) {
@@ -188,7 +189,7 @@ export default function QuizMode({ progress, onProgressUpdate, initialLevel, onD
   if (!q) {
     return (
       <div className="page">
-        <h2 className="page-title">❓ Quiz</h2>
+        <h2 className="page-title"><HelpCircle size={22} className="page-title-icon" /> Quiz</h2>
         <div className="empty-state">
           Not enough characters unlocked yet.<br />
           Complete Learn mode first!
@@ -225,21 +226,24 @@ export default function QuizMode({ progress, onProgressUpdate, initialLevel, onD
     <div className="page quiz-page">
       {showChart && <ChartModal progress={progress} onClose={() => setShowChart(false)} />}
       <div className="page-title-row">
-        <h2 className="page-title">❓ Quiz</h2>
-        {answered && <button className="chart-peek-btn" onClick={() => setShowChart(true)}>📊 Chart</button>}
+        <h2 className="page-title"><HelpCircle size={22} className="page-title-icon" /> Quiz</h2>
+        {answered && <button className="chart-peek-btn" onClick={() => setShowChart(true)}><Grid3x3 size={15} strokeWidth={2.25} /> Chart</button>}
       </div>
 
       {/* Mode toggles */}
       <div className="level-selector">
-        {QUIZ_MODES.map(m => (
-          <button
-            key={m.id}
-            className={`level-pill ${enabledModes.has(m.id) ? 'active' : ''}`}
-            onClick={() => toggleMode(m.id)}
-          >
-            {m.label}
-          </button>
-        ))}
+        {QUIZ_MODES.map(m => {
+          const ModeIcon = m.icon;
+          return (
+            <button
+              key={m.id}
+              className={`level-pill ${enabledModes.has(m.id) ? 'active' : ''}`}
+              onClick={() => toggleMode(m.id)}
+            >
+              <ModeIcon size={15} strokeWidth={2.25} /> {m.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Level filter */}
@@ -259,7 +263,7 @@ export default function QuizMode({ progress, onProgressUpdate, initialLevel, onD
 
       {/* Score bar */}
       <div className="score-bar">
-        <span className="score-correct">{sessionCorrect} ✓</span>
+        <span className="score-correct">{sessionCorrect} <Check size={14} strokeWidth={2.5} style={{ verticalAlign: 'middle' }} /></span>
         <span className="score-total">/ {sessionTotal}</span>
         {sessionTotal > 0 && (
           <span className="score-pct">{Math.round((sessionCorrect / sessionTotal) * 100)}%</span>
@@ -275,7 +279,7 @@ export default function QuizMode({ progress, onProgressUpdate, initialLevel, onD
             <div className="quiz-char">{q.char.char}</div>
             {answered && (
               <button className="quiz-audio-btn" onClick={() => playCharAudio(q.char, progress.settings)}>
-                🔊
+                <Volume2 size={20} strokeWidth={2.25} />
               </button>
             )}
           </div>
@@ -297,8 +301,8 @@ export default function QuizMode({ progress, onProgressUpdate, initialLevel, onD
           {answered && (
             <div className={`feedback-box ${wasCorrect ? 'feedback-correct' : 'feedback-wrong'}`}>
               {wasCorrect
-                ? `✅ Correct! ${q.char.char} = ${q.char.romanization}`
-                : `❌ Not quite. ${q.char.char} = ${q.char.romanization} (you chose "${selected}")`
+                ? <><CheckCircle2 size={17} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> Correct! {q.char.char} = {q.char.romanization}</>
+                : <><XCircle size={17} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> Not quite. {q.char.char} = {q.char.romanization} (you chose "{selected}")</>
               }
               {q.char.note && <p className="feedback-note">{q.char.note}</p>}
             </div>
@@ -312,7 +316,7 @@ export default function QuizMode({ progress, onProgressUpdate, initialLevel, onD
           <div className={`quiz-card ${answered ? (wasCorrect ? 'quiz-correct' : 'quiz-wrong') : ''}`}>
             <p className="quiz-prompt">Which character makes this sound?</p>
             <button className="audio-step-play" onClick={() => playCharAudio(q.char, progress.settings)}>
-              🔊 Play again
+              <Volume2 size={16} strokeWidth={2.25} /> Play again
             </button>
             {answered && (
               <div className="audio-step-reveal">{q.char.char} = {q.char.romanization}</div>
@@ -337,8 +341,8 @@ export default function QuizMode({ progress, onProgressUpdate, initialLevel, onD
           {answered && (
             <div className={`feedback-box ${wasCorrect ? 'feedback-correct' : 'feedback-wrong'}`}>
               {wasCorrect
-                ? `✅ Correct! "${q.char.romanization}" = ${q.char.char}`
-                : `❌ Not quite. "${q.char.romanization}" = ${q.char.char}`
+                ? <><CheckCircle2 size={17} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> Correct! "{q.char.romanization}" = {q.char.char}</>
+                : <><XCircle size={17} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> Not quite. "{q.char.romanization}" = {q.char.char}</>
               }
               {q.char.note && <p className="feedback-note">{q.char.note}</p>}
             </div>
@@ -349,7 +353,7 @@ export default function QuizMode({ progress, onProgressUpdate, initialLevel, onD
       {answered && (
         <div className="quiz-next-bar">
           <button className="btn btn-primary btn-next" onClick={handleNext}>
-            {isLastQuestion ? '📊 See Results' : 'Next →'}
+            {isLastQuestion ? <><Grid3x3 size={16} strokeWidth={2.25} /> See Results</> : 'Next →'}
           </button>
         </div>
       )}

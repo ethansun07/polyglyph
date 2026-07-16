@@ -1,3 +1,4 @@
+import { Lock, Target, BookOpen, HelpCircle, Eye } from 'lucide-react';
 import { getLevelProgress, isLevelUnlocked } from '../utils/progress.js';
 import { LEVELS, getLevelRows } from '../data/fidel.js';
 
@@ -15,7 +16,7 @@ export default function LevelCard({ levelNum, progress, onAction }) {
     <div className={`level-card ${unlocked ? 'level-unlocked' : 'level-locked'}`}>
       <div className="level-card-header">
         <div className="level-badge">
-          {unlocked ? `Level ${levelNum}` : `🔒 Level ${levelNum}`}
+          {unlocked ? `Level ${levelNum}` : <><Lock size={15} strokeWidth={2.25} /> Level {levelNum}</>}
         </div>
         <div className="level-row-samples">
           {rows.slice(0, 5).map(r => (
@@ -51,17 +52,17 @@ export default function LevelCard({ levelNum, progress, onAction }) {
       {unlocked && onAction && (
         <div className="level-card-actions">
           <button className="btn btn-lesson" onClick={() => onAction('lesson', levelNum)}>
-            🎯 Lesson
+            <Target size={16} strokeWidth={2.25} /> Lesson
           </button>
           <button className="btn btn-primary" onClick={() => onAction('learn', levelNum)}>
-            📖 Learn
+            <BookOpen size={16} strokeWidth={2.25} /> Learn
           </button>
           <button className="btn btn-secondary" onClick={() => onAction('quiz', levelNum)}>
-            ❓ Quiz
+            <HelpCircle size={16} strokeWidth={2.25} /> Quiz
           </button>
           {levelNum >= 2 && (
             <button className="btn btn-read" onClick={() => onAction('read', levelNum)}>
-              👁 Read
+              <Eye size={16} strokeWidth={2.25} /> Read
             </button>
           )}
         </div>

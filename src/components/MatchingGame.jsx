@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Volume2 } from 'lucide-react';
 import { shuffle } from '../utils/quiz.js';
 import { playCharAudio } from '../utils/audio.js';
 
@@ -97,7 +98,7 @@ export default function MatchingGame({ chars, progress, onComplete, audioMode = 
               tap(card, 'left');
             }}
           >
-            {matched.has(card.pairId) ? '' : (audioMode ? (cantListen ? card.charObj?.romanization : '🔊') : card.text)}
+            {matched.has(card.pairId) ? '' : (audioMode ? (cantListen ? card.charObj?.romanization : <Volume2 size={20} strokeWidth={2.25} />) : card.text)}
           </button>
         ))}
       </div>

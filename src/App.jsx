@@ -1,4 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
+import {
+  Home, BookOpen, HelpCircle, PenLine, MessagesSquare, ScrollText,
+  Grid3x3, Settings as SettingsIcon, Wrench, Lock, MoreHorizontal, X, Flame,
+} from 'lucide-react';
 import { loadProgress, saveProgress, updateStreak, resetProgress } from './utils/progress.js';
 import { resetWritingProgress } from './utils/writingProgress.js';
 import { resetPhraseProgress } from './utils/phraseProgress.js';
@@ -31,16 +35,22 @@ function isDrillEligible(level, highestUnlocked, progress) {
   return level < highestUnlocked || (level === 7 && isLevel7Mastered(progress));
 }
 
-const NAV = [
-  { id: 'dashboard', label: 'Home',    icon: '🏠' },
-  { id: 'learn',     label: 'Learn',   icon: '📖' },
-  { id: 'quiz',      label: 'Quiz',    icon: '❓' },
-  { id: 'write',     label: 'Write',   icon: '✏️' },
-  { id: 'phrases',   label: 'Phrases', icon: '🗣️' },
-  { id: 'read',      label: 'Read',    icon: '📜'  },
-  { id: 'numbers',   label: 'Numbers', icon: '፩'  },
-  { id: 'chart',     label: 'Chart',   icon: '📊' },
-  { id: 'settings',  label: 'Settings',icon: '⚙️' },
+const NAV_PRIMARY = [
+  { id: 'dashboard', label: 'Home',  icon: Home },
+  { id: 'learn',     label: 'Learn', icon: BookOpen },
+  { id: 'quiz',      label: 'Quiz',  icon: HelpCircle },
+  { id: 'write',     label: 'Write', icon: PenLine },
+];
+
+// Numbers deliberately has icon: null — it renders the actual Ethiopic
+// numeral glyph '፩' instead of a generic icon, since that glyph is the real
+// content this tab teaches, not decoration.
+const NAV_MORE = [
+  { id: 'phrases',  label: 'Phrases',  icon: MessagesSquare },
+  { id: 'read',     label: 'Read',     icon: ScrollText },
+  { id: 'numbers',  label: 'Numbers',  icon: null },
+  { id: 'chart',    label: 'Chart',    icon: Grid3x3 },
+  { id: 'settings', label: 'Settings', icon: SettingsIcon },
 ];
 
 export default function App() {
@@ -68,6 +78,7 @@ export default function App() {
   const prevUid = useRef(null);
   const [toast, setToast] = useState(null);
   const toastTimer = useRef(null);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   function showToast(message) {
     clearTimeout(toastTimer.current);
@@ -197,13 +208,13 @@ export default function App() {
         // Quick Start: jump straight into an all-levels drill covering every unlocked level.
         const lvl = Object.keys(LEVEL_WORDS).map(Number).filter(l => isDrillEligible(l, highestUnlocked, progress)).pop();
         if (lvl) { setWordDrillLevel(lvl); setWordDrillScope('all'); }
-        else showToast('📖 Finish Level 1 to unlock Read Practice');
+        else showToast(<><BookOpen size={16} strokeWidth={2.25} /> Finish Level 1 to unlock Read Practice</>);
         return;
       }
       const seenDrills = getSeenDrills();
       const lvl = Object.keys(LEVEL_WORDS).map(Number).find(l => isDrillEligible(l, highestUnlocked, progress) && !seenDrills.includes(l));
       if (lvl) { setWordDrillLevel(lvl); setWordDrillScope('level'); }
-      else showToast('📖 Finish a level to unlock its Read Practice drill');
+      else showToast(<><BookOpen size={16} strokeWidth={2.25} /> Finish a level to unlock its Read Practice drill</>);
       return;
     }
 
@@ -217,6 +228,11 @@ export default function App() {
       pendingDrillLevel.current = wordDrillLevel;
       setWordDrillLevel(null);
     }
+  }
+
+  function navigateAndCloseMore(newPage, initialMode = null) {
+    navigate(newPage, initialMode);
+    setMoreOpen(false);
   }
 
   function renderPage() {
@@ -287,6 +303,7 @@ export default function App() {
 
   const streak = progress.streak?.count || 0;
   const readUnlocked = isReadModeUnlocked(progress);
+  const isMoreActive = NAV_MORE.some(item => item.id === page) || page === 'admin';
 
   return (
     <div className="app">
@@ -295,42 +312,94 @@ export default function App() {
       {/* ── Header ── */}
       <header className="app-header">
         <div className="header-brand">
-          <span className="header-flag">🇪🇹</span>
+          <span className="header-flag-mini"><span /><span /><span /></span>
           <span className="header-title">Polyglyph</span>
         </div>
         <div className="header-right">
-          {streak > 0 && <div className="header-streak">🔥 {streak}</div>}
+          {streak > 0 && (
+            <div className="header-streak">
+              <Flame size={15} strokeWidth={2.25} /> {streak}
+            </div>
+          )}
           <AuthButton user={user} />
         </div>
       </header>
 
       {/* ── Nav bar ── */}
       <nav className="app-nav">
-        {NAV.map(item => {
-          const isReadLocked = item.id === 'read' && !readUnlocked;
+        {NAV_PRIMARY.map(item => {
+          const NavIcon = item.icon;
           return (
             <button
               key={item.id}
-              className={`nav-item ${page === item.id ? 'nav-active' : ''} ${isReadLocked ? 'nav-locked' : ''}`}
+              className={`nav-item ${page === item.id ? 'nav-active' : ''}`}
               onClick={() => navigate(item.id)}
             >
               <span className="nav-icon-wrap">
-                <span className="nav-icon">{isReadLocked ? '🔒' : item.icon}</span>
+                <span className="nav-icon"><NavIcon size={20} strokeWidth={2.25} /></span>
               </span>
               <span className="nav-label">{item.label}</span>
             </button>
           );
         })}
-        {user?.email === ADMIN_EMAIL && (
-          <button
-            className={`nav-item ${page === 'admin' ? 'nav-active' : ''}`}
-            onClick={() => navigate('admin')}
-          >
-            <span className="nav-icon">🛠️</span>
-            <span className="nav-label">Admin</span>
-          </button>
-        )}
+        <button
+          className={`nav-item ${isMoreActive ? 'nav-active' : ''}`}
+          onClick={() => setMoreOpen(true)}
+        >
+          <span className="nav-icon-wrap">
+            <span className="nav-icon"><MoreHorizontal size={20} strokeWidth={2.25} /></span>
+          </span>
+          <span className="nav-label">More</span>
+        </button>
       </nav>
+
+      {moreOpen && (
+        <div className="nav-sheet-overlay" onClick={e => e.target === e.currentTarget && setMoreOpen(false)}>
+          <div className="nav-sheet">
+            <div className="nav-sheet-header">
+              <span className="nav-sheet-title">More</span>
+              <button className="nav-sheet-close" onClick={() => setMoreOpen(false)}>
+                <X size={20} strokeWidth={2.25} />
+              </button>
+            </div>
+            <div className="nav-sheet-grid">
+              {NAV_MORE.map(item => {
+                const isReadLocked = item.id === 'read' && !readUnlocked;
+                const NavIcon = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    className={`nav-item nav-sheet-item ${page === item.id ? 'nav-active' : ''} ${isReadLocked ? 'nav-locked' : ''}`}
+                    onClick={() => navigateAndCloseMore(item.id)}
+                  >
+                    <span className="nav-icon-wrap">
+                      <span className="nav-icon">
+                        {isReadLocked
+                          ? <Lock size={20} strokeWidth={2.25} />
+                          : item.id === 'numbers'
+                            ? <span className="nav-icon-glyph">፩</span>
+                            : <NavIcon size={20} strokeWidth={2.25} />}
+                      </span>
+                    </span>
+                    <span className="nav-label">{item.label}</span>
+                  </button>
+                );
+              })}
+              {user?.email === ADMIN_EMAIL && (
+                <button
+                  className={`nav-item nav-sheet-item ${page === 'admin' ? 'nav-active' : ''}`}
+                  onClick={() => navigateAndCloseMore('admin')}
+                >
+                  <span className="nav-icon-wrap">
+                    <span className="nav-icon"><Wrench size={20} strokeWidth={2.25} /></span>
+                  </span>
+                  <span className="nav-label">Admin</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Page content ── */}
       <main className="app-main">

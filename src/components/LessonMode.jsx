@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { Volume2, VolumeX, Check, CheckCircle2, XCircle, Grid3x3, PartyPopper } from 'lucide-react';
 import { getLevelChars, getLevelRows, VOWEL_ORDERS } from '../data/fidel.js';
 import { weightedRandomPick, buildQuizChoices, shuffle } from '../utils/quiz.js';
 import { playCharAudio } from '../utils/audio.js';
@@ -121,7 +122,7 @@ function IntroStep({ level, progress, onStart }) {
           className="lesson-teach-audio"
           onClick={() => playCharAudio(currentChar, settingsRef.current ?? { audioEnabled: true })}
         >
-          🔊 Play sound
+          <Volume2 size={16} strokeWidth={2.25} /> Play sound
         </button>
       </div>
 
@@ -164,7 +165,7 @@ function IntroStep({ level, progress, onStart }) {
 function MatchStep({ chars, progress, round, totalRounds, audioMode, onComplete }) {
   const [cantListen, setCantListen] = useState(false);
   const sub = audioMode && !cantListen
-    ? 'Tap 🔊 to hear the sound, then tap the matching character on the right.'
+    ? <>Tap <Volume2 size={13} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> to hear the sound, then tap the matching character on the right.</>
     : audioMode
     ? 'Tap the romanization, then tap the matching character on the right.'
     : 'Tap a character and then its romanization to match them.';
@@ -178,7 +179,7 @@ function MatchStep({ chars, progress, round, totalRounds, audioMode, onComplete 
       <MatchingGame chars={chars} progress={progress} onComplete={onComplete} audioMode={audioMode} cantListen={cantListen} />
       {audioMode && (
         <button className="cant-listen-btn" onClick={() => setCantListen(v => !v)}>
-          {cantListen ? '🔊 I can listen now' : "🔇 Can't listen now"}
+          {cantListen ? <><Volume2 size={14} strokeWidth={2.25} /> I can listen now</> : <><VolumeX size={14} strokeWidth={2.25} /> Can't listen now</>}
         </button>
       )}
     </div>
@@ -233,10 +234,10 @@ function QuizStep({ chars, progress, onComplete }) {
       {showChart && <ChartModal progress={progress} onClose={() => setShowChart(false)} />}
       <div className="page-title-row">
         <h2 className="page-title">Read the character</h2>
-        {answered && <button className="chart-peek-btn" onClick={() => setShowChart(true)}>📊 Chart</button>}
+        {answered && <button className="chart-peek-btn" onClick={() => setShowChart(true)}><Grid3x3 size={15} strokeWidth={2.25} /> Chart</button>}
       </div>
       <div className="score-bar">
-        <span className="score-correct">{score} ✓</span>
+        <span className="score-correct">{score} <Check size={14} strokeWidth={2.5} style={{ verticalAlign: 'middle' }} /></span>
         <span className="score-total">/ {count + (answered ? 1 : 0)}</span>
         <span className="session-progress-pill">{count + (answered ? 1 : 0)}/{QUIZ_Q}</span>
       </div>
@@ -245,7 +246,7 @@ function QuizStep({ chars, progress, onComplete }) {
         <p className="quiz-prompt">What sound does this character make?</p>
         <div className="quiz-char">{q.char.char}</div>
 
-        {answered && <button className="quiz-audio-btn" onClick={() => playCharAudio(q.char, progressRef.current.settings)}>🔊</button>}
+        {answered && <button className="quiz-audio-btn" onClick={() => playCharAudio(q.char, progressRef.current.settings)}><Volume2 size={20} strokeWidth={2.25} /></button>}
       </div>
 
       <div className="choice-grid">
@@ -267,8 +268,8 @@ function QuizStep({ chars, progress, onComplete }) {
       {answered && (
         <div className={`feedback-box ${isCorrect ? 'feedback-correct' : 'feedback-wrong'}`}>
           {isCorrect
-            ? `✅ ${q.char.char} = ${q.char.romanization}`
-            : `❌ ${q.char.char} = ${q.char.romanization} (you chose "${chosen}")`}
+            ? <><CheckCircle2 size={17} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> {q.char.char} = {q.char.romanization}</>
+            : <><XCircle size={17} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> {q.char.char} = {q.char.romanization} (you chose "{chosen}")</>}
         </div>
       )}
       {answered && (
@@ -351,7 +352,7 @@ function AudioStep({ chars, progress, onComplete }) {
         <h2 className="page-title">{cantListen ? 'Read & identify' : 'Listen & identify'}</h2>
       </div>
       <div className="score-bar">
-        <span className="score-correct">{score} ✓</span>
+        <span className="score-correct">{score} <Check size={14} strokeWidth={2.5} style={{ verticalAlign: 'middle' }} /></span>
         <span className="score-total">/ {count + (answered ? 1 : 0)}</span>
         <span className="session-progress-pill">{count + (answered ? 1 : 0)}/{AUDIO_Q}</span>
       </div>
@@ -365,7 +366,7 @@ function AudioStep({ chars, progress, onComplete }) {
         ) : (
           <>
             <p className="quiz-prompt">Which character makes this sound?</p>
-            <button className="audio-step-play" onClick={replay}>🔊 Play again</button>
+            <button className="audio-step-play" onClick={replay}><Volume2 size={16} strokeWidth={2.25} /> Play again</button>
           </>
         )}
         {answered && (
@@ -398,7 +399,7 @@ function AudioStep({ chars, progress, onComplete }) {
       )}
 
       <button className="cant-listen-btn" onClick={() => setCantListen(v => !v)}>
-        {cantListen ? '🔊 I can listen now' : "🔇 Can't listen now"}
+        {cantListen ? <><Volume2 size={14} strokeWidth={2.25} /> I can listen now</> : <><VolumeX size={14} strokeWidth={2.25} /> Can't listen now</>}
       </button>
     </div>
   );
@@ -411,7 +412,7 @@ function DoneStep({ scores, onDone }) {
 
   return (
     <div className="lesson-done">
-      <div className="lesson-done-icon">🎉</div>
+      <div className="lesson-done-icon"><PartyPopper size={44} strokeWidth={1.75} /></div>
       <div className="lesson-done-title">Lesson complete!</div>
       <div className="lesson-done-score">{correct}/{total} correct ({pct}%)</div>
       <div className="lesson-done-breakdown">

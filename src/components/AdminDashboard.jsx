@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Wrench, Users, MessageCircle, Flame, Star } from 'lucide-react';
 import { loadAllUsersWithProgress, loadAllFeedback } from '../utils/firebase.js';
 
 function getStats(user) {
@@ -49,7 +50,7 @@ export default function AdminDashboard() {
   return (
     <div className="page">
       <section className="admin-section">
-        <h2 className="page-title">🛠️ Admin — {users.length} user{users.length !== 1 ? 's' : ''}</h2>
+        <h2 className="page-title"><Wrench size={22} className="page-title-icon" /> Admin — {users.length} user{users.length !== 1 ? 's' : ''}</h2>
         <p className="admin-section-sub">Signed-in users with saved progress.</p>
 
         <div className="admin-table-wrap">
@@ -59,7 +60,7 @@ export default function AdminDashboard() {
                 <th>User</th>
                 <th>Joined</th>
                 <th>Level</th>
-                <th>Chars ⭐</th>
+                <th>Chars <Star size={12} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /></th>
                 <th>Accuracy</th>
                 <th>Reviews</th>
                 <th>Phrases</th>
@@ -86,7 +87,7 @@ export default function AdminDashboard() {
                     <td className="admin-center">{s.totalReviews > 0 ? s.totalReviews.toLocaleString() : '—'}</td>
                     <td className="admin-center">{s.phraseCount > 0 ? s.phraseCount : '—'}</td>
                     <td className="admin-center">{s.writingCount > 0 ? s.writingCount : '—'}</td>
-                    <td className="admin-center">{s.streak > 0 ? `🔥 ${s.streak}` : '—'}</td>
+                    <td className="admin-center">{s.streak > 0 ? <><Flame size={14} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> {s.streak}</> : '—'}</td>
                     <td className="admin-center">{s.lastSeen}</td>
                   </tr>
                 );
@@ -97,7 +98,7 @@ export default function AdminDashboard() {
       </section>
 
       <section className="admin-section">
-        <h2 className="page-title">👤 Guests — {guests.length} session{guests.length !== 1 ? 's' : ''}</h2>
+        <h2 className="page-title"><Users size={22} className="page-title-icon" /> Guests — {guests.length} session{guests.length !== 1 ? 's' : ''}</h2>
         <p className="admin-section-sub">Anonymous accounts (real, backend-tracked) that just never signed in with Google.</p>
 
         {!guests.length ? <p>No guest sessions yet.</p> : (
@@ -108,7 +109,7 @@ export default function AdminDashboard() {
                   <th>Anon ID</th>
                   <th>Joined</th>
                   <th>Level</th>
-                  <th>Chars ⭐</th>
+                  <th>Chars <Star size={12} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /></th>
                   <th>Reviews</th>
                   <th>Last seen</th>
                 </tr>
@@ -134,7 +135,7 @@ export default function AdminDashboard() {
       </section>
 
       <section className="admin-section">
-        <h2 className="page-title">💬 Feedback — {feedback?.length || 0} submission{feedback?.length !== 1 ? 's' : ''}</h2>
+        <h2 className="page-title"><MessageCircle size={22} className="page-title-icon" /> Feedback — {feedback?.length || 0} submission{feedback?.length !== 1 ? 's' : ''}</h2>
         <p className="admin-section-sub">From the Settings page, guests and signed-in users alike.</p>
 
         {!feedback?.length ? <p>No feedback yet.</p> : (

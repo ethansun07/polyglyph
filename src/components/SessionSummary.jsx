@@ -1,3 +1,4 @@
+import { Lock, LockOpen, Star, PenLine } from 'lucide-react';
 import { isCharMastered, getCharState } from '../utils/progress.js';
 import { isWritingMastered, getWritingState } from '../utils/writingProgress.js';
 import { auth, signInWithGoogle } from '../utils/firebase.js';
@@ -57,7 +58,11 @@ export default function SessionSummary({
         <div className="summary-level-unlock">
           {newlyUnlockedLevels.map(lvl => (
             <div key={lvl} className="level-unlock-banner">
-              🔓 Level {lvl} unlocked!
+              <span className="unlock-icon-stack">
+                <Lock size={20} strokeWidth={2.25} className="unlock-icon-closed" />
+                <LockOpen size={20} strokeWidth={2.25} className="unlock-icon-open" />
+              </span>
+              Level {lvl} unlocked!
             </div>
           ))}
         </div>
@@ -77,7 +82,7 @@ export default function SessionSummary({
 
       {newlyMastered.length > 0 && (
         <div className="summary-section">
-          <h3 className="summary-section-title">⭐ Newly Mastered</h3>
+          <h3 className="summary-section-title"><Star size={17} strokeWidth={2.25} /> Newly Mastered</h3>
           <div className="summary-char-grid">
             {newlyMastered.map(({ charId, char, romanization }) => (
               <div key={charId} className="summary-char-badge badge-mastered">
@@ -133,7 +138,7 @@ export default function SessionSummary({
           <>
             {newlyWritingMastered.length > 0 && (
               <div className="summary-section">
-                <h3 className="summary-section-title">✏️ Writing Mastered</h3>
+                <h3 className="summary-section-title"><PenLine size={17} strokeWidth={2.25} /> Writing Mastered</h3>
                 <div className="summary-char-grid">
                   {newlyWritingMastered.map(({ charId, char, romanization }) => (
                     <div key={charId} className="summary-char-badge badge-mastered">
@@ -146,7 +151,7 @@ export default function SessionSummary({
             )}
             {writingInProgress.length > 0 && (
               <div className="summary-section">
-                <h3 className="summary-section-title">✏️ Writing progress</h3>
+                <h3 className="summary-section-title"><PenLine size={17} strokeWidth={2.25} /> Writing progress</h3>
                 <p className="summary-section-sub">Need net +3 correct to master writing</p>
                 <div className="summary-char-grid">
                   {writingInProgress.map(({ charId, char, romanization }) => {
