@@ -1173,6 +1173,7 @@ code {
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
   resize: vertical;
+  margin-top: 0.75rem;
   margin-bottom: 0.6rem;
   color: var(--text);
 }
