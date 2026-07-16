@@ -7,6 +7,7 @@ import {
 } from './utils/firebase.js';
 import { getAnonId } from './utils/guest.js';
 import AuthButton from './components/AuthButton.jsx';
+import ErrorBoundary from './components/ErrorBoundary.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import LearnMode from './components/LearnMode.jsx';
 import QuizMode from './components/QuizMode.jsx';
@@ -353,7 +354,9 @@ export default function App() {
 
       {/* ── Page content ── */}
       <main className="app-main">
-        {renderPage()}
+        <ErrorBoundary key={page}>
+          {renderPage()}
+        </ErrorBoundary>
       </main>
 
       {/* ── Word reading drill modal — only on dashboard, never mid-lesson/quiz ── */}
