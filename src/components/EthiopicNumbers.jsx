@@ -9,7 +9,7 @@ import { playNumberAudio } from '../utils/audio.js';
 import { useEnterKey } from '../utils/useEnterKey.js';
 import { useChoiceKeys } from '../utils/useChoiceKeys.js';
 import {
-  loadNumberProgress, saveNumberProgress, mergeNumberProgress, resetNumberProgress,
+  loadNumberProgress, saveNumberProgress, resetNumberProgress,
   recordNumberAnswer, isNumberMastered, getNumberNet,
   weightedPickSymbol, getTotalNumberStats, getNumberState,
 } from '../utils/numberProgress.js';
@@ -489,35 +489,23 @@ export default function EthiopicNumbers({ settings }) {
   const prevUid = useRef(null);
 
   useEffect(() => {
-    // Listen for the actual sign-in event, not just the state at mount time —
-    // a guest can sign in while already sitting on this page.
+    // Every visitor (guest or not) has a real uid, so this just re-syncs
+    // whenever the active identity changes — no merge needed, cloud always
+    // wins, since progress is never written anywhere but through the API.
     return onAuthChange(firebaseUser => {
-      if (!firebaseUser) {
-        if (prevUid.current) {
-          // Real sign-out — this device's cache reflects the account that
-          // just signed out. Clear it so it never re-attaches to whoever
-          // signs in next (same account or a different one).
-          resetNumberProgress();
-          setNumberProgress({});
-          prevUid.current = null;
-        }
-        return;
-      }
+      if (!firebaseUser) return; // brief bootstrap window; App.jsx handles it
       if (prevUid.current && prevUid.current !== firebaseUser.uid) {
-        // Switched directly to a different account, no sign-out in between.
         resetNumberProgress();
         setNumberProgress({});
       }
       prevUid.current = firebaseUser.uid;
       loadNumberProgressFromCloud().then(data => {
-        // Bail if the signed-in account changed while this fetch was in
+        // Bail if the signed-in identity changed while this fetch was in
         // flight — applying a stale response would leak one user's number
         // history onto a different account.
         if (auth.currentUser?.uid !== firebaseUser.uid) return;
-        const merged = mergeNumberProgress(loadNumberProgress(), data);
-        setNumberProgress(merged);
-        saveNumberProgress(merged);
-        saveNumberProgressToCloud(null, merged).catch(() => {});
+        setNumberProgress(data || {});
+        saveNumberProgress(data || {});
       }).catch(() => {});
     });
   }, []);
@@ -525,9 +513,7 @@ export default function EthiopicNumbers({ settings }) {
   function handleProgressUpdate(newProgress) {
     setNumberProgress(newProgress);
     saveNumberProgress(newProgress);
-    if (auth.currentUser) {
-      saveNumberProgressToCloud(null, newProgress).catch(() => {});
-    }
+    saveNumberProgressToCloud(newProgress).catch(() => {});
   }
 
   const stats = getTotalNumberStats(ALL_BASE_SYMBOLS, numberProgress);

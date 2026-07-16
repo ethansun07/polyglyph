@@ -4,7 +4,6 @@ import { resetWritingProgress } from '../utils/writingProgress.js';
 import { resetPhraseProgress } from '../utils/phraseProgress.js';
 import { resetNumberProgress } from '../utils/numberProgress.js';
 import { deleteMainProgressFromCloud, submitFeedback } from '../utils/firebase.js';
-import { getAnonId } from '../utils/guest.js';
 
 export default function Settings({ progress, onProgressUpdate, user }) {
   const [showConfirm, setShowConfirm] = useState(false);
@@ -16,7 +15,7 @@ export default function Settings({ progress, onProgressUpdate, user }) {
     if (!message) return;
     setFeedbackStatus('sending');
     try {
-      await submitFeedback(message, getAnonId());
+      await submitFeedback(message);
       setFeedbackText('');
       setFeedbackStatus('sent');
     } catch {

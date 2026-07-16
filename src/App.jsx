@@ -1,14 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
-import { loadProgress, saveProgress, updateStreak, mergeProgress, resetProgress } from './utils/progress.js';
+import { loadProgress, saveProgress, updateStreak, resetProgress } from './utils/progress.js';
 import { resetWritingProgress } from './utils/writingProgress.js';
 import { resetPhraseProgress } from './utils/phraseProgress.js';
 import { resetNumberProgress } from './utils/numberProgress.js';
 import {
-  auth, onAuthChange,
+  auth, onAuthChange, signInAsGuest,
   loadMainProgressFromCloud, saveMainProgressToCloud,
-  upsertUserDoc, ADMIN_EMAIL, pingGuestSession,
+  upsertUserDoc, ADMIN_EMAIL,
 } from './utils/firebase.js';
-import { getAnonId } from './utils/guest.js';
 import AuthButton from './components/AuthButton.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 import Dashboard from './components/Dashboard.jsx';
@@ -77,86 +76,51 @@ export default function App() {
     toastTimer.current = setTimeout(() => setToast(null), 2800);
   }
 
-  // Auth state + cloud sync on login
+  // Auth state + cloud sync. Every visitor — guest or not — has a real,
+  // permanent Firebase uid: guests are signed in anonymously the instant no
+  // session exists, and progress always syncs through that uid. There's no
+  // separate "local guest data" to merge in anymore, which is what used to
+  // let one account's history leak onto another (see the cross-account data
+  // leak incident this replaced).
   useEffect(() => {
     return onAuthChange(async firebaseUser => {
-      setUser(firebaseUser);
-
       if (!firebaseUser) {
-        if (prevUid.current) {
-          // A real sign-out, not just the initial "never signed in" guest
-          // load — this device's cache reflects the account that just
-          // signed out. Clear it so a future sign-in (same account or a
-          // different one) never re-attaches that history to anyone else.
-          resetProgress();
-          resetWritingProgress();
-          resetPhraseProgress();
-          resetNumberProgress();
-          prevUid.current = null;
-        }
-        // Fires both on real sign-out and on initial load for a never-signed-in
-        // guest — restore from localStorage rather than blanking the in-memory
-        // state, or a guest's progress gets wiped out on every page reload.
-        const loaded = updateStreak(loadProgress());
-        setProgress(loaded);
-        saveProgress(loaded);
+        // No session at all (very first load, or just signed out) — bootstrap
+        // a fresh anonymous identity. The next firing of this callback (with
+        // that anonymous user) does the actual sync.
+        signInAsGuest().catch(() => {});
         return;
       }
 
       if (prevUid.current && prevUid.current !== firebaseUser.uid) {
-        // Switched directly to a different account with no sign-out event in
-        // between — same risk as above, clear the previous account's cache
-        // before merging this one in.
+        // Switched to a different identity (sign-out then in, or a direct
+        // switch) — this device's cache belongs to whichever account was
+        // active before. Clear it so it can't attach to the new one.
         resetProgress();
         resetWritingProgress();
         resetPhraseProgress();
         resetNumberProgress();
       }
       prevUid.current = firebaseUser.uid;
-      upsertUserDoc(firebaseUser.uid, {
-        displayName: firebaseUser.displayName,
-        email: firebaseUser.email,
-        photoURL: firebaseUser.photoURL,
-        lastSeen: new Date().toISOString(),
-      });
+      setUser(firebaseUser);
+      upsertUserDoc();
 
-      // Merge cloud with local cache — a stale or unreachable cloud must never
-      // clobber more-advanced progress sitting in this browser (see localStorage
-      // rescue incident: backend was silently unreachable for weeks, so cloud
-      // was returning a snapshot from before that outage started).
       let cloud = null;
       try {
-        cloud = await loadMainProgressFromCloud(firebaseUser.uid);
+        cloud = await loadMainProgressFromCloud();
       } catch {
-        // backend unreachable on sign-in — fall back to local cache below
+        // backend unreachable — fall back to whatever's cached locally
       }
-      // The signed-in account can change while the fetch above was in flight
-      // (sign out + sign back in as someone else). If so, this stale response
-      // is for the WRONG account — applying it would leak one user's progress
-      // onto another's, so bail and let the newer auth event handle it instead.
+      // The signed-in identity can change while the fetch above was in
+      // flight. If so, this stale response is for the WRONG account —
+      // applying it would leak one user's progress onto another's.
       if (auth.currentUser?.uid !== firebaseUser.uid) return;
-      const local = loadProgress();
-      const loaded = updateStreak(mergeProgress(local, cloud));
+      const loaded = updateStreak(cloud || loadProgress());
       setProgress(loaded);
       saveProgress(loaded);
       prevHighestLevel.current = getHighestUnlockedLevel(loaded);
-      saveMainProgressToCloud(firebaseUser.uid, loaded).catch(() => {});
     });
   }, []);
-
-  function pingGuest(p) {
-    pingGuestSession({
-      anonId:       getAnonId(),
-      highestLevel: getHighestUnlockedLevel(p),
-      charsSeen:    Object.keys(p.chars || {}).length,
-    }).catch(() => {});
-  }
-
-  // Guests have no Firebase account, so this is the admin dashboard's only
-  // visibility into signed-out usage.
-  useEffect(() => {
-    if (!user) pingGuest(progress);
-  }, []); // eslint-disable-line
 
   function getSeenDrills() {
     try { return JSON.parse(localStorage.getItem('amharic_word_drills_seen') || '[]'); }
@@ -180,12 +144,8 @@ export default function App() {
       : newProgress;
 
     setProgress(toSave);
-    saveProgress(toSave); // always cache locally, signed-in or not
-    if (user) {
-      saveMainProgressToCloud(user.uid, toSave).catch(() => {});
-    } else {
-      pingGuest(toSave);
-    }
+    saveProgress(toSave); // local cache, for a fast initial render on reload
+    saveMainProgressToCloud(toSave).catch(() => {});
 
     // Levels 1-6 finish their drill when the next level unlocks. Level 7 has
     // no level 8 to unlock, so it triggers off level 7 mastery itself instead.

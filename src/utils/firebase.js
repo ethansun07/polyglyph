@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import {
   getAuth, GoogleAuthProvider, signInWithPopup,
+  signInAnonymously, linkWithPopup,
   signOut, onAuthStateChanged,
 } from 'firebase/auth';
 
@@ -16,9 +17,28 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 
-const provider = new GoogleAuthProvider();
+// A "guest" is a real anonymous Firebase user from the moment the app loads —
+// every visitor has a permanent, backend-tracked uid. Signing in with Google
+// upgrades that same identity in place (see signInWithGoogle below) rather
+// than creating a separate account that needs merging later.
+export function signInAsGuest() {
+  return signInAnonymously(auth);
+}
 
-export function signInWithGoogle() {
+export async function signInWithGoogle() {
+  const provider = new GoogleAuthProvider();
+  if (auth.currentUser?.isAnonymous) {
+    try {
+      return await linkWithPopup(auth.currentUser, provider);
+    } catch (err) {
+      if (err.code === 'auth/credential-already-in-use') {
+        // This Google account already has its own history elsewhere —
+        // sign into that existing account instead of forcing a merge.
+        return signInWithPopup(auth, provider);
+      }
+      throw err;
+    }
+  }
   return signInWithPopup(auth, provider);
 }
 
@@ -58,24 +78,23 @@ export function loadAllUsersWithProgress() {
   return apiFetch('/users/all');
 }
 
-// ── Guest sessions (signed-out usage) ──────────────────────────────────────────
-export const pingGuestSession    = (data) => apiFetch('/guests/ping', { method: 'POST', body: JSON.stringify(data) });
-export const loadAllGuestSessions = ()    => apiFetch('/guests/all');
-
 // ── Feedback ────────────────────────────────────────────────────────────────────
-export const submitFeedback  = (message, anonId) => apiFetch('/feedback', { method: 'POST', body: JSON.stringify({ message, anonId }) });
-export const loadAllFeedback = ()                => apiFetch('/feedback/all');
+export const submitFeedback  = (message) => apiFetch('/feedback', { method: 'POST', body: JSON.stringify({ message }) });
+export const loadAllFeedback = ()        => apiFetch('/feedback/all');
 
 // ── Progress ──────────────────────────────────────────────────────────────────
-export const loadMainProgressFromCloud   = ()       => apiFetch('/progress');
-export const saveMainProgressToCloud     = (_, data) => apiFetch('/progress', { method: 'PUT', body: JSON.stringify(data) });
-export const deleteMainProgressFromCloud = ()       => apiFetch('/progress', { method: 'DELETE' });
+// uid is never passed explicitly — the server derives it from the verified
+// auth token, so every call here always acts on whoever's currently signed
+// in (guest or not).
+export const loadMainProgressFromCloud   = ()     => apiFetch('/progress');
+export const saveMainProgressToCloud     = (data) => apiFetch('/progress', { method: 'PUT', body: JSON.stringify(data) });
+export const deleteMainProgressFromCloud = ()     => apiFetch('/progress', { method: 'DELETE' });
 
-export const loadPhraseProgressFromCloud = ()       => apiFetch('/phrase-progress');
-export const savePhraseProgressToCloud   = (_, data) => apiFetch('/phrase-progress', { method: 'PUT', body: JSON.stringify(data) });
+export const loadPhraseProgressFromCloud = ()     => apiFetch('/phrase-progress');
+export const savePhraseProgressToCloud   = (data) => apiFetch('/phrase-progress', { method: 'PUT', body: JSON.stringify(data) });
 
-export const loadNumberProgressFromCloud  = ()       => apiFetch('/number-progress');
-export const saveNumberProgressToCloud    = (_, data) => apiFetch('/number-progress',  { method: 'PUT', body: JSON.stringify(data) });
+export const loadNumberProgressFromCloud  = ()     => apiFetch('/number-progress');
+export const saveNumberProgressToCloud    = (data) => apiFetch('/number-progress',  { method: 'PUT', body: JSON.stringify(data) });
 
-export const loadWritingProgressFromCloud = ()       => apiFetch('/writing-progress');
-export const saveWritingProgressFromCloud = (data)   => apiFetch('/writing-progress', { method: 'PUT', body: JSON.stringify(data) });
+export const loadWritingProgressFromCloud = ()     => apiFetch('/writing-progress');
+export const saveWritingProgressFromCloud = (data) => apiFetch('/writing-progress', { method: 'PUT', body: JSON.stringify(data) });

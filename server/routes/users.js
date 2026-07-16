@@ -6,15 +6,16 @@ const router = Router();
 
 // POST /api/users/me — upsert user record on login
 router.post('/me', async (req, res) => {
-  const { uid, email, name: display_name } = req.user;
+  const { uid, email, name: display_name, isAnonymous } = req.user;
   try {
     await pool.query(`
-      INSERT INTO users (uid, email, display_name)
-      VALUES ($1, $2, $3)
+      INSERT INTO users (uid, email, display_name, is_anonymous)
+      VALUES ($1, $2, $3, $4)
       ON CONFLICT (uid) DO UPDATE SET
         email        = EXCLUDED.email,
-        display_name = EXCLUDED.display_name
-    `, [uid, email, display_name]);
+        display_name = EXCLUDED.display_name,
+        is_anonymous = EXCLUDED.is_anonymous
+    `, [uid, email, display_name, isAnonymous]);
 
     await pool.query(`
       INSERT INTO logs (uid, action, table_name, detail)
@@ -35,7 +36,7 @@ router.get('/all', async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT
-        u.uid, u.email, u.display_name, u.created_at,
+        u.uid, u.email, u.display_name, u.is_anonymous, u.created_at,
         COALESCE(us.streak_count, 0)      AS streak_count,
         COALESCE(us.streak_last_date, '') AS streak_last_date,
         COALESCE((

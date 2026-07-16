@@ -5,8 +5,10 @@ CREATE TABLE IF NOT EXISTS users (
   uid          TEXT PRIMARY KEY,
   email        TEXT,
   display_name TEXT,
+  is_anonymous BOOL DEFAULT FALSE,
   created_at   TIMESTAMPTZ DEFAULT now()
 );
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_anonymous BOOL DEFAULT FALSE;
 
 CREATE TABLE IF NOT EXISTS char_progress (
   uid       TEXT REFERENCES users(uid) ON DELETE CASCADE,
@@ -65,6 +67,15 @@ CREATE TABLE IF NOT EXISTS user_settings (
   phrase_typing_high_scores     JSONB DEFAULT '{}'::jsonb,
   phrase_flashcard_high_scores  JSONB DEFAULT '{}'::jsonb
 );
+-- CREATE TABLE IF NOT EXISTS is a no-op against a table that already exists
+-- under an older shape, so columns added since this table was first created
+-- anywhere (including via ad-hoc ALTERs against just one environment) need
+-- to be listed here explicitly, or other environments silently drift behind.
+ALTER TABLE user_settings ADD COLUMN IF NOT EXISTS highest_unlocked_level INT DEFAULT 1;
+ALTER TABLE user_settings ADD COLUMN IF NOT EXISTS phrase_test_passed BOOL DEFAULT FALSE;
+ALTER TABLE user_settings ADD COLUMN IF NOT EXISTS phrase_test_high_scores JSONB DEFAULT '{}'::jsonb;
+ALTER TABLE user_settings ADD COLUMN IF NOT EXISTS phrase_typing_high_scores JSONB DEFAULT '{}'::jsonb;
+ALTER TABLE user_settings ADD COLUMN IF NOT EXISTS phrase_flashcard_high_scores JSONB DEFAULT '{}'::jsonb;
 
 CREATE TABLE IF NOT EXISTS guest_sessions (
   anon_id       TEXT PRIMARY KEY,

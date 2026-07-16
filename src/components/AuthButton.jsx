@@ -1,7 +1,7 @@
 import { signInWithGoogle, signOutUser } from '../utils/firebase.js';
 
 export default function AuthButton({ user }) {
-  if (!user) {
+  if (!user || user.isAnonymous) {
     return (
       <button className="auth-signin-btn" onClick={signInWithGoogle}>
         Sign in

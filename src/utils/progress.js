@@ -36,53 +36,6 @@ export function resetProgress() {
   localStorage.removeItem('amharic_phrases_visited');
 }
 
-// ─── Merge cloud + local ──────────────────────────────────────────────────────
-// Used on sign-in: the cloud fetch can be stale (or empty, if a prior save
-// silently failed) while local browser state is more advanced. Per character,
-// keep whichever side saw it more recently rather than trusting cloud blindly.
-export function mergeProgress(local, cloud) {
-  if (!cloud) return local || makeDefaultProgress();
-  if (!local) return cloud;
-
-  const chars = { ...cloud.chars };
-  for (const [id, localChar] of Object.entries(local.chars || {})) {
-    const cloudChar = chars[id];
-    if (!cloudChar || new Date(localChar.lastSeen || 0) > new Date(cloudChar.lastSeen || 0)) {
-      chars[id] = localChar;
-    }
-  }
-
-  const newestActivity = (p) => Object.values(p.chars || {})
-    .reduce((max, c) => Math.max(max, new Date(c.lastSeen || 0).getTime()), 0);
-  const newer = newestActivity(local) > newestActivity(cloud) ? local : cloud;
-
-  return {
-    ...cloud,
-    ...local,
-    chars,
-    streak:               newer.streak,
-    settings:             newer.settings,
-    phraseTestPassed:     newer.phraseTestPassed,
-    readUnlockedByAdmin:  cloud.readUnlockedByAdmin || local.readUnlockedByAdmin,
-    highestUnlockedLevel: Math.max(cloud.highestUnlockedLevel || 1, local.highestUnlockedLevel || 1),
-    phraseTestHighScores:      mergeHighScoreMaps(local.phraseTestHighScores, cloud.phraseTestHighScores),
-    phraseTypingHighScores:    mergeHighScoreMaps(local.phraseTypingHighScores, cloud.phraseTypingHighScores),
-    phraseFlashcardHighScores: mergeHighScoreMaps(local.phraseFlashcardHighScores, cloud.phraseFlashcardHighScores),
-  };
-}
-
-// Per-key best score wins, rather than one side's whole map replacing the other's.
-function mergeHighScoreMaps(localMap, cloudMap) {
-  const merged = {};
-  const keys = new Set([...Object.keys(localMap || {}), ...Object.keys(cloudMap || {})]);
-  for (const key of keys) {
-    const l = localMap?.[key];
-    const c = cloudMap?.[key];
-    merged[key] = (!c || (l && l.pct > c.pct)) ? l : c;
-  }
-  return merged;
-}
-
 export function makeDefaultProgress() {
   return {
     chars: {},   // { [charId]: { seen, correct, wrong, mastered, lastSeen } }

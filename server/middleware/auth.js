@@ -16,7 +16,10 @@ export async function requireAuth(req, res, next) {
       issuer:   `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`,
       audience: FIREBASE_PROJECT_ID,
     });
-    req.user = { uid: payload.sub, email: payload.email, name: payload.name };
+    req.user = {
+      uid: payload.sub, email: payload.email, name: payload.name,
+      isAnonymous: payload.firebase?.sign_in_provider === 'anonymous',
+    };
     next();
   } catch {
     res.status(401).json({ error: 'Invalid auth token' });

@@ -56,7 +56,7 @@ export default function SessionSummary({
         </div>
       )}
 
-      {newlyUnlockedLevels.length > 0 && !auth.currentUser && (
+      {newlyUnlockedLevels.length > 0 && auth.currentUser?.isAnonymous && (
         <div className="summary-signin-nudge">
           <p>You're making real progress as a guest — sign in to save it across devices, forever.</p>
           <button className="btn btn-accent" onClick={signInWithGoogle}>Sign in with Google</button>

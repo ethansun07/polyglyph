@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { loadAllUsersWithProgress, loadAllGuestSessions, loadAllFeedback } from '../utils/firebase.js';
+import { loadAllUsersWithProgress, loadAllFeedback } from '../utils/firebase.js';
 
 function getStats(user) {
   const masteredCount  = Number(user.mastered_chars)  || 0;
@@ -22,33 +22,29 @@ function getStats(user) {
   return { masteredCount, totalReviews, accuracy, phraseCount, writingCount, streak, highestLevel, joined, lastSeen };
 }
 
-function getGuestStats(guest) {
-  const joined = guest.first_seen ? new Date(guest.first_seen).toLocaleDateString() : '—';
-  const lastSeen = guest.last_seen ? new Date(guest.last_seen).toLocaleDateString() : '—';
-  return { joined, lastSeen };
-}
-
 export default function AdminDashboard() {
-  const [users, setUsers] = useState(null);
-  const [guests, setGuests] = useState(null);
+  const [allUsers, setAllUsers] = useState(null);
   const [feedback, setFeedback] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
       loadAllUsersWithProgress().catch(() => []),
-      loadAllGuestSessions().catch(() => []),
       loadAllFeedback().catch(() => []),
-    ]).then(([usersData, guestsData, feedbackData]) => {
-      setUsers(usersData);
-      setGuests(guestsData);
+    ]).then(([usersData, feedbackData]) => {
+      setAllUsers(usersData);
       setFeedback(feedbackData);
       setLoading(false);
     });
   }, []);
 
   if (loading) return <div className="page"><p>Loading users…</p></div>;
-  if (!users?.length) return <div className="page"><p>No users yet.</p></div>;
+  if (!allUsers?.length) return <div className="page"><p>No users yet.</p></div>;
+
+  // Guests are real anonymous Firebase accounts now, not a separate ping
+  // system — same table, just split by is_anonymous.
+  const users  = allUsers.filter(u => !u.is_anonymous);
+  const guests = allUsers.filter(u => u.is_anonymous);
 
   return (
     <div className="page">
@@ -101,30 +97,32 @@ export default function AdminDashboard() {
       </section>
 
       <section className="admin-section">
-        <h2 className="page-title">👤 Guests — {guests?.length || 0} session{guests?.length !== 1 ? 's' : ''}</h2>
-        <p className="admin-section-sub">Signed-out visitors, tracked by browser only.</p>
+        <h2 className="page-title">👤 Guests — {guests.length} session{guests.length !== 1 ? 's' : ''}</h2>
+        <p className="admin-section-sub">Anonymous accounts — real, backend-tracked, just never signed in with Google.</p>
 
-        {!guests?.length ? <p>No guest sessions yet.</p> : (
+        {!guests.length ? <p>No guest sessions yet.</p> : (
           <div className="admin-table-wrap">
             <table className="admin-table">
               <thead>
                 <tr>
                   <th>Anon ID</th>
-                  <th>First seen</th>
+                  <th>Joined</th>
                   <th>Level</th>
-                  <th>Chars seen</th>
+                  <th>Chars ⭐</th>
+                  <th>Reviews</th>
                   <th>Last seen</th>
                 </tr>
               </thead>
               <tbody>
                 {guests.map(guest => {
-                  const s = getGuestStats(guest);
+                  const s = getStats(guest);
                   return (
-                    <tr key={guest.anon_id}>
-                      <td className="admin-anon-id">{guest.anon_id.slice(0, 8)}</td>
+                    <tr key={guest.uid}>
+                      <td className="admin-anon-id">{guest.uid.slice(0, 8)}</td>
                       <td className="admin-center">{s.joined}</td>
-                      <td className="admin-center">Lv {guest.highest_level}</td>
-                      <td className="admin-center">{guest.chars_seen}</td>
+                      <td className="admin-center">Lv {s.highestLevel}</td>
+                      <td className="admin-center">{s.masteredCount}</td>
+                      <td className="admin-center">{s.totalReviews > 0 ? s.totalReviews.toLocaleString() : '—'}</td>
                       <td className="admin-center">{s.lastSeen}</td>
                     </tr>
                   );

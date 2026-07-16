@@ -16,20 +16,6 @@ export function resetNumberProgress() {
   localStorage.removeItem(STORAGE_KEY);
 }
 
-// Numbers carry no per-item timestamp, so merge by whichever side has seen
-// the number more (a monotonically increasing proxy for "more advanced") —
-// a stale cloud snapshot must never clobber more-advanced local progress.
-export function mergeNumberProgress(local, cloud) {
-  const merged = { ...(cloud || {}) };
-  for (const [value, localEntry] of Object.entries(local || {})) {
-    const cloudEntry = merged[value];
-    if (!cloudEntry || (localEntry.seen || 0) > (cloudEntry.seen || 0)) {
-      merged[value] = localEntry;
-    }
-  }
-  return merged;
-}
-
 export function getNumberState(progress, value) {
   const s = progress[value] || { seen: 0, correct: 0, wrong: 0 };
   return s.wrong > s.correct ? { ...s, wrong: s.correct } : s;

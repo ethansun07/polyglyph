@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { LEVELS, FIDEL_ROWS, getAllChars } from '../data/fidel.js';
 import { isLevelUnlocked } from '../utils/progress.js';
 import {
-  loadWritingProgress, saveWritingProgress, mergeWritingProgress,
+  loadWritingProgress, saveWritingProgress,
   resetWritingProgress,
   recordWritingResult,
   isWritingMastered,
@@ -255,9 +255,7 @@ function WritingQuizMode({ chars, writingProgress, onResultSaved, recognitionPro
   function grade(result) {
     const updated = recordWritingResult(writingProgress, char.id, result);
     saveWritingProgress(updated);
-    if (auth.currentUser) {
-      saveWritingProgressFromCloud(updated).catch(() => {});
-    }
+    saveWritingProgressFromCloud(updated).catch(() => {});
     onResultSaved(updated);
     const newLog = [...sessionLog, { charId: char.id, char: char.char, romanization: char.romanization, result }];
     setSeenInSession(s => { const n = new Set(s); n.add(char.id); return n; });
@@ -464,35 +462,23 @@ export default function WritingPractice({ progress, initialMode = 'copy' }) {
   const prevUid = useRef(null);
 
   useEffect(() => {
-    // Listen for the actual sign-in event, not just the state at mount time —
-    // a guest can sign in while already sitting on this page.
+    // Every visitor (guest or not) has a real uid, so this just re-syncs
+    // whenever the active identity changes — no merge needed, cloud always
+    // wins, since progress is never written anywhere but through the API.
     return onAuthChange(firebaseUser => {
-      if (!firebaseUser) {
-        if (prevUid.current) {
-          // Real sign-out — this device's cache reflects the account that
-          // just signed out. Clear it so it never re-attaches to whoever
-          // signs in next (same account or a different one).
-          resetWritingProgress();
-          setWritingProgress({});
-          prevUid.current = null;
-        }
-        return;
-      }
+      if (!firebaseUser) return; // brief bootstrap window; App.jsx handles it
       if (prevUid.current && prevUid.current !== firebaseUser.uid) {
-        // Switched directly to a different account, no sign-out in between.
         resetWritingProgress();
         setWritingProgress({});
       }
       prevUid.current = firebaseUser.uid;
       loadWritingProgressFromCloud().then(data => {
-        // Bail if the signed-in account changed while this fetch was in
+        // Bail if the signed-in identity changed while this fetch was in
         // flight — applying a stale response would leak one user's writing
         // history onto a different account.
         if (auth.currentUser?.uid !== firebaseUser.uid) return;
-        const merged = mergeWritingProgress(loadWritingProgress(), data);
-        setWritingProgress(merged);
-        saveWritingProgress(merged);
-        saveWritingProgressFromCloud(merged).catch(() => {});
+        setWritingProgress(data || {});
+        saveWritingProgress(data || {});
       }).catch(() => {});
     });
   }, []);

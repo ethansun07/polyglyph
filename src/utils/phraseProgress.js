@@ -20,19 +20,6 @@ export function resetPhraseProgress() {
   localStorage.removeItem(BROWSE_SEEN_KEY);
 }
 
-// Merge per-phrase, keeping whichever side saw it more recently — a stale
-// cloud snapshot must never clobber more-advanced local progress.
-export function mergePhraseProgress(local, cloud) {
-  const merged = { ...(cloud || {}) };
-  for (const [id, localEntry] of Object.entries(local || {})) {
-    const cloudEntry = merged[id];
-    if (!cloudEntry || new Date(localEntry.lastPracticed || 0) > new Date(cloudEntry.lastPracticed || 0)) {
-      merged[id] = localEntry;
-    }
-  }
-  return merged;
-}
-
 // ─── Browse-seen tracking (local only, no cloud sync needed) ─────────────────
 
 export function loadBrowseSeen() {

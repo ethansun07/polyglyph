@@ -18,19 +18,6 @@ export function resetWritingProgress() {
   localStorage.removeItem(WRITING_KEY);
 }
 
-// Merge per-char, keeping whichever side practiced it more recently — a stale
-// cloud snapshot must never clobber more-advanced local progress.
-export function mergeWritingProgress(local, cloud) {
-  const merged = { ...(cloud || {}) };
-  for (const [id, localEntry] of Object.entries(local || {})) {
-    const cloudEntry = merged[id];
-    if (!cloudEntry || new Date(localEntry.lastPracticed || 0) > new Date(cloudEntry.lastPracticed || 0)) {
-      merged[id] = localEntry;
-    }
-  }
-  return merged;
-}
-
 export function getWritingState(progress, charId) {
   const s = progress[charId] || { ...DEFAULT };
   return s.wrong > s.correct ? { ...s, wrong: s.correct } : s;
