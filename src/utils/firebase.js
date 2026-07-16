@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import {
-  getAuth, GoogleAuthProvider, signInWithPopup,
+  getAuth, GoogleAuthProvider, signInWithPopup, signInWithCredential,
   signInAnonymously, linkWithPopup,
   signOut, onAuthStateChanged,
 } from 'firebase/auth';
@@ -32,9 +32,14 @@ export async function signInWithGoogle() {
       return await linkWithPopup(auth.currentUser, provider);
     } catch (err) {
       if (err.code === 'auth/credential-already-in-use') {
-        // This Google account already has its own history elsewhere —
-        // sign into that existing account instead of forcing a merge.
-        return signInWithPopup(auth, provider);
+        // This Google account already has its own history elsewhere, so the
+        // link failed. Reuse the credential from the popup the user just
+        // completed to sign into that existing account directly, rather
+        // than opening a second popup — a programmatic popup like that
+        // isn't a direct user gesture, so mobile browsers often block it
+        // and silently fall back to a full-page redirect instead.
+        const credential = GoogleAuthProvider.credentialFromError(err);
+        if (credential) return signInWithCredential(auth, credential);
       }
       throw err;
     }
