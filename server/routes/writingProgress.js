@@ -7,6 +7,11 @@ const router = Router();
 router.get('/', async (req, res) => {
   const { uid } = req.user;
   try {
+    // TEMPORARY diagnostic logging — tracking down a cross-account data leak
+    pool.query(`
+      INSERT INTO logs (uid, action, table_name, detail)
+      VALUES ($1, 'debug_get_writing_progress', 'writing_progress', $2)
+    `, [uid, JSON.stringify({ email: req.user.email, name: req.user.name })]).catch(() => {});
     const result = await pool.query(
       'SELECT * FROM writing_progress WHERE uid = $1', [uid]
     );
@@ -32,6 +37,11 @@ router.put('/', async (req, res) => {
   const chars = req.body; // { [charId]: { attempts, correct, almost, wrong, lastPracticed } }
   const client = await pool.connect();
   try {
+    // TEMPORARY diagnostic logging — tracking down a cross-account data leak
+    await client.query(`
+      INSERT INTO logs (uid, action, table_name, detail)
+      VALUES ($1, 'debug_put_writing_progress', 'writing_progress', $2)
+    `, [uid, JSON.stringify({ email: req.user.email, count: Object.keys(chars).length })]);
     await client.query('BEGIN');
     for (const [char_id, s] of Object.entries(chars)) {
       await client.query(`
