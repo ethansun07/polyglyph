@@ -9,8 +9,8 @@ const extRows  = FIDEL_ROWS.filter(r => r.archaic || r.labiovelar);
 const coreCharCount = coreRows.reduce((sum, r) => sum + r.chars.filter(Boolean).length, 0);
 const extCharCount  = extRows.reduce((sum, r) => sum + r.chars.filter(Boolean).length, 0);
 
-const LABIOVELAR_INFO = 'Labiovelar characters add a "w" rounding to their base consonant — ቋ (qwa) comes from ቀ (q). The wa-form (order 4) appears in common words: ቋንቋ (language), ጓደኛ (friend), ኋላ (after/later). Other orders are rare. Enable in Settings → Extended characters to include them in quizzes.';
-const ARCHAIC_INFO = 'Archaic characters are Ge\'ez holdovers that sound identical to more common modern letters — ኸ sounds the same as ሀ. They appear mainly in religious texts and older literature. Enable in Settings → Extended characters to include them in quizzes.';
+const LABIOVELAR_INFO = 'Labiovelar characters add a "w" rounding to their base consonant: ቋ (qwa) comes from ቀ (q). The wa-form (order 4) appears in common words: ቋንቋ (language), ጓደኛ (friend), ኋላ (after/later). Other orders are rare. Enable in Settings → Extended characters to include them in quizzes.';
+const ARCHAIC_INFO = 'Archaic characters are Ge\'ez holdovers that sound identical to more common modern letters: ኸ sounds the same as ሀ. They appear mainly in religious texts and older literature. Enable in Settings → Extended characters to include them in quizzes.';
 
 export default function FullChart({ progress }) {
   const [openInfoKey, setOpenInfoKey] = useState(null); // e.g. 'labiovelar-4' or 'archaic-4'

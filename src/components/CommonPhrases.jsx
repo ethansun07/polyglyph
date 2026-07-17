@@ -433,7 +433,7 @@ function GeezKeyboardGuide() {
             </div>
           </div>
 
-          <p className="geez-guide-note">Independent vowels — this row's consonant is silent, so each order has its own direct key.</p>
+          <p className="geez-guide-note">Independent vowels: this row's consonant is silent, so each order has its own direct key.</p>
           <table className="geez-vowel-table">
             <thead>
               <tr><th>Keys</th><th>Order</th><th>Result</th></tr>
@@ -449,7 +449,7 @@ function GeezKeyboardGuide() {
             </tbody>
           </table>
 
-          <p className="geez-guide-note">Second independent-vowel row — reached with doubled vowel keys instead.</p>
+          <p className="geez-guide-note">Second independent-vowel row: reached with doubled vowel keys instead.</p>
           <table className="geez-vowel-table">
             <thead>
               <tr><th>Keys</th><th>Order</th><th>Result</th></tr>
@@ -465,7 +465,7 @@ function GeezKeyboardGuide() {
             </tbody>
           </table>
 
-          <p className="geez-guide-note">Labiovelar forms (consonant+w) — 4th order confirmed, others unknown.</p>
+          <p className="geez-guide-note">Labiovelar forms (consonant+w): 4th order confirmed, others unknown.</p>
           <div className="geez-consonant-section">
             <div className="geez-consonant-grid">
               {LABIOVELAR_FORMS.map(row => (

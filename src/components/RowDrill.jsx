@@ -49,7 +49,7 @@ export default function RowDrill({ row, chars, progress, onClose }) {
     if (pct === 1)   return 'Perfect!';
     if (pct >= 0.8)  return 'Great!';
     if (pct >= 0.6)  return 'Good effort.';
-    return 'Keep drilling — this row is tricky.';
+    return 'Keep drilling, this row is tricky.';
   }
 
   return (

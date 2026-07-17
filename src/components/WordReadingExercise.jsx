@@ -74,7 +74,7 @@ export default function WordReadingExercise({ level, words, allWords, onClose, a
             <div className="wr-title">
               {scope === 'all' ? 'All Levels' : `Level ${level}`} — Word Drill
             </div>
-            <div className="wr-subtitle">Goal: practice sounding out the script — not memorizing meanings</div>
+            <div className="wr-subtitle">Goal: practice sounding out the script, not memorizing meanings</div>
           </div>
           <button className="wr-close" onClick={onClose} aria-label="Close"><X size={18} strokeWidth={2.25} /></button>
         </div>

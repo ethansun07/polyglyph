@@ -100,7 +100,7 @@ export default function Settings({ progress, onProgressUpdate, user }) {
           {feedbackStatus === 'sending' ? 'Sending…' : 'Send feedback'}
         </button>
         {feedbackStatus === 'sent'  && <p className="feedback-status feedback-status-ok"><Check size={14} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> Thanks, feedback sent!</p>}
-        {feedbackStatus === 'error' && <p className="feedback-status feedback-status-err">Couldn't send that — try again in a bit.</p>}
+        {feedbackStatus === 'error' && <p className="feedback-status feedback-status-err">Couldn't send that, try again in a bit.</p>}
       </div>
 
       {/* Reset */}
