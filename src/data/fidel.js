@@ -28,7 +28,7 @@ export const FIDEL_ROWS = [
     baseName: 'ሀ',
     chars:         ['ሀ', 'ሁ', 'ሂ', 'ሃ', 'ሄ', 'ህ', 'ሆ'],
     romanizations: ['hä', 'hu', 'hi', 'ha', 'he', 'h',  'ho'],
-    note: '💡 ሀ (1st order) is romanized hä. In modern Amharic, ሀ, ሐ (ḥ), and ኀ (ḫ) all sound the same: spelling still matters for writing!',
+    note: '💡 ሀ (1st order) is romanized hä. In modern Amharic, ሀ, ሐ (ḥ), and ኀ (ḫ) all sound the same, but spelling still matters for writing!',
   },
   {
     id: 'le',

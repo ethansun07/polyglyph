@@ -77,7 +77,7 @@ function LearnNumbers({ progress, settings }) {
       <Section title="10,000 – 90,000" items={ETHIOPIC_TEN_THOUSANDS} />
       <Section title="100,000 and up"  items={ETHIOPIC_LARGE_ROUND}  />
       <p className="num-learn-note">
-        These bigger milestones are just for recognition: worth knowing the words, not something you'll be quizzed on combining.
+        These bigger milestones are just for recognition. They're worth knowing, but you won't be quizzed on combining them.
       </p>
 
       <div className="num-section">
