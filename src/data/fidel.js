@@ -28,7 +28,7 @@ export const FIDEL_ROWS = [
     baseName: 'ሀ',
     chars:         ['ሀ', 'ሁ', 'ሂ', 'ሃ', 'ሄ', 'ህ', 'ሆ'],
     romanizations: ['hä', 'hu', 'hi', 'ha', 'he', 'h',  'ho'],
-    note: '💡 ሀ (1st order) is romanized hä. In modern Amharic, ሀ, ሐ (ḥ), and ኀ (ḫ) all sound the same — spelling still matters for writing!',
+    note: '💡 ሀ (1st order) is romanized hä. In modern Amharic, ሀ, ሐ (ḥ), and ኀ (ḫ) all sound the same: spelling still matters for writing!',
   },
   {
     id: 'le',
@@ -41,7 +41,7 @@ export const FIDEL_ROWS = [
     baseName: 'ሐ',
     chars:         ['ሐ', 'ሑ', 'ሒ', 'ሓ', 'ሔ', 'ሕ', 'ሖ'],
     romanizations: ['ḥä', 'ḥu', 'ḥi', 'ḥa', 'ḥe', 'ḥ',  'ḥo'],
-    note: '💡 ሐ is romanized ḥ (h with dot below) — historically a deep pharyngeal "H". In modern spoken Amharic it sounds exactly like ሀ (h).',
+    note: '💡 ሐ is romanized ḥ (h with dot below): historically a deep pharyngeal "H". In modern spoken Amharic it sounds exactly like ሀ (h).',
   },
   {
     id: 'me',
@@ -54,7 +54,7 @@ export const FIDEL_ROWS = [
     baseName: 'ሠ',
     chars:         ['ሠ', 'ሡ', 'ሢ', 'ሣ', 'ሤ', 'ሥ', 'ሦ'],
     romanizations: ['śä', 'śu', 'śi', 'śa', 'śe', 'ś',  'śo'],
-    note: '💡 ሠ is romanized ś — an older Ge\'ez "S". It now sounds exactly like ሰ (s) in modern Amharic. Still seen in traditional texts and names.',
+    note: '💡 ሠ is romanized ś: an older Ge\'ez "S". It now sounds exactly like ሰ (s) in modern Amharic. Still seen in traditional texts and names.',
   },
 
   // ── Level 2 ──────────────────────────────────────────────────────────────
@@ -76,14 +76,14 @@ export const FIDEL_ROWS = [
     baseName: 'ሸ',
     chars:         ['ሸ', 'ሹ', 'ሺ', 'ሻ', 'ሼ', 'ሽ', 'ሾ'],
     romanizations: ['šä', 'šu', 'ši', 'ša', 'še', 'š', 'šo'],
-    note: '💡 ሸ is romanized š — the "sh" sound, as in "show".',
+    note: '💡 ሸ is romanized š: the "sh" sound, as in "show".',
   },
   {
     id: 'qe',
     baseName: 'ቀ',
     chars:         ['ቀ', 'ቁ', 'ቂ', 'ቃ', 'ቄ', 'ቅ', 'ቆ'],
     romanizations: ['qä', 'qu', 'qi', 'qa', 'qe', 'q',  'qo'],
-    note: '💡 Q in Amharic is a "uvular K" — a deeper K sound made at the back of the throat, further back than a normal K.',
+    note: '💡 Q in Amharic is a "uvular K": a deeper K sound made at the back of the throat, further back than a normal K.',
   },
   {
     id: 'be',
@@ -111,14 +111,14 @@ export const FIDEL_ROWS = [
     baseName: 'ቸ',
     chars:         ['ቸ', 'ቹ', 'ቺ', 'ቻ', 'ቼ', 'ች', 'ቾ'],
     romanizations: ['čä', 'ču', 'či', 'ča', 'če', 'č', 'čo'],
-    note: '💡 ቸ is romanized č — the "ch" sound, as in "chair".',
+    note: '💡 ቸ is romanized č: the "ch" sound, as in "chair".',
   },
   {
     id: 'khe',
     baseName: 'ኀ',
     chars:         ['ኀ', 'ኁ', 'ኂ', 'ኃ', 'ኄ', 'ኅ', 'ኆ'],
     romanizations: ['ḫä', 'ḫu', 'ḫi', 'ḫa', 'ḫe', 'ḫ',  'ḫo'],
-    note: '💡 ኀ is romanized ḫ (h with breve below) — a third H row from Ge\'ez. Sounds like ሀ (h) in modern Amharic. Spelling still matters!',
+    note: '💡 ኀ is romanized ḫ (h with breve below): a third H row from Ge\'ez. Sounds like ሀ (h) in modern Amharic. Spelling still matters!',
   },
   {
     id: 'ne',
@@ -133,14 +133,14 @@ export const FIDEL_ROWS = [
     baseName: 'ኘ',
     chars:         ['ኘ', 'ኙ', 'ኚ', 'ኛ', 'ኜ', 'ኝ', 'ኞ'],
     romanizations: ['ñä', 'ñu', 'ñi', 'ña', 'ñe', 'ñ', 'ño'],
-    note: '💡 ኘ is romanized ñ — the "ny" sound, as in "canyon".',
+    note: '💡 ኘ is romanized ñ: the "ny" sound, as in "canyon".',
   },
   {
     id: 'a',
     baseName: 'አ',
     chars:         ['አ', 'ኡ', 'ኢ', 'ኣ', 'ኤ', 'እ', 'ኦ'],
     romanizations: ['ä',  'u',  'i',  'a',  'e',  'ə',  'o'],
-    note: '💡 The አ row is the pure vowel row — no consonant, just vowel sounds. አ starts with a soft glottal stop. In modern Amharic it sounds similar to ዐ.',
+    note: '💡 The አ row is the pure vowel row: no consonant, just vowel sounds. አ starts with a soft glottal stop. In modern Amharic it sounds similar to ዐ.',
   },
   {
     id: 'ke',
@@ -153,7 +153,7 @@ export const FIDEL_ROWS = [
     baseName: 'ኸ',
     chars:         ['ኸ', 'ኹ', 'ኺ', 'ኻ', 'ኼ', 'ኽ', 'ኾ'],
     romanizations: ['ħä', 'ħu', 'ħi', 'ħa', 'ħe', 'ħ',  'ħo'],
-    note: '💡 ኸ is romanized ħ (h-bar) — a fourth H variant, sounds exactly like ሀ (h), ሐ (ḥ), and ኀ (ḫ) in modern Amharic. Mainly seen in dialects and older writing.',
+    note: '💡 ኸ is romanized ħ (h-bar): a fourth H variant, sounds exactly like ሀ (h), ሐ (ḥ), and ኀ (ḫ) in modern Amharic. Mainly seen in dialects and older writing.',
     archaic: true,
   },
   {
@@ -169,7 +169,7 @@ export const FIDEL_ROWS = [
     baseName: 'ዐ',
     chars:         ['ዐ', 'ዑ', 'ዒ', 'ዓ', 'ዔ', 'ዕ', 'ዖ'],
     romanizations: ["ʿä", "ʿu", "ʿi", "ʿa", "ʿe", "ʿ",  "ʿo"],
-    note: '💡 ዐ is romanized ʿ (the ayin sign) — historically a voiced pharyngeal consonant like Arabic ع. In modern Amharic it sounds the same as አ.',
+    note: '💡 ዐ is romanized ʿ (the ayin sign): historically a voiced pharyngeal consonant like Arabic ع. In modern Amharic it sounds the same as አ.',
   },
   {
     id: 'ze',
@@ -182,7 +182,7 @@ export const FIDEL_ROWS = [
     baseName: 'ዠ',
     chars:         ['ዠ', 'ዡ', 'ዢ', 'ዣ', 'ዤ', 'ዥ', 'ዦ'],
     romanizations: ['žä', 'žu', 'ži', 'ža', 'že', 'ž', 'žo'],
-    note: '💡 ዠ is romanized ž — the "zh" sound, like "s" in "measure" or "g" in French "genre".',
+    note: '💡 ዠ is romanized ž: the "zh" sound, like "s" in "measure" or "g" in French "genre".',
   },
   {
     id: 'ye',
@@ -215,21 +215,21 @@ export const FIDEL_ROWS = [
     baseName: 'ጠ',
     chars:         ['ጠ', 'ጡ', 'ጢ', 'ጣ', 'ጤ', 'ጥ', 'ጦ'],
     romanizations: ['ṭä', 'ṭu', 'ṭi', 'ṭa', 'ṭe', 'ṭ',  'ṭo'],
-    note: '💡 ጠ is romanized ṭ (t with dot below) — an emphatic ejective T, heavier and sharper than t.',
+    note: '💡 ጠ is romanized ṭ (t with dot below): an emphatic ejective T, heavier and sharper than t.',
   },
   {
     id: 'cche',
     baseName: 'ጨ',
     chars:         ['ጨ', 'ጩ', 'ጪ', 'ጫ', 'ጬ', 'ጭ', 'ጮ'],
     romanizations: ['č̣ä', 'č̣u', 'č̣i', 'č̣a', 'č̣e', 'č̣', 'č̣o'],
-    note: '💡 ጨ is romanized č̣ — an emphatic ejective CH, sharper than č.',
+    note: '💡 ጨ is romanized č̣: an emphatic ejective CH, sharper than č.',
   },
   {
     id: 'ppe',
     baseName: 'ጰ',
     chars:         ['ጰ', 'ጱ', 'ጲ', 'ጳ', 'ጴ', 'ጵ', 'ጶ'],
     romanizations: ['pä', 'pu', 'pi', 'pa', 'pe', 'p',  'po'],
-    note: '💡 ጰ is an ejective P — a sharp, popping P sound. Sounds like ፐ in modern Amharic.',
+    note: '💡 ጰ is an ejective P: a sharp, popping P sound. Sounds like ፐ in modern Amharic.',
   },
 
   // ── Level 7 ──────────────────────────────────────────────────────────────
@@ -238,14 +238,14 @@ export const FIDEL_ROWS = [
     baseName: 'ጸ',
     chars:         ['ጸ', 'ጹ', 'ጺ', 'ጻ', 'ጼ', 'ጽ', 'ጾ'],
     romanizations: ['ṣä', 'ṣu', 'ṣi', 'ṣa', 'ṣe', 'ṣ', 'ṣo'],
-    note: '💡 ጸ is romanized ṣ (s with dot below) — an emphatic "ts" sound.',
+    note: '💡 ጸ is romanized ṣ (s with dot below): an emphatic "ts" sound.',
   },
   {
     id: 'tse2',
     baseName: 'ፀ',
     chars:         ['ፀ', 'ፁ', 'ፂ', 'ፃ', 'ፄ', 'ፅ', 'ፆ'],
     romanizations: ['ṣ́ä', 'ṣ́u', 'ṣ́i', 'ṣ́a', 'ṣ́e', 'ṣ́', 'ṣ́o'],
-    note: '💡 ፀ is romanized ṣ́ — an alternate form of ṣ. Same sound as ጸ in modern Amharic. Different spelling, same sound today.',
+    note: '💡 ፀ is romanized ṣ́: an alternate form of ṣ. Same sound as ጸ in modern Amharic. Different spelling, same sound today.',
   },
   {
     id: 'fe',
@@ -269,7 +269,7 @@ export const FIDEL_ROWS = [
     labiovelar: true,
     chars:         [null, null, 'ቊ', 'ቋ', 'ቌ', 'ቍ', 'ቈ'],
     romanizations: [null, null, 'qwi', 'qwa', 'qwe', 'qwə', 'qwo'],
-    note: '💡 ቋ (qwa) is a labiovelar — ቀ (q) with w-rounding. Only 5 of the 7 orders exist. The wa form ቋ is the most common.',
+    note: '💡 ቋ (qwa) is a labiovelar: ቀ (q) with w-rounding. Only 5 of the 7 orders exist. The wa form ቋ is the most common.',
   },
   {
     id: 'khwa',
@@ -285,7 +285,7 @@ export const FIDEL_ROWS = [
     labiovelar: true,
     chars:         [null, null, 'ኲ', 'ኳ', 'ኴ', 'ኵ', 'ኰ'],
     romanizations: [null, null, 'kwi', 'kwa', 'kwe', 'kwə', 'kwo'],
-    note: '💡 ኳ (kwa) is a labiovelar — ከ (k) with w-rounding. Appears in common words like እንኳን (enkwan, congratulations/welcome).',
+    note: '💡 ኳ (kwa) is a labiovelar: ከ (k) with w-rounding. Appears in common words like እንኳን (enkwan, congratulations/welcome).',
   },
   {
     id: 'gwa',
@@ -293,7 +293,7 @@ export const FIDEL_ROWS = [
     labiovelar: true,
     chars:         [null, null, 'ጒ', 'ጓ', 'ጔ', 'ጕ', 'ጐ'],
     romanizations: [null, null, 'gwi', 'gwa', 'gwe', 'gwə', 'gwo'],
-    note: '💡 ጓ (gwa) is a labiovelar — ገ (g) with w-rounding.',
+    note: '💡 ጓ (gwa) is a labiovelar: ገ (g) with w-rounding.',
   },
 ];
 

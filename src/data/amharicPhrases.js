@@ -190,7 +190,7 @@ export const PHRASES = [
     meaning:         'please (masc / fem)',
     category:        'politeness',
     requiredLevel:   4,
-    note:            'From a root meaning "I beg" or "I implore." Use እባክህ (əbakh) to a man, እባክሽ (əbakš) to a woman. For an elder or someone deserving formal respect, the honorific form is እባክዎ (əbakwo) — you may hear this used with older people as a sign of cultural awareness.',
+    note:            'From a root meaning "I beg" or "I implore." Use እባክህ (əbakh) to a man, እባክሽ (əbakš) to a woman. For an elder or someone deserving formal respect, the honorific form is እባክዎ (əbakwo), which you may hear used with older people as a sign of cultural awareness.',
     travelEssential: true,
   },
   {
