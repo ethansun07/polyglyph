@@ -27,6 +27,12 @@ export function signInAsGuest() {
 
 export async function signInWithGoogle() {
   const provider = new GoogleAuthProvider();
+  // Without this, Google can silently reuse whichever Google account is
+  // already active in the browser instead of asking, which is how a user
+  // with multiple Google accounts ends up signed into the wrong one while
+  // the name/photo (often shared across their own accounts) still looks
+  // right — always force the account chooser so the choice is explicit.
+  provider.setCustomParameters({ prompt: 'select_account' });
   if (auth.currentUser?.isAnonymous) {
     try {
       return await linkWithPopup(auth.currentUser, provider);
