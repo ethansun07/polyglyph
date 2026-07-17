@@ -94,19 +94,7 @@ a { color: var(--primary); }
 }
 
 .header-brand { display: flex; align-items: center; gap: 0.5rem; }
-.header-flag-mini {
-  display: flex;
-  flex-direction: column;
-  width: 20px;
-  height: 14px;
-  border-radius: 2px;
-  overflow: hidden;
-  gap: 1px;
-}
-.header-flag-mini span { flex: 1; }
-.header-flag-mini span:nth-child(1) { background: #078930; }
-.header-flag-mini span:nth-child(2) { background: #FCDD09; }
-.header-flag-mini span:nth-child(3) { background: #DA121A; }
+.header-flag { font-size: 1.4rem; }
 .header-title { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.01em; }
 .header-right { display: flex; align-items: center; gap: 0.5rem; }
 .header-streak {

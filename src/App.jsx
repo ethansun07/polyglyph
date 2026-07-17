@@ -338,7 +338,7 @@ export default function App() {
       {/* ── Header ── */}
       <header className="app-header">
         <div className="header-brand">
-          <span className="header-flag-mini"><span /><span /><span /></span>
+          <span className="header-flag">🇪🇹</span>
           <span className="header-title">Polyglyph</span>
         </div>
         <div className="header-right">
