@@ -233,7 +233,7 @@ export default function MixedReview({ progress, onProgressUpdate, onDone }) {
     : <><HelpCircle size={13} strokeWidth={2.25} /> Forward</>;
 
   return (
-    <div className="page">
+    <div className="page quiz-page">
       {showChart && <ChartModal progress={progress} onClose={() => setShowChart(false)} />}
       <div className="page-title-row">
         <h2 className="page-title"><Shuffle size={22} className="page-title-icon" /> Mixed Review</h2>
@@ -341,18 +341,20 @@ export default function MixedReview({ progress, onProgressUpdate, onDone }) {
           </div>
 
           {!writeRevealed ? (
-            <button className="btn btn-primary btn-next" onClick={handleWriteCheck}>
-              Reveal Answer
-            </button>
+            <div className="quiz-next-bar">
+              <button className="btn btn-primary btn-next" onClick={handleWriteCheck}>
+                Reveal Answer
+              </button>
+            </div>
           ) : (
-            <>
+            <div className="quiz-next-bar">
               <p className="wq-grade-label">How did you do?</p>
               <div className="wq-grade-btns">
                 <button className="btn wq-btn-wrong"   onClick={() => handleWriteGrade('wrong')}><X size={16} strokeWidth={2.25} /> Wrong</button>
                 <button className="btn wq-btn-almost"  onClick={() => handleWriteGrade('almost')}>≈ Almost</button>
                 <button className="btn wq-btn-correct" onClick={() => handleWriteGrade('correct')}><Check size={16} strokeWidth={2.25} /> Correct</button>
               </div>
-            </>
+            </div>
           )}
         </>
       )}
@@ -418,9 +420,11 @@ export default function MixedReview({ progress, onProgressUpdate, onDone }) {
       )}
 
       {answered && (
-        <button className="btn btn-primary btn-next" onClick={handleNext}>
-          {isLastQuestion ? <><Grid3x3 size={16} strokeWidth={2.25} /> See Results</> : 'Next →'}
-        </button>
+        <div className="quiz-next-bar">
+          <button className="btn btn-primary btn-next" onClick={handleNext}>
+            {isLastQuestion ? <><Grid3x3 size={16} strokeWidth={2.25} /> See Results</> : 'Next →'}
+          </button>
+        </div>
       )}
     </div>
   );

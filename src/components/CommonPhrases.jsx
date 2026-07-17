@@ -234,7 +234,7 @@ function FlashcardMode({ pool, settings, onPhraseResult, progress, onProgressUpd
   }
 
   return (
-    <div className="flashcard-mode">
+    <div className="flashcard-mode phrases-flashcard-page">
       <div className="level-selector">
         <button
           className={`level-pill ${selectedLevels.size === 0 ? 'active' : ''}`}
@@ -305,9 +305,11 @@ function FlashcardMode({ pool, settings, onPhraseResult, progress, onProgressUpd
       </div>
 
       {flipped && !graded && (
-        <div className="pfc-grade-btns">
-          <button className="pfc-btn-wrong"   onClick={() => grade('wrong')}><X size={16} strokeWidth={2.25} /> Wrong</button>
-          <button className="pfc-btn-correct" onClick={() => grade('correct')}><Check size={16} strokeWidth={2.25} /> Got it</button>
+        <div className="quiz-next-bar">
+          <div className="pfc-grade-btns">
+            <button className="pfc-btn-wrong"   onClick={() => grade('wrong')}><X size={16} strokeWidth={2.25} /> Wrong</button>
+            <button className="pfc-btn-correct" onClick={() => grade('correct')}><Check size={16} strokeWidth={2.25} /> Got it</button>
+          </div>
         </div>
       )}
 

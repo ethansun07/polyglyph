@@ -127,11 +127,15 @@ export default function WordReadingExercise({ level, words, allWords, onClose, a
             </div>
 
             {!revealed ? (
-              <button className="btn btn-primary" onClick={reveal}>Reveal</button>
+              <div className="wr-sticky-footer">
+                <button className="btn btn-primary" onClick={reveal}>Reveal</button>
+              </div>
             ) : (
-              <div className="pfc-grade-btns">
-                <button className="pfc-btn-wrong"   onClick={() => grade(false)}><X size={16} strokeWidth={2.25} /> Wrong</button>
-                <button className="pfc-btn-correct" onClick={() => grade(true)}><Check size={16} strokeWidth={2.25} /> Got it</button>
+              <div className="wr-sticky-footer">
+                <div className="pfc-grade-btns">
+                  <button className="pfc-btn-wrong"   onClick={() => grade(false)}><X size={16} strokeWidth={2.25} /> Wrong</button>
+                  <button className="pfc-btn-correct" onClick={() => grade(true)}><Check size={16} strokeWidth={2.25} /> Got it</button>
+                </div>
               </div>
             )}
           </>

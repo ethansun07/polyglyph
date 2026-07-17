@@ -273,9 +273,11 @@ function QuizStep({ chars, progress, onComplete }) {
         </div>
       )}
       {answered && (
-        <button className="btn btn-primary btn-next" onClick={handleNext}>
-          {count + 1 >= QUIZ_Q ? 'Continue →' : 'Next →'}
-        </button>
+        <div className="quiz-next-bar">
+          <button className="btn btn-primary btn-next" onClick={handleNext}>
+            {count + 1 >= QUIZ_Q ? 'Continue →' : 'Next →'}
+          </button>
+        </div>
       )}
     </div>
   );
@@ -393,9 +395,11 @@ function AudioStep({ chars, progress, onComplete }) {
       </div>
 
       {answered && (
-        <button className="btn btn-primary btn-next" onClick={handleNext}>
-          {count + 1 >= AUDIO_Q ? 'Continue →' : 'Next →'}
-        </button>
+        <div className="quiz-next-bar">
+          <button className="btn btn-primary btn-next" onClick={handleNext}>
+            {count + 1 >= AUDIO_Q ? 'Continue →' : 'Next →'}
+          </button>
+        </div>
       )}
 
       <button className="cant-listen-btn" onClick={() => setCantListen(v => !v)}>

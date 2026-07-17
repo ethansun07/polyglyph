@@ -96,6 +96,7 @@ a { color: var(--primary); }
 .header-brand { display: flex; align-items: center; gap: 0.5rem; }
 .header-flag-mini {
   display: flex;
+  flex-direction: column;
   width: 20px;
   height: 14px;
   border-radius: 2px;
@@ -339,15 +340,16 @@ a { color: var(--primary); }
 /* Flag stripe decoration under the hero title */
 .hero-flag-stripe {
   display: flex;
+  flex-direction: column;
   width: 72px;
   height: 7px;
   border-radius: 3px;
   overflow: hidden;
   margin: 0.75rem auto 0;
-  gap: 2px;
+  gap: 1px;
   box-shadow: var(--shadow-sm);
 }
-.hero-flag-stripe span { flex: 1; border-radius: 3px; }
+.hero-flag-stripe span { flex: 1; }
 .hero-flag-stripe span:nth-child(1) { background: #078930; }
 .hero-flag-stripe span:nth-child(2) { background: #FCDD09; }
 .hero-flag-stripe span:nth-child(3) { background: #DA121A; }
@@ -483,7 +485,8 @@ a { color: var(--primary); }
   margin: 0 auto;
 }
 .quiz-next-bar .wq-grade-label,
-.quiz-next-bar .wq-grade-btns {
+.quiz-next-bar .wq-grade-btns,
+.quiz-next-bar .pfc-grade-btns {
   max-width: 680px;
   margin-left: auto;
   margin-right: auto;
@@ -492,6 +495,9 @@ a { color: var(--primary); }
 
 /* Writing quiz: same reachability fix as .quiz-page, for the Reveal/grade bar */
 .writing-quiz-page { padding-bottom: 6rem; }
+
+/* Phrases flashcard mode: same reachability fix, for the Wrong/Got it bar */
+.phrases-flashcard-page { padding-bottom: 6rem; }
 
 /* Numbers quiz: same reachability fix as .quiz-page, for the Next bar */
 .numbers-quiz-page { padding-bottom: 6rem; }
@@ -2838,6 +2844,8 @@ code {
 .rd-char { font-size: 4rem !important; }
 
 /* ─── Lesson Mode ────────────────────────────────────────────────────────── */
+/* Lesson quiz/audio steps: same reachability fix as .quiz-page, for the Next bar */
+.lesson-step { padding-bottom: 6rem; }
 .lesson-steps-bar {
   display: flex;
   justify-content: center;
