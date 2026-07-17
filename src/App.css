@@ -992,7 +992,7 @@ a { color: var(--primary); }
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 44px;
+  min-width: 34px;
   gap: 0;
 }
 .chart-row-base {
@@ -1013,11 +1013,11 @@ a { color: var(--primary); }
 
 .chart-cell {
   flex: 1;
-  min-width: 44px;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 5px 2px;
+  padding: 5px 1px;
   border-radius: 6px;
   border: 1.5px solid transparent;
   background: var(--bg);
