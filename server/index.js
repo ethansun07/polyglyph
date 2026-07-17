@@ -12,6 +12,10 @@ import feedbackRoutes      from './routes/feedback.js';
 const app  = express();
 const PORT = process.env.PORT || 3001;
 
+// Render sits behind a reverse proxy, so req.ip would otherwise be the
+// proxy's address rather than the real client IP from X-Forwarded-For.
+app.set('trust proxy', true);
+
 const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
   .split(',')
   .map(o => o.trim());

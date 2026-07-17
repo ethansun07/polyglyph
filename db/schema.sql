@@ -9,6 +9,10 @@ CREATE TABLE IF NOT EXISTS users (
   created_at   TIMESTAMPTZ DEFAULT now()
 );
 ALTER TABLE users ADD COLUMN IF NOT EXISTS is_anonymous BOOL DEFAULT FALSE;
+-- Derived from IP at request time (via self-hosted geoip-lite), never the
+-- raw IP itself, and refreshed on every login.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS country TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS city    TEXT;
 
 CREATE TABLE IF NOT EXISTS char_progress (
   uid       TEXT REFERENCES users(uid) ON DELETE CASCADE,

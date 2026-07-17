@@ -20,7 +20,10 @@ function getStats(user) {
   const lastSeen       = user.last_seen
     ? new Date(user.last_seen).toLocaleDateString()
     : '—';
-  return { masteredCount, totalReviews, accuracy, phraseCount, writingCount, streak, highestLevel, joined, lastSeen };
+  const location       = user.city && user.country
+    ? `${user.city}, ${user.country}`
+    : user.country || '—';
+  return { masteredCount, totalReviews, accuracy, phraseCount, writingCount, streak, highestLevel, joined, lastSeen, location };
 }
 
 export default function AdminDashboard() {
@@ -58,6 +61,7 @@ export default function AdminDashboard() {
             <thead>
               <tr>
                 <th>User</th>
+                <th>Location</th>
                 <th>Joined</th>
                 <th>Level</th>
                 <th>Chars <Star size={12} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /></th>
@@ -80,6 +84,7 @@ export default function AdminDashboard() {
                         <div className="admin-email">{user.email || '—'}</div>
                       </div>
                     </td>
+                    <td className="admin-center">{s.location}</td>
                     <td className="admin-center">{s.joined}</td>
                     <td className="admin-center">Lv {s.highestLevel}</td>
                     <td className="admin-center">{s.masteredCount}</td>
@@ -107,6 +112,7 @@ export default function AdminDashboard() {
               <thead>
                 <tr>
                   <th>Anon ID</th>
+                  <th>Location</th>
                   <th>Joined</th>
                   <th>Level</th>
                   <th>Chars <Star size={12} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /></th>
@@ -120,6 +126,7 @@ export default function AdminDashboard() {
                   return (
                     <tr key={guest.uid}>
                       <td className="admin-anon-id">{guest.uid.slice(0, 8)}</td>
+                      <td className="admin-center">{s.location}</td>
                       <td className="admin-center">{s.joined}</td>
                       <td className="admin-center">Lv {s.highestLevel}</td>
                       <td className="admin-center">{s.masteredCount}</td>

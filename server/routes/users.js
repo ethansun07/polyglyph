@@ -1,21 +1,38 @@
 import { Router } from 'express';
+import geoip from 'geoip-lite';
 import pool from '../db.js';
 import { ADMIN_EMAIL } from '../middleware/auth.js';
 
 const router = Router();
 
+const regionNames = new Intl.DisplayNames(['en'], { type: 'region' });
+
+// Resolves a request's client IP to a country/city, never persisting the IP
+// itself. Local/private IPs (dev, internal networks) have no geo data.
+function locateRequest(req) {
+  const ip = req.ip?.replace(/^::ffff:/, '');
+  const geo = ip && geoip.lookup(ip);
+  if (!geo) return { country: null, city: null };
+  let country = geo.country || null;
+  try { if (country) country = regionNames.of(country); } catch { /* keep code if name lookup fails */ }
+  return { country, city: geo.city || null };
+}
+
 // POST /api/users/me — upsert user record on login
 router.post('/me', async (req, res) => {
   const { uid, email, name: display_name, isAnonymous } = req.user;
+  const { country, city } = locateRequest(req);
   try {
     await pool.query(`
-      INSERT INTO users (uid, email, display_name, is_anonymous)
-      VALUES ($1, $2, $3, $4)
+      INSERT INTO users (uid, email, display_name, is_anonymous, country, city)
+      VALUES ($1, $2, $3, $4, $5, $6)
       ON CONFLICT (uid) DO UPDATE SET
         email        = EXCLUDED.email,
         display_name = EXCLUDED.display_name,
-        is_anonymous = EXCLUDED.is_anonymous
-    `, [uid, email, display_name, isAnonymous]);
+        is_anonymous = EXCLUDED.is_anonymous,
+        country       = COALESCE(EXCLUDED.country, users.country),
+        city          = COALESCE(EXCLUDED.city, users.city)
+    `, [uid, email, display_name, isAnonymous, country, city]);
 
     await pool.query(`
       INSERT INTO logs (uid, action, table_name, detail)
@@ -37,6 +54,7 @@ router.get('/all', async (req, res) => {
     const result = await pool.query(`
       SELECT
         u.uid, u.email, u.display_name, u.is_anonymous, u.created_at,
+        u.country, u.city,
         COALESCE(us.streak_count, 0)      AS streak_count,
         COALESCE(us.streak_last_date, '') AS streak_last_date,
         COALESCE((
