@@ -1,5 +1,5 @@
 import { Lock, LockOpen, Star, PenLine } from 'lucide-react';
-import { isCharMastered, getCharState } from '../utils/progress.js';
+import { isCharMastered, getCharState, getLevelProgress } from '../utils/progress.js';
 import { isWritingMastered, getWritingState } from '../utils/writingProgress.js';
 import { auth, signInWithGoogle } from '../utils/firebase.js';
 
@@ -43,12 +43,18 @@ export default function SessionSummary({
 
   const scoreClass = pct >= 80 ? 'score-great' : pct >= 60 ? 'score-ok' : 'score-low';
 
-  // Nudge on a level-up (existing behavior) OR on the very first-ever
-  // completed session, detected by having touched zero characters before
-  // this session started — catches guests earlier, since leveling up alone
-  // can take many sessions and a lot of people churn before ever hitting it.
+  // Nudge on a level-up, on the very first-ever completed session (detected
+  // by having touched zero characters before this session started, since
+  // leveling up alone can take many sessions and a lot of people churn
+  // before ever hitting it), and again once Level 1 is fully mastered (not
+  // just the 85% needed to unlock Level 2) as a second chance for anyone
+  // who missed or dismissed the earlier nudges.
   const isFirstSession = Object.keys(preSessionProgress?.chars || {}).length === 0;
-  const showSignInNudge = (newlyUnlockedLevels.length > 0 || isFirstSession) && auth.currentUser?.isAnonymous;
+  const level1JustMastered = !!preSessionProgress &&
+    getLevelProgress(preSessionProgress, 1).pct < 1 &&
+    getLevelProgress(currentProgress, 1).pct >= 1;
+  const showSignInNudge = (newlyUnlockedLevels.length > 0 || isFirstSession || level1JustMastered)
+    && auth.currentUser?.isAnonymous;
 
   return (
     <div className="page session-summary">
