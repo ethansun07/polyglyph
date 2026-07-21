@@ -39,8 +39,13 @@ export default function Settings({ progress, onProgressUpdate, user }) {
     resetPhraseProgress();
     resetNumberProgress();
     if (user) {
-      // Single endpoint wipes char/phrase/number/writing progress + settings server-side
-      await deleteMainProgressFromCloud();
+      // Single endpoint wipes char/phrase/number/writing progress + settings
+      // server-side. Local state is already cleared above regardless, so a
+      // failed request here (e.g. a cold-starting backend) shouldn't block
+      // the reload below — otherwise the page never refreshes and every
+      // screen keeps showing stale in-memory state (progress, "already
+      // read" checkmarks, etc.) even though localStorage is already empty.
+      try { await deleteMainProgressFromCloud(); } catch { /* local reset already happened */ }
     }
     window.location.reload();
   }
