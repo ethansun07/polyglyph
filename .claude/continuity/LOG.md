@@ -9,6 +9,22 @@ history.
 
 ---
 
+### 2026-07-20 — Reset Progress silently failing to refresh
+User reported the "already read" checkmark on Read mode's sentences (and
+dialogues) sometimes surviving a Reset Progress. Root cause:
+`deleteMainProgressFromCloud()` in `Settings.jsx`'s `handleReset()` wasn't
+wrapped in a try/catch, so if that request failed for any reason (a
+cold-starting Render backend, a transient network blip), it threw and
+`window.location.reload()` on the next line never ran. Local storage was
+already correctly cleared by that point, but since the page never
+reloaded, every screen kept showing stale in-memory React state — not
+just the read-seen checkmarks, potentially anything. Fix: wrapped the
+cloud delete in try/catch so `reload()` always runs regardless of whether
+it succeeds. Good general lesson for this codebase: an unhandled
+await-that-throws silently skips everything after it in the same async
+function, which is an easy way for a "did the UI actually refresh" bug to
+hide behind a "the data looks fine in the database" check.
+
 ### 2026-07-20 — Guest/user location tracking + this continuity system
 Added self-hosted IP → country/city lookup (`geoip-lite`) for the admin
 dashboard, after discussing with the user whether this was normal practice
