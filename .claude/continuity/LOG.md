@@ -9,6 +9,26 @@ history.
 
 ---
 
+### 2026-07-20 — Bookmarks + synced read-status for Read mode
+Added a bookmark feature (tap the bookmark icon on any sentence/dialogue
+card, filter to "show bookmarked only") and upgraded the existing
+"already read" tracking from local-only to cloud-synced, per explicit
+user request after discussing the tradeoff (local-only ships instantly
+with no backend changes; synced is more useful but needs a new table +
+API route + Render redeploy — user chose synced for both). New
+`reading_progress` table (uid, item_id, read, bookmarked) — one row per
+user per sentence/dialogue, since both flags are just "this user's
+relationship to one reading item." Client-side: new
+`src/utils/readingProgress.js` replacing the old local-only
+`READ_SEEN_KEY` logic that used to live in `progress.js`. Follows the
+exact same sync pattern as reading/writing/phrase/number progress: an
+`onAuthChange` effect with the stale-response guard, wired into Reset
+Progress and the identity-switch cache clear. This is the fifth instance
+of this exact sync pattern in the codebase now — if a sixth progress
+type is ever needed, it's a well-worn template at this point (schema
+table → GET/PUT route → client utils file → onAuthChange effect →
+reset/identity-switch wiring).
+
 ### 2026-07-20 — Reset Progress silently failing to refresh
 User reported the "already read" checkmark on Read mode's sentences (and
 dialogues) sometimes surviving a Reset Progress. Root cause:

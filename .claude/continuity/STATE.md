@@ -33,6 +33,13 @@ partner across sessions.
   architecture that had a serious cross-account data leak bug (see LOG.md).
 
 ## Recently shipped (most recent first)
+- **Bookmarks + synced read-status** for Read mode's sentences/dialogues
+  (`reading_progress` table, `server/routes/readingProgress.js`,
+  `src/utils/readingProgress.js`). Fifth instance of the
+  schema-table/GET-PUT-route/client-utils/`onAuthChange`-effect sync pattern
+  in this codebase — see LOG.md if a sixth is ever needed, it's a
+  well-worn template by now. **Needs a Neon migration + Render redeploy
+  before it works in production** — verify both happened.
 - Guest/user **location tracking** in the admin dashboard: self-hosted IP
   lookup (`geoip-lite`, npm package, no third-party API calls), stores only
   the derived country/city, never the raw IP. Refreshes on every login;
@@ -85,6 +92,9 @@ partner across sessions.
 ## Where to look
 - Auth logic: `src/utils/firebase.js`, `src/App.jsx` (the `onAuthChange` effect)
 - Admin dashboard: `src/components/AdminDashboard.jsx`, `server/routes/users.js`
+- Read mode (sentences/dialogues, bookmarks, read-status):
+  `src/components/SentenceReader.jsx`, `src/utils/readingProgress.js`,
+  `server/routes/readingProgress.js`
 - Shared CSS patterns/design tokens: `src/App.css` (`:root` variables,
   `.quiz-next-bar`/`.wr-sticky-footer` no-scroll patterns, `.nav-item-overflow`
   responsive nav breakpoint)
