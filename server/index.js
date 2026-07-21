@@ -6,6 +6,7 @@ import progressRoutes      from './routes/progress.js';
 import phraseRoutes        from './routes/phraseProgress.js';
 import numberRoutes        from './routes/numberProgress.js';
 import writingRoutes       from './routes/writingProgress.js';
+import readingRoutes       from './routes/readingProgress.js';
 import usersRoutes         from './routes/users.js';
 import feedbackRoutes      from './routes/feedback.js';
 
@@ -27,6 +28,7 @@ app.use('/api/progress',         requireAuth, progressRoutes);
 app.use('/api/phrase-progress',  requireAuth, phraseRoutes);
 app.use('/api/number-progress',  requireAuth, numberRoutes);
 app.use('/api/writing-progress', requireAuth, writingRoutes);
+app.use('/api/reading-progress', requireAuth, readingRoutes);
 app.use('/api/users',            requireAuth, usersRoutes);
 app.use('/api/feedback',         feedbackRoutes); // no blanket requireAuth: uses optionalAuth internally
 

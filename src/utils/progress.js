@@ -30,7 +30,6 @@ export function saveProgress(p) {
 
 export function resetProgress() {
   localStorage.removeItem(STORAGE_KEY);
-  localStorage.removeItem(READ_SEEN_KEY);
   localStorage.removeItem('amharic_word_drills_seen');
 }
 
@@ -142,23 +141,6 @@ export function isLevel7Mastered(progress) {
   if (level7Chars.length === 0) return false;
   const masteredCount = level7Chars.filter(c => isCharMastered(progress, c.id)).length;
   return masteredCount / level7Chars.length >= LEVEL_UNLOCK_THRESHOLD;
-}
-
-// ─── Read mode: which sentences/dialogues have been opened (local only) ──────
-const READ_SEEN_KEY = 'amharic_read_seen_v1';
-
-export function loadReadSeen() {
-  try {
-    return new Set(JSON.parse(localStorage.getItem(READ_SEEN_KEY) || '[]'));
-  } catch { return new Set(); }
-}
-
-export function markReadSeen(id, currentSet) {
-  if (currentSet.has(id)) return currentSet;
-  const next = new Set(currentSet);
-  next.add(id);
-  localStorage.setItem(READ_SEEN_KEY, JSON.stringify([...next]));
-  return next;
 }
 
 export function isReadModeUnlocked(progress) {

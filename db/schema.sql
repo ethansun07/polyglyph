@@ -59,6 +59,18 @@ CREATE TABLE IF NOT EXISTS writing_progress (
   PRIMARY KEY (uid, char_id)
 );
 
+-- item_id is a sentence or dialogue id from readingSentences.js. Both "seen
+-- this before" and "bookmarked" live on the same row since they're both just
+-- a user's relationship to one reading item.
+CREATE TABLE IF NOT EXISTS reading_progress (
+  uid        TEXT REFERENCES users(uid) ON DELETE CASCADE,
+  item_id    TEXT,
+  read       BOOL DEFAULT FALSE,
+  bookmarked BOOL DEFAULT FALSE,
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  PRIMARY KEY (uid, item_id)
+);
+
 CREATE TABLE IF NOT EXISTS user_settings (
   uid                    TEXT PRIMARY KEY REFERENCES users(uid) ON DELETE CASCADE,
   audio_enabled          BOOL DEFAULT TRUE,

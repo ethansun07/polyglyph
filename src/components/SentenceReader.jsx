@@ -1,8 +1,15 @@
-import { useState, useRef } from 'react';
-import { ScrollText, Check, Circle, Lock, MessagesSquare, Volume2, Wrench } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { ScrollText, Check, Circle, Lock, MessagesSquare, Volume2, Wrench, Bookmark } from 'lucide-react';
 import { SENTENCES, DIALOGUES, CONNECTOR_NOTE } from '../data/readingSentences.js';
-import { isReadModeUnlocked, isLevel7Mastered, loadReadSeen, markReadSeen } from '../utils/progress.js';
-import { auth, ADMIN_EMAIL } from '../utils/firebase.js';
+import { isReadModeUnlocked, isLevel7Mastered } from '../utils/progress.js';
+import {
+  loadReadingProgress, saveReadingProgress,
+  isRead, isBookmarked, markRead, toggleBookmark,
+} from '../utils/readingProgress.js';
+import {
+  auth, onAuthChange, ADMIN_EMAIL,
+  loadReadingProgressFromCloud, saveReadingProgressFromCloud,
+} from '../utils/firebase.js';
 import { PUNCTUATION } from '../data/fidel.js';
 import { playSentenceAudio, playSentenceWordAudio, playDialogueLineAudio } from '../utils/audio.js';
 
@@ -48,7 +55,7 @@ function PunctuationNote() {
 }
 
 // ─── Individual Sentence Card (word-by-word reveal) ───────────────────────────
-function SentenceCard({ sentence, settings, read, onRead }) {
+function SentenceCard({ sentence, settings, read, onRead, bookmarked, onToggleBookmark }) {
   const [revealed, setRevealed]   = useState(new Set());
   const [showMeaning, setMeaning] = useState(false);
 
@@ -70,7 +77,16 @@ function SentenceCard({ sentence, settings, read, onRead }) {
 
   return (
     <div className={`sentence-card ${read ? 'read-card-seen' : ''}`}>
-      {read && <span className="read-seen-check" title="Already read"><Check size={15} strokeWidth={2.5} /></span>}
+      <div className="read-card-badges">
+        {read && <span className="read-seen-check" title="Already read"><Check size={15} strokeWidth={2.5} /></span>}
+        <button
+          className={`read-bookmark-btn ${bookmarked ? 'bookmarked' : ''}`}
+          onClick={onToggleBookmark}
+          title={bookmarked ? 'Remove bookmark' : 'Bookmark this sentence'}
+        >
+          <Bookmark size={16} strokeWidth={2.25} fill={bookmarked ? 'currentColor' : 'none'} />
+        </button>
+      </div>
       <div className="sentence-words">
         {sentence.words.map((word, i) => {
           const isOpen = revealed.has(i);
@@ -115,7 +131,7 @@ function SentenceCard({ sentence, settings, read, onRead }) {
 }
 
 // ─── Dialogue Card (line-by-line reveal, chat-bubble style) ──────────────────
-function DialogueCard({ dialogue, settings, read, onRead }) {
+function DialogueCard({ dialogue, settings, read, onRead, bookmarked, onToggleBookmark }) {
   const [revealed, setRevealed] = useState(new Set());
   const [showAll, setShowAll]   = useState(false);
 
@@ -137,7 +153,16 @@ function DialogueCard({ dialogue, settings, read, onRead }) {
 
   return (
     <div className={`dialogue-card ${read ? 'read-card-seen' : ''}`}>
-      {read && <span className="read-seen-check" title="Already read"><Check size={15} strokeWidth={2.5} /></span>}
+      <div className="read-card-badges">
+        {read && <span className="read-seen-check" title="Already read"><Check size={15} strokeWidth={2.5} /></span>}
+        <button
+          className={`read-bookmark-btn ${bookmarked ? 'bookmarked' : ''}`}
+          onClick={onToggleBookmark}
+          title={bookmarked ? 'Remove bookmark' : 'Bookmark this dialogue'}
+        >
+          <Bookmark size={16} strokeWidth={2.25} fill={bookmarked ? 'currentColor' : 'none'} />
+        </button>
+      </div>
       <div className="dialogue-card-title">
         <span className="para-title-amharic">{dialogue.title}</span>
         <span className="para-title-meaning">{dialogue.titleMeaning}</span>
@@ -225,21 +250,58 @@ function LockedScreen({ progress, onAdminUnlock }) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function SentenceReader({ progress, onProgressUpdate }) {
   const [tab, setTab] = useState('sentences');
-  const [readSeen, setReadSeen] = useState(() => loadReadSeen());
+  const [readingProgress, setReadingProgress] = useState(() => loadReadingProgress());
+  const [bookmarkedOnly, setBookmarkedOnly] = useState(false);
+  const prevUid = useRef(null);
   const unlocked = isReadModeUnlocked(progress);
   const isAdmin  = auth.currentUser?.email === ADMIN_EMAIL;
 
-  function markRead(id) {
-    setReadSeen(prev => markReadSeen(id, prev));
+  // Every visitor (guest or not) has a real uid, so this just re-syncs
+  // whenever the active identity changes — no merge needed, cloud always
+  // wins, since progress is never written anywhere but through the API.
+  useEffect(() => {
+    return onAuthChange(firebaseUser => {
+      if (!firebaseUser) return; // brief bootstrap window; App.jsx handles it
+      if (prevUid.current && prevUid.current !== firebaseUser.uid) {
+        setReadingProgress({});
+      }
+      prevUid.current = firebaseUser.uid;
+      loadReadingProgressFromCloud().then(data => {
+        // Bail if the signed-in identity changed while this fetch was in
+        // flight — applying a stale response would leak one user's
+        // bookmarks/read-status onto a different account.
+        if (auth.currentUser?.uid !== firebaseUser.uid) return;
+        setReadingProgress(data || {});
+        saveReadingProgress(data || {});
+      }).catch(() => {});
+    });
+  }, []);
+
+  function handleMarkRead(id) {
+    if (isRead(readingProgress, id)) return;
+    const updated = markRead(readingProgress, id);
+    setReadingProgress(updated);
+    saveReadingProgress(updated);
+    saveReadingProgressFromCloud(updated).catch(() => {});
   }
 
-  const sentencesReadCount = SENTENCES.filter(s => readSeen.has(s.id)).length;
-  const dialoguesReadCount = DIALOGUES.filter(d => readSeen.has(d.id)).length;
+  function handleToggleBookmark(id) {
+    const updated = toggleBookmark(readingProgress, id);
+    setReadingProgress(updated);
+    saveReadingProgress(updated);
+    saveReadingProgressFromCloud(updated).catch(() => {});
+  }
+
+  const sentencesReadCount = SENTENCES.filter(s => isRead(readingProgress, s.id)).length;
+  const dialoguesReadCount = DIALOGUES.filter(d => isRead(readingProgress, d.id)).length;
+
+  const visibleSentences = bookmarkedOnly ? SENTENCES.filter(s => isBookmarked(readingProgress, s.id)) : SENTENCES;
+  const visibleDialogues = bookmarkedOnly ? DIALOGUES.filter(d => isBookmarked(readingProgress, d.id)) : DIALOGUES;
 
   const cardRefs = useRef(new Map());
 
   function scrollToFirstUnread(list) {
-    const target = list.find(item => !readSeen.has(item.id));
+    const target = list.find(item => !isRead(readingProgress, item.id));
     if (!target) return;
     cardRefs.current.get(target.id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
@@ -281,7 +343,7 @@ export default function SentenceReader({ progress, onProgressUpdate }) {
       <GrammarNote />
       <PunctuationNote />
 
-      <div className="writing-mode-tabs" style={{ marginBottom: '1rem' }}>
+      <div className="writing-mode-tabs" style={{ marginBottom: '0.75rem' }}>
         <button
           className={`writing-mode-tab ${tab === 'sentences' ? 'active' : ''}`}
           onClick={() => setTab('sentences')}
@@ -292,51 +354,71 @@ export default function SentenceReader({ progress, onProgressUpdate }) {
         >Dialogues ({dialoguesReadCount}/{DIALOGUES.length})</button>
       </div>
 
+      <button
+        className={`read-bookmark-filter ${bookmarkedOnly ? 'active' : ''}`}
+        onClick={() => setBookmarkedOnly(v => !v)}
+      >
+        <Bookmark size={14} strokeWidth={2.25} fill={bookmarkedOnly ? 'currentColor' : 'none'} />
+        {bookmarkedOnly ? 'Showing bookmarked only' : 'Show bookmarked only'}
+      </button>
+
       {tab === 'sentences' && (
         <>
-          {sentencesReadCount < SENTENCES.length && (
+          {!bookmarkedOnly && sentencesReadCount < SENTENCES.length && (
             <button
               className="btn btn-secondary btn-sm"
               style={{ marginBottom: '0.75rem' }}
               onClick={() => scrollToFirstUnread(SENTENCES)}
             >Continue → (skip to next unread)</button>
           )}
-          <div className="sentence-list">
-            {SENTENCES.map(s => (
-              <div key={s.id} ref={el => { if (el) cardRefs.current.set(s.id, el); }}>
-                <SentenceCard
-                  sentence={s}
-                  settings={progress.settings}
-                  read={readSeen.has(s.id)}
-                  onRead={() => markRead(s.id)}
-                />
-              </div>
-            ))}
-          </div>
+          {bookmarkedOnly && visibleSentences.length === 0 ? (
+            <p className="read-empty-state">No bookmarked sentences yet — tap the bookmark icon on any sentence to save it here.</p>
+          ) : (
+            <div className="sentence-list">
+              {visibleSentences.map(s => (
+                <div key={s.id} ref={el => { if (el) cardRefs.current.set(s.id, el); }}>
+                  <SentenceCard
+                    sentence={s}
+                    settings={progress.settings}
+                    read={isRead(readingProgress, s.id)}
+                    onRead={() => handleMarkRead(s.id)}
+                    bookmarked={isBookmarked(readingProgress, s.id)}
+                    onToggleBookmark={() => handleToggleBookmark(s.id)}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </>
       )}
 
       {tab === 'dialogues' && (
         <>
-          {dialoguesReadCount < DIALOGUES.length && (
+          {!bookmarkedOnly && dialoguesReadCount < DIALOGUES.length && (
             <button
               className="btn btn-secondary btn-sm"
               style={{ marginBottom: '0.75rem' }}
               onClick={() => scrollToFirstUnread(DIALOGUES)}
             >Continue → (skip to next unread)</button>
           )}
-          <div className="dialogue-list">
-            {DIALOGUES.map(d => (
-              <div key={d.id} ref={el => { if (el) cardRefs.current.set(d.id, el); }}>
-                <DialogueCard
-                  dialogue={d}
-                  settings={progress.settings}
-                  read={readSeen.has(d.id)}
-                  onRead={() => markRead(d.id)}
-                />
-              </div>
-            ))}
-          </div>
+          {bookmarkedOnly && visibleDialogues.length === 0 ? (
+            <p className="read-empty-state">No bookmarked dialogues yet — tap the bookmark icon on any dialogue to save it here.</p>
+          ) : (
+            <div className="dialogue-list">
+              {visibleDialogues.map(d => (
+                <div key={d.id} ref={el => { if (el) cardRefs.current.set(d.id, el); }}>
+                  <DialogueCard
+                    dialogue={d}
+                    settings={progress.settings}
+                    read={isRead(readingProgress, d.id)}
+                    onRead={() => handleMarkRead(d.id)}
+                    bookmarked={isBookmarked(readingProgress, d.id)}
+                    onToggleBookmark={() => handleToggleBookmark(d.id)}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </>
       )}
     </div>

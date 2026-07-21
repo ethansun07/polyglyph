@@ -103,3 +103,6 @@ export const saveNumberProgressToCloud    = (data) => apiFetch('/number-progress
 
 export const loadWritingProgressFromCloud = ()     => apiFetch('/writing-progress');
 export const saveWritingProgressFromCloud = (data) => apiFetch('/writing-progress', { method: 'PUT', body: JSON.stringify(data) });
+
+export const loadReadingProgressFromCloud = ()     => apiFetch('/reading-progress');
+export const saveReadingProgressFromCloud = (data) => apiFetch('/reading-progress', { method: 'PUT', body: JSON.stringify(data) });

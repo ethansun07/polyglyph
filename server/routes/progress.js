@@ -121,6 +121,7 @@ router.delete('/', async (req, res) => {
     await client.query('DELETE FROM phrase_progress   WHERE uid = $1', [uid]);
     await client.query('DELETE FROM number_progress   WHERE uid = $1', [uid]);
     await client.query('DELETE FROM writing_progress  WHERE uid = $1', [uid]);
+    await client.query('DELETE FROM reading_progress  WHERE uid = $1', [uid]);
     await client.query('DELETE FROM user_settings     WHERE uid = $1', [uid]);
     await client.query(`
       INSERT INTO logs (uid, action, table_name, detail)

@@ -7,6 +7,7 @@ import { loadProgress, saveProgress, updateStreak, resetProgress } from './utils
 import { resetWritingProgress } from './utils/writingProgress.js';
 import { resetPhraseProgress } from './utils/phraseProgress.js';
 import { resetNumberProgress } from './utils/numberProgress.js';
+import { resetReadingProgress } from './utils/readingProgress.js';
 import {
   auth, onAuthChange, signInAsGuest,
   loadMainProgressFromCloud, saveMainProgressToCloud,
@@ -110,6 +111,7 @@ export default function App() {
         resetWritingProgress();
         resetPhraseProgress();
         resetNumberProgress();
+        resetReadingProgress();
       }
       prevUid.current = firebaseUser.uid;
       setUser(firebaseUser);

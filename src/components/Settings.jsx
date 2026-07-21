@@ -4,6 +4,7 @@ import { resetProgress } from '../utils/progress.js';
 import { resetWritingProgress } from '../utils/writingProgress.js';
 import { resetPhraseProgress } from '../utils/phraseProgress.js';
 import { resetNumberProgress } from '../utils/numberProgress.js';
+import { resetReadingProgress } from '../utils/readingProgress.js';
 import { deleteMainProgressFromCloud, submitFeedback } from '../utils/firebase.js';
 
 export default function Settings({ progress, onProgressUpdate, user }) {
@@ -38,8 +39,9 @@ export default function Settings({ progress, onProgressUpdate, user }) {
     resetWritingProgress();
     resetPhraseProgress();
     resetNumberProgress();
+    resetReadingProgress();
     if (user) {
-      // Single endpoint wipes char/phrase/number/writing progress + settings
+      // Single endpoint wipes char/phrase/number/writing/reading progress + settings
       // server-side. Local state is already cleared above regardless, so a
       // failed request here (e.g. a cold-starting backend) shouldn't block
       // the reload below — otherwise the page never refreshes and every
