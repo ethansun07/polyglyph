@@ -3,8 +3,23 @@ import { Star, Check, Volume2, CheckCircle2, XCircle, Grid3x3 } from 'lucide-rea
 import {
   ALL_BASE_SYMBOLS, ETHIOPIC_DIGITS, ETHIOPIC_TENS, ETHIOPIC_HUNDREDS, ETHIOPIC_THOUSANDS,
   ETHIOPIC_TEN_THOUSANDS, ETHIOPIC_LARGE_ROUND,
-  generateComboQuestion,
+  generateComboQuestion, toEthiopic, toAmharicWords,
 } from '../data/ethiopicNumbers.js';
+
+// Worked examples of 11-19, purely illustrative — not tracked/quizzed as
+// their own entities. Ge'ez doesn't treat teens as linguistically special
+// the way English does; 11 and 21 both just combine a tens-symbol with a
+// digit-symbol, so this exists to demo the combination pattern right where
+// it's first relevant, not to imply teens are a distinct category to master.
+const TEEN_EXAMPLES = ETHIOPIC_DIGITS.map(digit => {
+  const value = 10 + digit.value;
+  return {
+    value,
+    symbol: toEthiopic(value),
+    amharic: toAmharicWords(value),
+    name: `${ETHIOPIC_TENS[0].name} ${digit.name}`,
+  };
+});
 import { PUNCTUATION } from '../data/fidel.js';
 import { playNumberAudio } from '../utils/audio.js';
 import { useEnterKey } from '../utils/useEnterKey.js';
@@ -69,6 +84,29 @@ function LearnNumbers({ progress, settings }) {
     <div className="num-learn">
       <Section title="1 – 9"        items={ETHIOPIC_DIGITS}    defaultOpen />
       <Section title="10 – 90"      items={ETHIOPIC_TENS}      defaultOpen />
+
+      <div className="num-section">
+        <h3 className="num-section-title">11 – 19, worked examples</h3>
+        <p className="num-learn-note">
+          Just a tens-symbol followed by a digit-symbol, same as any other combination (25, 110, 200, below). Tap one to hear it.
+        </p>
+        <div className="num-grid">
+          {TEEN_EXAMPLES.map(item => (
+            <button
+              key={item.value}
+              className="num-card"
+              onClick={() => playNumberAudio(item.value, item.amharic, settings)}
+              title={`Hear ${item.value}`}
+            >
+              <span className="num-symbol">{item.symbol}</span>
+              <span className="num-value">{item.value}</span>
+              <span className="num-amharic">{item.amharic}</span>
+              <span className="num-name">{item.name}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
       <Section title="100 – 900"    items={ETHIOPIC_HUNDREDS}  defaultOpen />
       <Section title="1,000 – 9,000" items={ETHIOPIC_THOUSANDS} defaultOpen />
       <p className="num-learn-note">
