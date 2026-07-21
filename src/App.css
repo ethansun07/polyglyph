@@ -1847,6 +1847,12 @@ code {
   grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
   gap: 0.5rem;
 }
+/* Every section here has (at most) 9 items — on wide screens there's room
+   to just force exactly 9 columns so a lone item never wraps to its own
+   row, instead of leaving it to auto-fill's width-guessing. */
+@media (min-width: 768px) {
+  .num-grid { grid-template-columns: repeat(9, 1fr); }
+}
 .num-card {
   display: flex;
   flex-direction: column;
