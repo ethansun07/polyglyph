@@ -331,12 +331,12 @@ export const SENTENCES = [
   {
     id: 'no_money',
     type: 'sentence',
-    amharic: 'ገንዘብ የለኝም።',
-    meaning: 'I have no money.',
-    phraseIds: ['genzeb'],
+    amharic: 'ገንዘብ እፈልጋለሁ።',
+    meaning: 'I need money.',
+    phraseIds: ['genzeb', 'ifelgalehu'],
     words: [
-      { amharic: 'ገንዘብ',   meaning: 'money' },
-      { amharic: 'የለኝም', meaning: "I don't have" },
+      { amharic: 'ገንዘብ',      meaning: 'money' },
+      { amharic: 'እፈልጋለሁ', meaning: 'I want / I need' },
     ],
   },
   {
@@ -389,12 +389,12 @@ export const SENTENCES = [
   {
     id: 'wait_no_money',
     type: 'sentence',
-    amharic: 'ቆይ! ገንዘብ የለኝም።',
-    meaning: "Wait! I don't have money.",
-    phraseIds: ['qoy', 'genzeb'],
+    amharic: 'ቆይ! ገንዘብ እፈልጋለሁ።',
+    meaning: "Wait! I need money.",
+    phraseIds: ['qoy', 'genzeb', 'ifelgalehu'],
     words: [
-      { amharic: 'ቆይ',        meaning: 'wait' },
-      { amharic: 'ገንዘብ የለኝም', meaning: "I don't have money" },
+      { amharic: 'ቆይ',         meaning: 'wait' },
+      { amharic: 'ገንዘብ እፈልጋለሁ', meaning: "I need money" },
     ],
   },
   {
