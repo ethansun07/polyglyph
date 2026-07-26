@@ -9,6 +9,24 @@ history.
 
 ---
 
+### 2026-07-25 — Untaught words leaking into Read mode sentences
+User caught two Read-mode sentences using words that were never actually
+taught as Common Phrases: ወዴት ("which way") in `passport_where`,
+`hospital_where`, `dial_airport`, and `dial_medical`, and የለኝም ("I don't
+have") in `no_money`/`wait_no_money`. Both words only appeared as an
+aside inside a *different* phrase's `note` field (`wedet_new`'s note
+mentions ወዴት ነው as a related form of የት ነው; `genzeb`'s note mentions
+ገንዘብ የለኝም as an example sentence) — that note text got lifted into
+`readingSentences.js` as if it were taught vocabulary, violating the
+file's own "all words come from Common Phrases ONLY" rule. Fixed by
+swapping ወዴት → የት (the word `wedet_new` actually teaches) throughout,
+and rewording the money sentences to `ገንዘብ እፈልጋለሁ` ("I need money",
+built from the taught `genzeb` + `ifelgalehu`). Regenerated the 14
+affected audio files (`find-missing-audio.js` / `generate-missing-audio.js`
+after deleting the stale ones) since content changed but ids/paths didn't.
+No systematic audit was done beyond the two the user flagged — see the
+STATE.md known-issues note if this keeps recurring.
+
 ### 2026-07-20 — Bookmarks + synced read-status for Read mode
 Added a bookmark feature (tap the bookmark icon on any sentence/dialogue
 card, filter to "show bookmarked only") and upgraded the existing

@@ -66,6 +66,17 @@ partner across sessions.
   level-up, or full Level 1 mastery), not just level-up.
 
 ## Known non-critical issues / deliberately left alone
+- **`readingSentences.js` may still contain other untaught words** — found and
+  fixed two instances (2026-07-25): ወዴት (only mentioned in `wedet_new`'s note,
+  not itself taught — fixed by swapping to የት) and የለኝም (only mentioned in
+  `genzeb`'s note — fixed by rewording to `ገንዘብ እፈልጋለሁ`). Both slipped in
+  because a phrase's `note` field mentions a related/example word in context,
+  and that example word got copied into a reading sentence as if it were
+  taught vocabulary. The file's own header rule ("All amharic words come from
+  Common Phrases vocabulary ONLY") should catch these, but nothing enforces it
+  automatically — a full audit of `SENTENCES`/`DIALOGUES` against
+  `amharicPhrases.js` word lists hasn't been done, only the two reported by
+  the user. Worth a systematic pass if this keeps coming up.
 - **`src/components/MixedReview.jsx` is dead code** — not imported or
   referenced anywhere in `App.jsx`, not reachable from any nav path. It still
   got the same fixes as everything else (scroll bars, emoji swap) for
