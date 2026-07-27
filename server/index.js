@@ -9,6 +9,7 @@ import writingRoutes       from './routes/writingProgress.js';
 import readingRoutes       from './routes/readingProgress.js';
 import usersRoutes         from './routes/users.js';
 import feedbackRoutes      from './routes/feedback.js';
+import generatedSentencesRoutes from './routes/generatedSentences.js';
 
 const app  = express();
 const PORT = process.env.PORT || 3001;
@@ -29,6 +30,7 @@ app.use('/api/phrase-progress',  requireAuth, phraseRoutes);
 app.use('/api/number-progress',  requireAuth, numberRoutes);
 app.use('/api/writing-progress', requireAuth, writingRoutes);
 app.use('/api/reading-progress', requireAuth, readingRoutes);
+app.use('/api/generated-sentences', requireAuth, generatedSentencesRoutes);
 app.use('/api/users',            requireAuth, usersRoutes);
 app.use('/api/feedback',         feedbackRoutes); // no blanket requireAuth: uses optionalAuth internally
 

@@ -9,6 +9,169 @@ history.
 
 ---
 
+### 2026-07-27 — Live in-app sentence generator (what "AI sentence creator" actually meant)
+Turned out the previous session's read of "AI sentence creator" (a Claude-drafted-content
++ validator-script workflow) wasn't what the user meant — they wanted a real feature
+*in the running app*: a button a user clicks that calls an LLM live and shows/plays a
+fresh sentence immediately, no Claude conversation or git commit involved. Re-planned
+from scratch given this was a materially bigger scope (new LLM API + key, new backend
+route, new DB table, new UI) — two Explore agents confirmed no rate-limiting library,
+no LLM SDK, and no precedent anywhere in the app for user-triggered content generation
+or for the frontend playing non-static audio (existing `src/utils/audio.js` functions
+are all hardcoded to `/audio/...` file paths).
+
+Built: `POST /api/generated-sentences/generate` calls Gemini (`server/lib/gemini.js`,
+picked over Anthropic per user's choice, raw `fetch` against the REST endpoint rather
+than adding an SDK, matching the existing TTS script's no-dependency philosophy) with a
+prompt built from the exact same allowed-vocabulary set `validate-reading-vocab.js`
+already checks against — extracted that vocab-set/checker logic out of the script into
+`src/utils/readingVocab.js` so both share it, no duplicated source of truth. If Gemini's
+output uses a disallowed word, the route re-prompts (up to 3 attempts total) pointing out
+exactly which words weren't allowed, rather than just failing immediately. On success it
+calls the existing Cloud TTS pattern (factored into `server/lib/tts.js`) and returns
+everything — text + word breakdown + base64 audio — in one response; audio is never
+written to disk anywhere in this flow.
+
+User's scope call: ephemeral by default (each click shows a temporary card, nothing
+persisted), but an explicit "Save" persists it to a new `generated_sentences` table
+(one new table, `db/schema.sql`) — reused `SentenceCard`'s existing bookmark
+button/icon for this (filled = saved, click to toggle) rather than building new UI,
+since the interaction is identical. Saved sentences' audio is re-synthesized on demand
+when replayed (`POST /:id/audio`) instead of ever being stored, avoiding needing any
+file/blob storage infra. Added `onPlayAudio`/`onPlayWordAudio` override props to
+`SentenceCard` (default to the old path-based behavior when omitted, so every existing
+usage is unaffected) so generated content's live base64 audio and the browser-voice
+fallback for word-chip taps could reuse the same card component instead of building a
+parallel one. Rate-limited `/generate` specifically (`express-rate-limit`, 20/hour/uid)
+since it's the only endpoint that costs real money per call.
+
+User provided a `GEMINI_API_KEY` later the same session, which uncovered one bug before
+it could be tested: the hardcoded model name `gemini-2.5-flash` returned a 404 "no
+longer available to new users" for this key/project, despite `models.list` still
+listing it as available. Switched to the `gemini-flash-latest` alias instead (resolves
+to `gemini-3.6-flash` currently) specifically to avoid pinning to a version that can be
+silently deprecated like this again. After that fix, verified the entire pipeline live:
+generate, JSON parse, vocab validation (0 disallowed words), TTS synthesis (real MP3
+bytes back), the actual Express route over real HTTP.
+
+Then it kept generating near-identical sentences ("I want coffee," "I want coffee and
+water"), because the prompt sent the entire allowed vocabulary in the same order every
+call, so the model kept landing on the same "safe" combination. Fixed by picking a
+random theme (one of `amharicPhrases.js`'s `CATEGORY_ORDER`) each call and, after a
+follow-up cost question, replacing the full ~166-word list with a themed subset
+(~30-50 words: everything from that category's phrases plus a random sample of the
+rest) instead of dumping the whole vocabulary every time. Cuts input tokens
+substantially and incidentally reinforces the variety fix.
+
+Debugging "it's not generating" turned into a long chain: a stray orphaned `node`
+process was squatting on port 3001 (`EADDRINUSE`), so the freshly-restarted dev server
+silently never bound and requests hung pending forever, not just the new endpoint, every
+API call including pre-existing ones. Killed it (`lsof -nP -iTCP:3001 -sTCP:LISTEN`,
+`kill -9`) and the server started cleanly. After that, the real error surfaced: Gemini's
+free tier caps at 20 requests/day per model per project, easy to exhaust while testing
+(each click can cost up to 3 Gemini calls if the vocab validator rejects an attempt).
+User asked for a cost estimate; answered with a historical-pattern estimate (not
+confirmed for this specific newer model) rather than guessing a hard number. User then
+enabled billing, but Gemini API billing is prepay, not postpay: the error changed from
+"free tier quota exceeded" to "prepayment credits are depleted," meaning billing alone
+doesn't remove the cap, the project needs actual prepay credits added at
+ai.studio/projects. Once credits were added, the pipeline worked end-to-end for real.
+
+Since the whole point of the curated static sentences is that they're free and reliable
+(see the entry below), and the live generator turned out to have real cost/quota
+fragility, "Generate a sentence" now tries an unread static sentence first (random pick,
+reuses normal `reading_progress` read/bookmark tracking, no "Save" needed) and only
+calls Gemini once all of them are read. First version of this had a bug: it only marked
+a surfaced sentence as read once the user tapped into its words, same as the normal
+list, so repeatedly clicking "Generate"/"Generate another" without engaging with each
+card never advanced past the static set at all ("it's only giving the [static ones], not
+generating new after"). Fixed by marking the pick read immediately when the button
+surfaces it, clicking the button at all counts as "seen it," unlike browsing the list
+normally where only real interaction counts.
+
+User then asked whether the static set's size (35) was even right, and to make sure it
+covered the most words/variety/importance. Checked: only 54 of `amharicPhrases.js`'s 86
+phrases were used anywhere in `SENTENCES`, the other 32 were only reachable via
+`DIALOGUES`, a separate tab the "Generate" fallback doesn't read from. First pass added
+18 new sentences (one or two phrases each) targeting exactly those 32 phrases, bringing
+the static set to 53. User flagged that 53 felt like too many; asked whether the concern
+was volume or how long before the AI feature kicks in, answer was volume. Consolidated
+the 18 into 8 denser sentences (several phrase pairs per entry, e.g. combining a
+name/how-are-you/where-from exchange into one card) plus the one that was already
+standalone, landing at 44. User then wanted a rounder number, split the single densest
+entry (6 phrase-pairs in one card, arguably too packed anyway) back into two, landing on
+a clean 45. Deleted the orphaned audio from the intermediate 53-sentence ids and
+regenerated for the final set. Also reordered the tab: the static list (with "Continue")
+now comes first, "Generate a sentence" comes after, framed explicitly as what to do once
+you've read through the pre-made set.
+
+User then asked directly whether the *original* 35 sentences had actually been touched
+during any of this, correctly suspecting the answer was no, they hadn't, only new ones
+had been added around them. Went back and actually audited the original 35: the
+"X እፈልጋለሁ" (I want X) template appeared 8 times (`want_taxi`, `ticket_want`,
+`silk_want`, `sira_want`, `khat_new`, `no_money`, `hurry_taxi`, `wait_no_money`), and
+"is X good/well/far?" appeared 6-7 times, same grammar, different noun swapped in, not
+real variety. First instinct was to flag a couple of phrase choices (`khat`, `feqer`) as
+lower-priority using their `travelEssential` flag; user pushed back that `travelEssential`
+shouldn't be used as an importance signal for this at all (and specifically that khat
+*is* travel-relevant despite the flag), so that got dropped as a criterion entirely.
+Fixed the actual grammar-template redundancy instead: merged the clearest near-duplicate
+pairs in place (`want_taxi`+`silk_want` → `taxi_phone_want`, `sira_want`+`no_money` →
+`work_money_want`, `ticket_want`+`khat_new` → `ticket_khat_want`, `wifi_good`+`pizza_good`
+→ `wifi_pizza_good`, `family_well`+`brother_well` → `family_brother_well`), landing at a
+final 40 sentences, still full 86-phrase coverage, noticeably less repetitive. Cleaned up
+the now-orphaned audio for every removed/renamed id and regenerated for the 5 merged
+entries.
+
+Last change: user asked whether the original 35 should be removed from what "Generate"
+can surface, now that the full static list is separately browsable at the top of the
+Sentences tab (the earlier reorder). Realized the static-first fallback (surface an
+unread static sentence before ever calling Gemini) had become redundant with that list's
+own "Continue" button, since a user could just scroll up to find the same unread
+sentence the button would've shown them. Flipped the priority: `handleGenerate` now
+calls the live Gemini endpoint first on every click, and only falls back to a random
+unread static sentence if that call throws (quota, billing, network, anything). Same
+static pool as before, same read-marking-on-surface behavior, just demoted from primary
+path to error-fallback. Verified live end-to-end again (real Gemini call succeeded
+through the actual route) since this touched the client-side call order, not the
+backend itself.
+
+With that flip, the button no longer depends on finishing the static list, so its
+position moved too: back to the top of the Sentences tab (a "Sentences" heading now
+separates it from the static list below), since burying an always-available, no-longer-
+sequential feature under 40 sentences of scrolling didn't make sense once it stopped
+being "the reward for finishing."
+
+User then reported the bookmark/"Save" button on generated sentences didn't work. Root
+cause turned out to be two stacked problems, neither in the new feature's own logic:
+(1) the `generated_sentences` table had been added to `db/schema.sql` (the source of
+truth) but never actually applied to any real database this session, every save/list
+call was hitting a table that didn't exist; (2) worse, `server/.env`'s `DB_HOST` was
+pointed at a stale/legacy AWS RDS instance (already flagged as such in STATE.md) that
+is now timing out entirely, meaning the local server couldn't reach *any* database, not
+just this one, every DB-backed feature (reading progress, phrase progress, all of it)
+has been silently broken locally. The frontend's `.catch(() => {})` error-swallowing
+pattern hid this: saves looked like they worked (optimistic local state update) but
+never persisted anything. Fixed by switching `server/.env` to local Postgres
+(`DB_HOST=localhost`, matching `.env.example`'s defaults) and running
+`psql amharic_fidel -f db/schema.sql` to actually create the missing table locally.
+Verified with a real INSERT/SELECT/DELETE against a real Postgres row (had to first
+insert a throwaway `users` row to satisfy the `generated_sentences_uid_fkey` constraint
+for the synthetic test uid, then cleaned it up). This is a good example of why "updated
+the schema file" and "the schema is actually applied" are two different, easy-to-conflate
+facts, worth remembering for the next new table.
+
+Once saving actually persisted, a second bug surfaced: toggling "Show bookmarked only"
+made saved generated sentences disappear instead of showing them, exactly backwards.
+Cause: the entire "Generate" section, including the "Your saved generated sentences"
+list, was wrapped in one `{!bookmarkedOnly && (...)}` block, so the bookmark filter hid
+the very thing it should surface. Split it: the "Generate a new sentence" button/preview
+stays gated on `!bookmarkedOnly` (doesn't make sense while filtering to bookmarks), but
+the saved-generated list now renders unconditionally, since it *is* the user's bookmarked
+generated content. Also fixed the static list's "No bookmarked sentences yet" empty
+state so it only shows when there are truly zero bookmarked items across both the static
+list and the saved-generated list, not just the static one.
+
 ### 2026-07-26 — "AI sentence creator" became a vocab validator, not an LLM integration
 User asked about using AI to generate Read-mode content faster, and separately
 about adding real birr amounts and Ethiopic numbers to existing dialogue

@@ -219,6 +219,39 @@ export async function playDialogueLineAudio(dialId, lineIndex, amharic, settings
   if (voice) speakWithAmharicVoice(amharic, voice);
 }
 
+// Speaks raw text via the am-ET browser voice only (no static-file attempt
+// first), used for live-generated content that has no /audio/... path,
+// e.g. word-chip taps on a generated sentence.
+export async function speakAmharicText(text, settings) {
+  if (!settings?.audioEnabled) return;
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+
+  const voice = await resolveAmharicVoice();
+  if (voice) speakWithAmharicVoice(text, voice);
+}
+
+// Plays base64 MP3 audio returned live from the server (e.g. a freshly
+// generated sentence) rather than a static /audio/... file.
+export async function playAudioFromBase64(base64, settings) {
+  if (!settings?.audioEnabled || !base64) return;
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+
+  const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+  const blob = new Blob([bytes], { type: 'audio/mpeg' });
+  const url = URL.createObjectURL(blob);
+  const audio = new Audio(url);
+  currentAudio = audio;
+  audio.addEventListener('ended', () => URL.revokeObjectURL(url));
+  try {
+    await audio.play();
+  } catch {
+    currentAudio = null;
+    URL.revokeObjectURL(url);
+  }
+}
+
 export function stopAudio() {
   if (currentAudio) { currentAudio.pause(); currentAudio = null; }
   if (window.speechSynthesis) window.speechSynthesis.cancel();

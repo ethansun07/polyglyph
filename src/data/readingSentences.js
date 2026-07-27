@@ -63,17 +63,6 @@ export const SENTENCES = [
     ],
   },
   {
-    id: 'want_taxi',
-    type: 'sentence',
-    amharic: 'ታክሲ እፈልጋለሁ።',
-    meaning: 'I want a taxi.',
-    phraseIds: ['taksi', 'ifelgalehu'],
-    words: [
-      { amharic: 'ታክሲ',       meaning: 'taxi' },
-      { amharic: 'እፈልጋለሁ',   meaning: 'I want' },
-    ],
-  },
-  {
     id: 'like_injera',
     type: 'sentence',
     amharic: 'እንጀራ እወዳለሁ።',
@@ -131,18 +120,6 @@ export const SENTENCES = [
     ],
   },
   {
-    id: 'family_well',
-    type: 'sentence',
-    amharic: 'ቤተሰቡ ደህና ነው?',
-    meaning: 'Is the family well?',
-    phraseIds: ['beteseb', 'dehna_neh'],
-    words: [
-      { amharic: 'ቤተሰቡ', meaning: 'the family' },
-      { amharic: 'ደህና',  meaning: 'well / fine' },
-      { amharic: 'ነው',   meaning: 'is?' },
-    ],
-  },
-  {
     id: 'im_student',
     type: 'sentence',
     amharic: 'ተማሪ ነኝ።',
@@ -151,17 +128,6 @@ export const SENTENCES = [
     words: [
       { amharic: 'ተማሪ', meaning: 'student' },
       { amharic: 'ነኝ',  meaning: 'I am' },
-    ],
-  },
-  {
-    id: 'khat_new',
-    type: 'sentence',
-    amharic: 'ጫት እፈልጋለሁ።',
-    meaning: 'I want khat.',
-    phraseIds: ['khat', 'ifelgalehu'],
-    words: [
-      { amharic: 'ጫት',      meaning: 'khat' },
-      { amharic: 'እፈልጋለሁ', meaning: 'I want / I need' },
     ],
   },
 
@@ -176,17 +142,6 @@ export const SENTENCES = [
       { amharic: 'ፓስፖርቴ', meaning: 'my passport' },
       { amharic: 'የት',    meaning: 'where' },
       { amharic: 'ነው',    meaning: 'is?' },
-    ],
-  },
-  {
-    id: 'ticket_want',
-    type: 'sentence',
-    amharic: 'ቲኬት እፈልጋለሁ።',
-    meaning: 'I need a ticket.',
-    phraseIds: ['ifelgalehu'],
-    words: [
-      { amharic: 'ቲኬት',      meaning: 'ticket' },
-      { amharic: 'እፈልጋለሁ', meaning: 'I want / I need' },
     ],
   },
   {
@@ -211,28 +166,6 @@ export const SENTENCES = [
       { amharic: 'ኤርፖርቱ', meaning: 'the airport' },
       { amharic: 'ሩቅ',    meaning: 'far' },
       { amharic: 'ነው',    meaning: 'is?' },
-    ],
-  },
-  {
-    id: 'silk_want',
-    type: 'sentence',
-    amharic: 'ስልክ እፈልጋለሁ።',
-    meaning: 'I need a phone.',
-    phraseIds: ['silk', 'ifelgalehu'],
-    words: [
-      { amharic: 'ስልክ',     meaning: 'phone' },
-      { amharic: 'እፈልጋለሁ', meaning: 'I want / I need' },
-    ],
-  },
-  {
-    id: 'sira_want',
-    type: 'sentence',
-    amharic: 'ስራ እፈልጋለሁ።',
-    meaning: 'I want work.',
-    phraseIds: ['sira', 'ifelgalehu'],
-    words: [
-      { amharic: 'ስራ',      meaning: 'work / job' },
-      { amharic: 'እፈልጋለሁ', meaning: 'I want / I need' },
     ],
   },
   {
@@ -269,18 +202,6 @@ export const SENTENCES = [
     ],
   },
   {
-    id: 'wifi_good',
-    type: 'sentence',
-    amharic: 'ዋይፋይ ጥሩ ነው?',
-    meaning: 'Is the wifi good?',
-    phraseIds: [],
-    words: [
-      { amharic: 'ዋይፋይ', meaning: 'wifi' },
-      { amharic: 'ጥሩ',   meaning: 'good' },
-      { amharic: 'ነው',   meaning: 'is?' },
-    ],
-  },
-  {
     id: 'photo_can',
     type: 'sentence',
     amharic: 'ፎቶ እችላለሁ?',
@@ -303,19 +224,6 @@ export const SENTENCES = [
       { amharic: 'ናት',   meaning: 'it is (place)' },
     ],
   },
-  {
-    id: 'pizza_good',
-    type: 'sentence',
-    amharic: 'ፒዛ ጥሩ ነው?',
-    meaning: 'Is the pizza good?',
-    phraseIds: [],
-    words: [
-      { amharic: 'ፒዛ', meaning: 'pizza' },
-      { amharic: 'ጥሩ', meaning: 'good' },
-      { amharic: 'ነው', meaning: 'is?' },
-    ],
-  },
-
   // ── New standalone additions ───────────────────────────────────────────────
   {
     id: 'what_time',
@@ -326,17 +234,6 @@ export const SENTENCES = [
     words: [
       { amharic: 'ሰዓቱ',      meaning: 'the time' },
       { amharic: 'ስንት ነው',  meaning: 'how much / what is it' },
-    ],
-  },
-  {
-    id: 'no_money',
-    type: 'sentence',
-    amharic: 'ገንዘብ እፈልጋለሁ።',
-    meaning: 'I need money.',
-    phraseIds: ['genzeb', 'ifelgalehu'],
-    words: [
-      { amharic: 'ገንዘብ',      meaning: 'money' },
-      { amharic: 'እፈልጋለሁ', meaning: 'I want / I need' },
     ],
   },
   {
@@ -432,15 +329,197 @@ export const SENTENCES = [
       { amharic: 'ገበያው ቅርብ ነው', meaning: 'the market is close' },
     ],
   },
+  // ── Consolidated (was 10 separate near-duplicate sentences) ────────────────
+  // The original set repeated "X እፈልጋለሁ" (I want X) and "X ነው?" (is X...?)
+  // templates far more than needed, same grammar, different noun, no real
+  // variety. Merged pairs that were testing similar/adjacent vocabulary
+  // under the exact same construction into one denser sentence each.
   {
-    id: 'brother_well',
+    id: 'taxi_phone_want',
     type: 'sentence',
-    amharic: 'ወንድሜ ደህና ነው?',
-    meaning: 'Is my brother well?',
-    phraseIds: ['wendeme', 'dehna_neh'],
+    amharic: 'ታክሲ እና ስልክ እፈልጋለሁ።',
+    meaning: 'I want a taxi and a phone.',
+    phraseIds: ['taksi', 'silk', 'ifelgalehu'],
     words: [
-      { amharic: 'ወንድሜ',    meaning: 'my brother' },
-      { amharic: 'ደህና ነው', meaning: 'is well' },
+      { amharic: 'ታክሲ እና ስልክ', meaning: 'taxi and phone' },
+      { amharic: 'እፈልጋለሁ',     meaning: 'I want' },
+    ],
+  },
+  {
+    id: 'work_money_want',
+    type: 'sentence',
+    amharic: 'ስራ እና ገንዘብ እፈልጋለሁ።',
+    meaning: 'I want work and money.',
+    phraseIds: ['sira', 'genzeb', 'ifelgalehu'],
+    words: [
+      { amharic: 'ስራ እና ገንዘብ', meaning: 'work and money' },
+      { amharic: 'እፈልጋለሁ',      meaning: 'I want' },
+    ],
+  },
+  {
+    id: 'ticket_khat_want',
+    type: 'sentence',
+    amharic: 'ቲኬት እና ጫት እፈልጋለሁ።',
+    meaning: 'I want a ticket and khat.',
+    phraseIds: ['khat', 'ifelgalehu'],
+    words: [
+      { amharic: 'ቲኬት እና ጫት', meaning: 'ticket and khat' },
+      { amharic: 'እፈልጋለሁ',     meaning: 'I want' },
+    ],
+  },
+  {
+    id: 'wifi_pizza_good',
+    type: 'sentence',
+    amharic: 'ዋይፋይ ጥሩ ነው? ፒዛ ጥሩ ነው?',
+    meaning: 'Is the wifi good? Is the pizza good?',
+    phraseIds: ['betam_tiru'],
+    words: [
+      { amharic: 'ዋይፋይ ጥሩ ነው', meaning: 'is the wifi good?' },
+      { amharic: 'ፒዛ ጥሩ ነው',   meaning: 'is the pizza good?' },
+    ],
+  },
+  {
+    id: 'family_brother_well',
+    type: 'sentence',
+    amharic: 'ቤተሰቡ ደህና ነው? ወንድሜ ደህና ነው?',
+    meaning: 'Is the family well? Is my brother well?',
+    phraseIds: ['beteseb', 'wendeme', 'dehna_neh'],
+    words: [
+      { amharic: 'ቤተሰቡ ደህና ነው', meaning: 'is the family well?' },
+      { amharic: 'ወንድሜ ደህና ነው', meaning: 'is my brother well?' },
+    ],
+  },
+
+  // ── Full phrase-coverage additions ──────────────────────────────────────────
+  // Every Common Phrase from amharicPhrases.js now appears in at least one
+  // SENTENCES entry (previously some were only used in DIALOGUES), so the
+  // Sentences tab alone is a complete standalone unit for the "Generate a
+  // sentence" button's static-first fallback. Kept dense (multiple phrase
+  // pairs per entry) rather than one phrase per sentence, to cover the same
+  // ground without ballooning the total count.
+  {
+    id: 'name_intro',
+    type: 'sentence',
+    amharic: 'ስምህ ማን ነው? ስሜ ዮሐንስ ነው።',
+    meaning: 'What is your name? My name is Yohannes.',
+    phraseIds: ['simih_man_new', 'sime_new'],
+    words: [
+      { amharic: 'ስምህ ማን ነው',   meaning: 'what is your name?' },
+      { amharic: 'ስሜ ዮሐንስ ነው', meaning: 'my name is Yohannes' },
+    ],
+  },
+  {
+    id: 'how_where_from',
+    type: 'sentence',
+    amharic: 'እንዴት ነህ? ደህና ነኝ። ከየት ነህ? ከአሜሪካ ነኝ።',
+    meaning: "How are you? I'm fine. Where are you from? I'm from America.",
+    phraseIds: ['endet_neh', 'dehna_negn', 'where_from', 'im_from'],
+    words: [
+      { amharic: 'እንዴት ነህ',   meaning: 'how are you?' },
+      { amharic: 'ደህና ነኝ',    meaning: "I'm fine" },
+      { amharic: 'ከየት ነህ',    meaning: 'where are you from?' },
+      { amharic: 'ከአሜሪካ ነኝ', meaning: "I'm from America" },
+    ],
+  },
+  {
+    id: 'formal_language',
+    type: 'sentence',
+    amharic: 'ጤና ይስጥልህ! እንግሊዝኛ ትናገራለህ? ትንሽ አማርኛ እናገራለሁ። በጣም ጥሩ!',
+    meaning: 'Hello! Do you speak English? I speak a little Amharic. Very good!',
+    phraseIds: ['tena_yistilignh', 'englizgna_yinageralu', 'amarenna', 'betam_tiru'],
+    words: [
+      { amharic: 'ጤና ይስጥልህ',          meaning: 'hello (formal)' },
+      { amharic: 'እንግሊዝኛ ትናገራለህ',    meaning: 'do you speak English?' },
+      { amharic: 'ትንሽ አማርኛ እናገራለሁ', meaning: 'I speak a little Amharic' },
+      { amharic: 'በጣም ጥሩ',            meaning: 'very good' },
+    ],
+  },
+  {
+    id: 'okay_yes_work',
+    type: 'sentence',
+    amharic: 'እሺ! አንተስ? አዎ! ይሆናል።',
+    meaning: "Okay! And you? Yes! It'll work.",
+    phraseIds: ['eshi', 'antis', 'awo', 'yihonahal'],
+    words: [
+      { amharic: 'እሺ',   meaning: 'okay' },
+      { amharic: 'አንተስ', meaning: 'and you?' },
+      { amharic: 'አዎ',   meaning: 'yes' },
+      { amharic: 'ይሆናል', meaning: "it'll work" },
+    ],
+  },
+  {
+    id: 'sorry_congrats',
+    type: 'sentence',
+    amharic: 'ይቅርታ! አላውቅም። እንኳን ደስ አለህ! ደህና ሁን!',
+    meaning: "Sorry! I don't know. Congratulations! Goodbye!",
+    phraseIds: ['yikirta', 'alwukim', 'inkuan_des_aleh', 'dehna_hun'],
+    words: [
+      { amharic: 'ይቅርታ',        meaning: 'sorry' },
+      { amharic: 'አላውቅም',       meaning: "I don't know" },
+      { amharic: 'እንኳን ደስ አለህ', meaning: 'congratulations' },
+      { amharic: 'ደህና ሁን',      meaning: 'goodbye' },
+    ],
+  },
+  {
+    id: 'bill_minibus',
+    type: 'sentence',
+    amharic: 'ሂሳብ እባክህ! ስንት ነው? ሚኒባሱ! ቆም!',
+    meaning: 'The bill, please! How much is it? Minibus! Stop!',
+    phraseIds: ['hisab', 'ibakih', 'sint_new', 'minibus', 'qom'],
+    words: [
+      { amharic: 'ሂሳብ እባክህ', meaning: 'the bill, please' },
+      { amharic: 'ስንት ነው',   meaning: 'how much is it?' },
+      { amharic: 'ሚኒባሱ',     meaning: 'the minibus' },
+      { amharic: 'ቆም',        meaning: 'stop' },
+    ],
+  },
+  {
+    id: 'hotel_restaurant_cost',
+    type: 'sentence',
+    amharic: 'ሆቴሉ ቅርብ ነው፣ ምሳ ቤቱ ሩቅ ነው። ብር ስንት ነው?',
+    meaning: 'The hotel is close, the restaurant is far. How much is it, in birr?',
+    phraseIds: ['hotel', 'qərb', 'misa_bet', 'ruq', 'bir', 'sint_new'],
+    words: [
+      { amharic: 'ሆቴሉ ቅርብ ነው',   meaning: 'the hotel is close' },
+      { amharic: 'ምሳ ቤቱ ሩቅ ነው', meaning: 'the restaurant is far' },
+      { amharic: 'ብር ስንት ነው',    meaning: 'how much is it, in birr?' },
+    ],
+  },
+  {
+    id: 'doro_misir_food',
+    type: 'sentence',
+    amharic: 'ዶሮ ወጥ እና ሽሮ በጣም ጥሩ ነው። ሚስር እና ሰምቡሳ እወዳለሁ።',
+    meaning: 'Doro wat and shiro are very good. I like misir and samboosa.',
+    phraseIds: ['doro_wot', 'shiro', 'betam_tiru', 'misir', 'sambusa', 'iwedalehu'],
+    words: [
+      { amharic: 'ዶሮ ወጥ እና ሽሮ', meaning: 'doro wat and shiro' },
+      { amharic: 'በጣም ጥሩ ነው',   meaning: 'is very good' },
+      { amharic: 'ሚስር እና ሰምቡሳ', meaning: 'misir and samboosa' },
+      { amharic: 'እወዳለሁ',        meaning: 'I like' },
+    ],
+  },
+  {
+    id: 'food_tej_injera',
+    type: 'sentence',
+    amharic: 'ምግብ እና ጠጅ እፈልጋለሁ። እንጀራ በጣም ጥሩ ነው! እግዚአብሔር ይመስገን!',
+    meaning: 'I want food and tej. The injera is very good! Thank God!',
+    phraseIds: ['migib', 'tej', 'ifelgalehu', 'injera', 'betam_tiru', 'egzabihir_yemisgen'],
+    words: [
+      { amharic: 'ምግብ እና ጠጅ',        meaning: 'food and tej' },
+      { amharic: 'እፈልጋለሁ',           meaning: 'I want' },
+      { amharic: 'እንጀራ በጣም ጥሩ ነው', meaning: 'the injera is very good' },
+      { amharic: 'እግዚአብሔር ይመስገን', meaning: 'thank God' },
+    ],
+  },
+  {
+    id: 'bye_brother',
+    type: 'sentence',
+    amharic: 'ቻው ወንድሜ!',
+    meaning: 'Bye, my brother!',
+    phraseIds: ['chaw', 'wendeme'],
+    words: [
+      { amharic: 'ቻው',   meaning: 'bye' },
+      { amharic: 'ወንድሜ', meaning: 'my brother' },
     ],
   },
 ];

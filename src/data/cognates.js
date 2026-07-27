@@ -8,7 +8,7 @@
 // alongside the Common Phrases and Ethiopic number words.
 //
 // RULE: when Read-mode content introduces a new loanword or name not already
-// covered by amharicPhrases.js, add it here in the same pass — this list is
+// covered by amharicPhrases.js, add it here in the same pass. This list is
 // the source of truth the validator checks against.
 
 export const COGNATES = [

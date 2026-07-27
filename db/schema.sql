@@ -101,6 +101,20 @@ CREATE TABLE IF NOT EXISTS guest_sessions (
   chars_seen    INT DEFAULT 0
 );
 
+-- Live AI-generated Read-mode sentences the user chose to save (most are
+-- ephemeral and never reach this table; only an explicit "Save" persists
+-- one). Audio is never stored here; it's re-synthesized on demand when a
+-- saved sentence is replayed (see server/routes/generatedSentences.js).
+CREATE TABLE IF NOT EXISTS generated_sentences (
+  uid        TEXT REFERENCES users(uid) ON DELETE CASCADE,
+  id         TEXT NOT NULL,
+  amharic    TEXT NOT NULL,
+  meaning    TEXT NOT NULL,
+  words      JSONB NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  PRIMARY KEY (uid, id)
+);
+
 CREATE TABLE IF NOT EXISTS feedback (
   id         SERIAL PRIMARY KEY,
   uid        TEXT REFERENCES users(uid),

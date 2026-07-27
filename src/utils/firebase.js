@@ -106,3 +106,12 @@ export const saveWritingProgressFromCloud = (data) => apiFetch('/writing-progres
 
 export const loadReadingProgressFromCloud = ()     => apiFetch('/reading-progress');
 export const saveReadingProgressFromCloud = (data) => apiFetch('/reading-progress', { method: 'PUT', body: JSON.stringify(data) });
+
+// ── Live-generated Read-mode sentences ───────────────────────────────────────
+// generateSentence() has real per-call cost (LLM + TTS) and is rate-limited
+// server-side; the rest are plain per-user CRUD for ones the user chose to save.
+export const generateSentence            = ()   => apiFetch('/generated-sentences/generate', { method: 'POST' });
+export const saveGeneratedSentence       = (s)   => apiFetch('/generated-sentences', { method: 'POST', body: JSON.stringify(s) });
+export const loadSavedGeneratedSentences = ()    => apiFetch('/generated-sentences');
+export const deleteSavedGeneratedSentence = (id) => apiFetch(`/generated-sentences/${id}`, { method: 'DELETE' });
+export const fetchGeneratedAudio         = (id)  => apiFetch(`/generated-sentences/${id}/audio`, { method: 'POST' });
