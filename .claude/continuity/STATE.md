@@ -33,6 +33,20 @@ partner across sessions.
   architecture that had a serious cross-account data leak bug (see LOG.md).
 
 ## Recently shipped (most recent first)
+- **`scripts/validate-reading-vocab.js`**: audits `readingSentences.js` against
+  the actual allowed vocabulary (Common Phrases + new `src/data/cognates.js`
+  centralized loanword/proper-noun list + `ethiopicNumbers.js` + the fixed
+  connector set) and flags any word not in that set — this is what "the AI
+  sentence creator" turned into (see LOG.md): rather than a live LLM API
+  integration, new Read-mode content is Claude-drafted directly in
+  conversation, gated by this script instead of a new API key/dependency.
+  Best-effort suffix stripper (definite -ው/-ቱ/-ሉ, object -ን, possessive
+  -ቴ/-ሜ), not exhaustive Amharic morphology. Run it after any
+  `readingSentences.js` edit: `node scripts/validate-reading-vocab.js`.
+  When it catches a real gap, prefer teaching the missing word/variant over
+  rewording around it if the word is genuinely useful (see LOG.md — this is
+  how ይናገራሉ/እባክዎ got fixed, by adding `formalAmharic` fields rather than
+  deleting the honorific dialogue lines that used them).
 - **Bookmarks + synced read-status** for Read mode's sentences/dialogues
   (`reading_progress` table, `server/routes/readingProgress.js`,
   `src/utils/readingProgress.js`). Fifth instance of the
@@ -66,17 +80,6 @@ partner across sessions.
   level-up, or full Level 1 mastery), not just level-up.
 
 ## Known non-critical issues / deliberately left alone
-- **`readingSentences.js` may still contain other untaught words** — found and
-  fixed two instances (2026-07-25): ወዴት (only mentioned in `wedet_new`'s note,
-  not itself taught — fixed by swapping to የት) and የለኝም (only mentioned in
-  `genzeb`'s note — fixed by rewording to `ገንዘብ እፈልጋለሁ`). Both slipped in
-  because a phrase's `note` field mentions a related/example word in context,
-  and that example word got copied into a reading sentence as if it were
-  taught vocabulary. The file's own header rule ("All amharic words come from
-  Common Phrases vocabulary ONLY") should catch these, but nothing enforces it
-  automatically — a full audit of `SENTENCES`/`DIALOGUES` against
-  `amharicPhrases.js` word lists hasn't been done, only the two reported by
-  the user. Worth a systematic pass if this keeps coming up.
 - **`src/components/MixedReview.jsx` is dead code** — not imported or
   referenced anywhere in `App.jsx`, not reachable from any nav path. It still
   got the same fixes as everything else (scroll bars, emoji swap) for
@@ -111,6 +114,9 @@ partner across sessions.
   responsive nav breakpoint)
 - Progress/mastery logic: `src/utils/progress.js` (`getLevelProgress`,
   `isLevelUnlocked`, mastery = net score ≥ 5 reading / ≥ 3 writing)
+- Read-mode vocabulary audit: `scripts/validate-reading-vocab.js`,
+  `src/data/cognates.js` (centralized loanwords/proper nouns not in
+  `amharicPhrases.js`)
 
 ## Separate from this file
 The user-preferences/feedback/stable-facts memory system at

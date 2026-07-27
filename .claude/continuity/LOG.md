@@ -9,6 +9,47 @@ history.
 
 ---
 
+### 2026-07-26 — "AI sentence creator" became a vocab validator, not an LLM integration
+User asked about using AI to generate Read-mode content faster, and separately
+about adding real birr amounts and Ethiopic numbers to existing dialogue
+lines (both done manually first — see below). When asked to actually build
+"the AI sentence creator," research turned up: no LLM text-generation API key
+or SDK exists in this repo (the existing `GOOGLE_API_KEY` is Cloud
+Text-to-Speech only, a different Google product), and any such pipeline would
+still need the same human/Claude review step before merging anyway. Decided
+against standing up new API infrastructure; instead, Claude drafts Read-mode
+content directly in conversation (as it already had been doing), gated by a
+new `scripts/validate-reading-vocab.js` that mechanically checks every word
+in `SENTENCES`/`DIALOGUES` against the real allowed vocabulary — Common
+Phrases, a new centralized `src/data/cognates.js` (loanwords + proper nouns
+that were previously scattered inline with nothing to check them against),
+and `ethiopicNumbers.js`. User confirmed two scope calls: proper
+nouns/obviously-English-adjacent loanwords don't need pre-approval (just get
+added to `cognates.js` in the same pass they're introduced), and new content
+going forward doesn't need per-sentence manual review from the user — Claude
++ the validator are the quality gate now.
+
+Running the validator against all existing content (the audit promised in
+the previous log entry) found exactly two more real gaps, both honorific-
+register words used in `dial_formal_greeting` but never taught: ይናገራሉ
+(polite "do you speak?") and እባክዎ (formal "please"). Rather than reword
+those dialogue lines down to casual register, added `formalAmharic` fields
+to the `englizgna_yinageralu` and `ibakih` phrases (both already had the
+male/female split, formal was just missing — `ibakih`'s own note already
+mentioned እባክዎ in passing, same leak pattern as ወዴት/የለኝም before it) and
+generated their audio. Validator now reports zero flags against all 35
+sentences/paragraphs + 15 dialogues.
+
+Also added real birr amounts to four dialogue lines that previously said the
+vague "it's birr" with no number (ሂሳቡ ብር ነው → e.g. ሂሳቡ ሁለት መቶ ሃምሳ ብር ነው,
+250 birr), after first trying unrealistically low amounts (50/100/200/300)
+that the user correctly called out as implausible for current Ethiopian
+prices — settled on 250/850/600/750 birr across the coffee house, restaurant,
+airport taxi, and market radio dialogues. Considered gating Read mode behind
+Numbers-page mastery now that it uses number words, but decided against it
+per the user — Read mode's unlock stays exactly `isReadModeUnlocked()`
+(Level 7 mastery + phrase test), no numbers requirement.
+
 ### 2026-07-25 — Untaught words leaking into Read mode sentences
 User caught two Read-mode sentences using words that were never actually
 taught as Common Phrases: ወዴት ("which way") in `passport_where`,
