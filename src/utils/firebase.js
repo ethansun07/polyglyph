@@ -110,7 +110,9 @@ export const saveReadingProgressFromCloud = (data) => apiFetch('/reading-progres
 // ── Live-generated Read-mode sentences ───────────────────────────────────────
 // generateSentence() has real per-call cost (LLM + TTS) and is rate-limited
 // server-side; the rest are plain per-user CRUD for ones the user chose to save.
-export const generateSentence            = ()   => apiFetch('/generated-sentences/generate', { method: 'POST' });
+// `recentTexts`: sentences already shown this session, so the server can
+// tell Gemini not to repeat them (see server/lib/gemini.js).
+export const generateSentence            = (recentTexts = []) => apiFetch('/generated-sentences/generate', { method: 'POST', body: JSON.stringify({ recentTexts }) });
 export const saveGeneratedSentence       = (s)   => apiFetch('/generated-sentences', { method: 'POST', body: JSON.stringify(s) });
 export const loadSavedGeneratedSentences = ()    => apiFetch('/generated-sentences');
 export const deleteSavedGeneratedSentence = (id) => apiFetch(`/generated-sentences/${id}`, { method: 'DELETE' });

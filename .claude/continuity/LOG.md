@@ -9,6 +9,116 @@ history.
 
 ---
 
+### 2026-07-27 — Generator vocabulary variety fix, UI polish, and Phrases Final Test regating
+Same day as the rebuild entry directly below: after trying the freshly-rebuilt generator,
+the user reported the same problem in a new form, the same handful of nouns (bank, doro
+wat, hotel) kept showing up across generations even with duplicate-of-exact-sentence
+checking in place. Root cause: `theme` was being picked from the app's own curriculum
+categories (`CATEGORY_ORDER` in `amharicPhrases.js`), the same categories the 40 static
+`SENTENCES` draw their canonical vocabulary from, so any theme just steered Gemini back to
+that category's "textbook" answer. Fixed by decoupling theme selection entirely from the
+curriculum: a new ~95-item pool of specific everyday micro-scenarios (`THEMES`/`pickTheme()`
+in `server/lib/gemini.js`), each too narrow for a single canonical answer to exist, plus a
+new `extractOverusedWords()` in the route that names specific words back to Gemini once
+they've shown up twice in a session. User confirmed this actually fixed it (8 test
+generations came back with 8 completely different topics/nouns).
+
+Then two rounds of UI polish, both reactive to specific "looks sloppy" feedback rather than
+a redesign: first, added `ReadSectionHeader` (gold "Generate your own" vs. green "Practice
+sentences") so the two sentence sources read as clearly distinct, including a
+bookmarked-only variant of the generate header ("Saved generated sentences") so it doesn't
+show an inert generate button with no button underneath it. Then fixed actual spacing bugs
+once the user clarified "sloppy" meant alignment specifically: the saved-generated list's
+label had been sharing the same `gap: 1rem` flex container as the cards, producing a much
+bigger gap after the label than between cards; replaced scattered inline
+`marginBottom`s with each section wrapped in one flex column with a single consistent
+`gap`. Separately, user asked about the Dialogues tab having no equivalent polish/feature;
+recommended just matching the header treatment as the lower-risk option versus also
+building AI-generated dialogues, user said to hold off on deciding for now (open item).
+
+Unrelated to the generator: the user proposed (as an open question, not a bug report) that
+Common Phrases' Final Test shouldn't require browsing all 86 phrases to unlock, since a
+heritage speaker likely already knows these everyday phrases from speaking Amharic and
+browsing every card first is just friction. Went through two iterations: first gated on
+merely *reaching* Level 7 (`highestLevel >= LEVELS.length`), but talking through Read mode's
+own separate gate surfaced a bad interaction, since Read mode requires `isLevel7Mastered`
+(actual 85% mastery, not just reaching), someone could unlock and pass the Final Test right
+after reaching Level 7, then find Read mode still locked because they hadn't mastered it
+yet, a confusing "I already passed, why is this still locked" moment. Retightened to gate on
+`isLevel7Mastered(progress)` directly (the same check Read mode uses), so passing the Final
+Test always implies Read mode's other requirement is already satisfied. That surfaced one
+more thing: `isReadModeUnlocked` was re-checking `isLevel7Mastered` live on every render,
+while `phraseTestPassed` is a permanent flag, so Read mode could in theory silently re-lock
+if a later practice session dropped a Level 7 character's net score back below the mastery
+threshold, even after the user had legitimately earned Read mode access before. Simplified
+`isReadModeUnlocked` to just `phraseTestPassed === true`, closing that regression risk, and
+dropped the locked-screen checklist from two items to one to match. Removed the now-fully-dead
+browse-seen tracking (`browseSeen`/`onPhraseSeen` in `CommonPhrases.jsx`,
+`loadBrowseSeen`/`markBrowseSeen`/`BROWSE_SEEN_KEY` in `phraseProgress.js`) since the new
+gate doesn't need it and nothing else read it.
+
+### 2026-07-27 — Live sentence generator rebuilt from scratch after teardown
+Same day as the teardown entry directly below: immediately after removing the feature
+entirely, the user asked to rebuild it with the same four requirements restated plainly
+("generate any amharic sentence with ai, with audio, bookmark feature, and for it to be
+fast"). Rather than inventing new architecture, rebuilt using the exact patterns already
+proven to work well *mechanically* in the torn-down version, since the prior quality
+complaint was about specific sentence outputs, not the pipeline: `gemini-flash-lite-latest`
+with `thinkingConfig.thinkingBudget: 128`, unconstrained vocabulary (heritage-speaker
+audience, separate from the 40 vocab-constrained static `SENTENCES`), Cloud TTS for audio,
+a `generated_sentences` table for saves, duplicate-avoidance against both the static
+40 and a session-only `recentGeneratedTexts` client ref, and the punctuation-tidying regex
+safety net. Recreated: `server/lib/gemini.js`, `server/lib/tts.js`,
+`server/routes/generatedSentences.js` (mounted in `server/index.js`), the table in
+`db/schema.sql` (applied to local Postgres only so far, **Neon still pending**), the five
+`generate*`/`saveGeneratedSentence`/etc. exports in `src/utils/firebase.js`,
+`playAudioFromBase64`/`speakAmharicText` in `src/utils/audio.js`, and the Generate
+button/preview/saved-list UI in `src/components/SentenceReader.jsx`. `SentenceCard` gained
+optional `onPlayAudio`/`onPlayWordAudio`/`bookmarkTitle` props so the same component could
+serve an ephemeral AI preview (bookmark icon repurposed as "Save", using the base64 audio
+from the generate response) and the saved-generated list (bookmark icon repurposed as
+"Remove", audio re-fetched on demand since bytes are never persisted) without forking it.
+Deliberately avoided the earlier bookmark-filter bug (saved-generated section rendered
+unconditionally this time, not nested inside the `!bookmarkedOnly` block). Verified via
+direct backend smoke tests bypassing HTTP auth (a real Firebase ID token needs a browser):
+4 back-to-back generations, 694-964ms end-to-end each, no duplicates, correct punctuation;
+DB save/list/delete round-trip against local Postgres confirmed working. `npm run build`
+and `scripts/validate-reading-vocab.js` both clean. Not yet exercised in an actual browser
+click-through — that, plus the user's fresh reaction to sentence quality this time, is the
+open item.
+
+### 2026-07-27 — Live sentence generator built, iterated on extensively, then torn down
+Same session as the entry directly below, continued: after the unconstrained-vocabulary
+pivot (removing all the vocab-matching machinery in favor of "generate any basic Amharic
+sentence"), still hit real problems. Generation speed was inconsistent (traced to Gemini's
+default "thinking" behavior, fixed with `thinkingConfig` then a model swap to
+`gemini-flash-lite-latest`), the rate limiter was too tight for active testing (raised
+20 → 100/hour), Ctrl+Z had been used all session instead of Ctrl+C to stop the local
+server, which only suspends a process rather than killing it, explaining the repeated
+stale-port issues (ten zombie `node --watch` processes had piled up, cleaned out).
+Repeats were still common even after adding a duplicate-of-the-40-static-sentences
+check, root cause: nothing tracked what the model had already generated earlier in
+the *same session*, since each request was stateless; added a client-tracked
+`recentGeneratedTexts` list sent with each request to close that gap.
+
+After all of that, the user judged output quality still wasn't good enough and asked
+to remove the entire feature and restart rather than keep iterating. Fully torn down:
+deleted `server/lib/gemini.js`, `server/lib/tts.js`, `server/routes/generatedSentences.js`;
+reverted the route mount in `server/index.js`, the `generate*` exports in
+`src/utils/firebase.js`, the `playAudioFromBase64`/`speakAmharicText` additions in
+`src/utils/audio.js`, and all Generate-related state/UI in `src/components/SentenceReader.jsx`
+(back to just the static list + "Continue" button, no top section); removed the
+`.read-generate-*`/`.spin` CSS, the `generated_sentences` table from `db/schema.sql`
+(and dropped it from local Postgres; it had never been confirmed applied to Neon, so
+production needed no cleanup), and uninstalled `express-rate-limit`. Deliberately left
+untouched: the 40 curated `SENTENCES` (35→40 content-quality work from earlier this
+session) and `scripts/validate-reading-vocab.js`/`src/utils/readingVocab.js`/`src/data/cognates.js`
+(the separate Claude-drafts-content-plus-validator workflow), neither is part of "the
+generate sentences feature" and both predate or are independent of it. If AI sentence
+generation comes up again, treat it as a from-scratch design, not a resume, none of
+this session's specific choices (unconstrained vocabulary, lite model, thinking budget,
+session-level duplicate tracking) should be assumed to still be the right call.
+
 ### 2026-07-27 — Live in-app sentence generator (what "AI sentence creator" actually meant)
 Turned out the previous session's read of "AI sentence creator" (a Claude-drafted-content
 + validator-script workflow) wasn't what the user meant — they wanted a real feature
@@ -171,6 +281,154 @@ the saved-generated list now renders unconditionally, since it *is* the user's b
 generated content. Also fixed the static list's "No bookmarked sentences yet" empty
 state so it only shows when there are truly zero bookmarked items across both the static
 list and the saved-generated list, not just the static one.
+
+Committed and pushed everything (server routes/lib, cognates.js, readingVocab.js,
+the 40-sentence readingSentences.js, the reordered/rebugfixed SentenceReader.jsx,
+db/schema.sql). Deployment checklist follow-through surfaced two more gaps, both
+about things Render never previously needed at runtime: `GEMINI_API_KEY` obviously
+had to be added there, but so does `GOOGLE_API_KEY` (Cloud TTS), since before this
+feature the deployed server never called it live, audio was always pre-baked
+locally and committed as static files. Forgetting either one on Render produces the
+exact same visible symptom: the live call fails, the fallback kicks in, and every
+generated sentence shows an immediate checkmark (since a static fallback pick is
+marked read the moment it's surfaced) even though nothing is actually broken in
+the generation logic itself.
+
+User then flagged two real quality issues once things were working end-to-end.
+(1) Generation felt slow. Root cause: `gemini-flash-latest` (currently resolving
+to `gemini-3.6-flash`) does extended internal "thinking" by default, over 1000
+hidden reasoning tokens and ~6 seconds even for a one-word test reply, wasted
+effort for a short constrained-vocabulary sentence. `thinkingConfig: {
+thinkingBudget: 0 }` is rejected outright as an invalid value by this model, but
+a small nonzero budget (128 tested) cut it to about 1 second with no drop in
+output quality or vocab compliance, confirmed with several live test calls
+before touching the real code. (2) Live-generated sentences had no ending
+punctuation at all, unlike every static sentence. The prompt never asked for
+any. Added explicit instructions (። for statements, ?/! for
+questions/exclamations, matching the static convention, no space before the
+mark, never doubled), which mostly fixed it, plus a small deterministic
+`tidyPunctuationSpacing()` regex in the route as a safety net for the cases
+where the model still left a stray space before the mark.
+
+User then caught a subtler bug from an actual generated example: `አማርኛን ትንሽ
+እናገራለሁ`, word order wrong, `ትንሽ` (a little) needs to directly precede `አማርኛ`
+(Amharic) per how `amarenna`'s taught form `ትንሽ አማርኛ እናገራለሁ` is structured.
+Root cause: the vocab-list builder flattens every taught phrase into loose
+individual words with no memory of which words were only ever taught as one
+fixed multi-word unit, so the model saw ትንሽ/አማርኛ/እናገራለሁ as three
+independently swappable words and recombined them into an ungrammatical
+order. There are 19 such multi-word phrases in `amharicPhrases.js` (compound
+nouns like ቡና ቤት, city names like ባህር ዳር, fixed idioms like ችግር የለም),
+all equally at risk. Added `fixedPhrasesIn()` to `generatedSentences.js`:
+for a given call's vocab subset, find which taught multi-word phrases are
+fully covered by it, and tell the prompt those specific ones must stay
+adjacent and in order if used at all. Verified across all 8 phrase
+categories with real Gemini calls: every multi-word phrase that appeared
+stayed correctly ordered afterward.
+
+That word-order fix immediately caused a new, related problem: `ትንሽ አማርኛ
+እናገራለሁ` started showing up constantly, and it's exactly the phrase the user
+already learned verbatim in Phrases, so regenerating it wasn't actually new
+practice. Cause: several of the 19 "fixed units" (amarenna, sint_new,
+wedet_new, dehna_negn, im_from, minim_ayidelem, cheger_yelem,
+egzabihir_yemisgen, qes_qes_hid) are themselves already complete taught
+sentences, not noun fragments needing composition, so telling the model
+"these exact groups are valid, keep them intact" just handed it a ready-made
+full answer to echo back, especially under the "language" theme, which has
+few alternatives to amarenna. Fixed by adding an explicit rule: the output
+must never be identical to just one fixed group by itself, it has to combine
+one with additional words or use different vocabulary entirely. Verified
+0/8 verbatim echoes afterward on the "language" theme forced repeatedly
+(previously the worst offender), each result either extended the phrase
+with more content or avoided it in favor of different vocabulary.
+
+User pointed out the same duplicate-content problem exists one level up:
+nothing stopped a generated sentence from exactly matching one of the 40
+curated `SENTENCES` entries, also not new practice, just the same content
+twice. Fixed the same way as vocab validation, both a prompt instruction and
+a deterministic check, not relying on the model alone: pass all 40 existing
+sentence texts to the prompt as "don't repeat any of these," and after
+generation, normalize (strip punctuation/whitespace) and compare against the
+existing set; an exact match gets treated as invalid and retried, same code
+path as a disallowed word. Verified 0/6 duplicates afterward, including one
+near-miss (`ምግብ እና ጠጅ እወዳለሁ` vs the static `... እፈልጋለሁ`) that correctly
+wasn't flagged since the verb actually differs.
+
+User then said generation still felt slow "sometimes," inconsistent with the
+earlier "cut it to ~1s" claim. Measured it properly this time (instrumented
+real route calls with per-attempt timing) instead of trusting a small
+earlier sample: TTS was consistently fast (155-198ms) and never the issue,
+but the Gemini call itself varied from 1.2s to 6s on a single first attempt
+with zero retries, same `thinkingBudget: 128` setting every time. The earlier
+"~1s" number was real but not representative, this model's latency is just
+inherently variable even with thinking turned down. Tested
+`gemini-flash-lite-latest` head-to-head against the full `gemini-flash-latest`
+on the actual production prompt: 10/10 valid outputs, consistently
+600-750ms, versus the full model's 1.2-6s spread. Switched `MODEL` in
+`server/lib/gemini.js` to the lite variant. Full end-to-end route calls
+afterward landed at 600ms-1.6s total including TTS, a real, consistent
+improvement rather than a lucky sample.
+
+Rate limit came up too: user reported "Couldn't generate a sentence right
+now" after generating a bunch. Turned out to be the `/generate` rate limiter
+(20/hour/uid), a reasonable guard when the model was slower and pricier, too
+tight now that a call costs well under a cent and takes under a second.
+Raised to 100/hour. Separately, the user pointed out Ctrl+Z (not Ctrl+C) had
+been used to stop the local server throughout this whole session, Ctrl+Z
+only *suspends* a process (SIGTSTP), it doesn't terminate it, which is
+exactly why port 3001 kept needing a manual `lsof`/`kill -9` over and over.
+Found ten stopped zombie `node --watch index.js` processes accumulated back
+to `3Jul26`, cleaned them up; the two processes still running (`--watch`
+parent + its child) turned out to be one legitimate session, not a leak.
+
+Then a genuine design reconsideration: the app's own framing is "learning
+to read/write the Fidel script, not the spoken language," which points at a
+heritage-speaker-leaning audience who already know spoken Amharic and just
+need script practice, not vocabulary scaffolding. For that audience,
+constraining live generation to only-taught words is unnecessary, and
+removing it would eliminate basically every bug fought this session (word
+order breaking when phrases flatten into loose words, the model echoing
+taught phrases back verbatim, duplicate detection needed at all). Weighed
+against: the Phrases curriculum (86 phrases, cultural notes, gendered forms,
+travel framing) reads like it's built for people with zero prior Amharic
+too, for whom unconstrained content would introduce vocabulary they can't
+parse yet. Landed on a split: the 40 curated `SENTENCES` and the Phrases
+curriculum stay exactly as they are, fully vocab-scoped, for the guided
+beginner path; live "Generate" becomes fully unconstrained, for reading
+practice specifically. Removed `buildAllowedVocab`, `findDisallowedWords`,
+`themedVocabSubset`, `fixedPhrasesIn`, and the disallowed-word retry path
+from `generatedSentences.js` and `gemini.js` entirely (`src/utils/readingVocab.js`
+is untouched and still used by `scripts/validate-reading-vocab.js` for the
+still-constrained static content). Kept the duplicate-of-existing-SENTENCES
+check and the punctuation handling, both still relevant regardless of
+vocabulary constraints. Verified live afterward: noticeably richer,
+more natural output (words like ትችላለህ "can you", መጠጣት "to drink" that
+were never in the taught phrase list at all), still fast (760ms-1.3s),
+still properly punctuated, no duplicates of the 40 static sentences.
+
+Despite that, user reported repeats were still common once generating "a bunch"
+in a row, which made sense once traced through: the duplicate check only ever
+compared against the 40 permanent `SENTENCES`, never against anything the
+model had already generated earlier in the same clicking session, and each
+`/generate` request is otherwise completely stateless, so nothing stopped
+the model from giving the exact same sentence back a few clicks later. User
+also asked, reasonably, why fixes were being layered on incrementally rather
+than the vocab-constraint logic just being torn out; confirmed that removal
+already happened in full the previous turn (`buildAllowedVocab`,
+`findDisallowedWords`, `themedVocabSubset`, `fixedPhrasesIn` are gone), what
+remains (punctuation formatting, duplicate avoidance, a theme hint) isn't
+leftover constraint machinery, it's the minimum any version of this feature
+needs. Fixed the actual repeat bug: `SentenceReader.jsx` now keeps a
+`recentGeneratedTexts` ref (last 20 sentences shown via Generate this
+session, not persisted anywhere) and sends it as `recentTexts` in the
+request body; the server merges it with the 40 static texts for both the
+prompt's "don't repeat these" instruction and the deterministic
+`normalizeForComparison()` check. Also strengthened the prompt to explicitly
+push variety ("do not default to the same handful of safe sentences") and
+nudge toward simpler/common vocabulary per the user's preference. Verified
+with 8 rapid calls in one simulated session: 7 valid, all genuinely
+distinct topics and vocabulary, zero repeats (the 8th was a test-harness
+shell-escaping artifact, not an API failure).
 
 ### 2026-07-26 — "AI sentence creator" became a vocab validator, not an LLM integration
 User asked about using AI to generate Read-mode content faster, and separately

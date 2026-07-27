@@ -1,4 +1,4 @@
-// Google Cloud Text-to-Speech, same REST call as scripts/generate-missing-audio.js,
+// Google Cloud Text-to-Speech — same REST call as scripts/generate-missing-audio.js,
 // factored out for reuse by the live sentence-generation route. Returns base64 MP3
 // directly; nothing here ever writes to disk.
 

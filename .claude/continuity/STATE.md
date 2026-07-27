@@ -40,49 +40,81 @@ partner across sessions.
   architecture that had a serious cross-account data leak bug (see LOG.md).
 
 ## Recently shipped (most recent first)
-- **Live "Generate a sentence" button in Read mode** (Sentences tab). Clicking
-  it always tries a live call first: `POST /api/generated-sentences/generate` calls Gemini
-  (`server/lib/gemini.js`, raw `fetch`, no SDK) constrained to the same
-  allowed-vocabulary set `validate-reading-vocab.js` checks against (shared
-  via `src/utils/readingVocab.js`), retries up to 3x server-side if the model
-  uses a disallowed word, then synthesizes audio via the existing Cloud TTS
-  pattern (`server/lib/tts.js`) and returns everything as one JSON payload.
-  Audio is never written to disk, just returned as base64 and played via a
-  new `playAudioFromBase64()` in `src/utils/audio.js`. Live-generated
-  sentences are ephemeral by default; an explicit "Save" (reusing
-  `SentenceCard`'s existing bookmark button/icon, just relabeled) persists to
-  a new `generated_sentences` table (per-uid, `server/routes/generatedSentences.js`)
-  so it survives reloads, audio for saved ones is re-synthesized on demand
-  (`POST /:id/audio`), never stored. `/generate` is rate-limited
-  (`express-rate-limit`, 20/hour per uid) since it's the only endpoint with
-  real per-call cost. Uses the `gemini-flash-latest` alias, not a pinned
-  version (`gemini-2.5-flash` returned a 404 "no longer available to new
-  users" for this project's key even though `models.list` still showed it, so
-  pin-by-version is apparently not safe here). Each prompt sends a themed
-  subset of vocab (~30-50 words based on a randomly chosen phrase category)
-  rather than the full ~166-word list, both for variety (a full identical
-  list every call made the model default to the same "I want [drink]"
-  pattern) and to cut input-token cost. If the live call fails for any reason
-  (quota, billing, network), falls back to a random unread sentence from
-  `SENTENCES` instead of showing a bare error, marking it read immediately
-  since clicking the button counts as "seen it" either way. This used to be
-  the *primary* path (static-first, live generation only once everything was
-  read) but got flipped once the full static list became separately
-  browsable above the button (see "Also reordered" below): re-surfacing an
-  already-visible unread sentence via this button felt redundant with the
-  list's own "Continue" button, so now it's purely an error fallback.
-
-  **Gemini billing note**: the free tier is capped at 20 requests/day per
-  model per project, easy to exhaust while testing. Gemini API billing is
-  prepay, not postpay: enabling billing on the Cloud project alone isn't
-  enough, the project also needs actual prepay credits added at
-  ai.studio/projects (distinct "quota" vs "prepay credits depleted" 429
-  errors tell you which state you're in). **Verified working locally
-  end-to-end** (generate, validate, synthesize, real HTTP route, with a real
-  `GEMINI_API_KEY` and prepay credits) this session. **Still needs, before
-  production works**: `GEMINI_API_KEY` set in Render's env vars (local
-  `server/.env` already has it), the new `generated_sentences` table applied
-  to Neon, and a Render redeploy, per the deployment checklist below.
+- **Common Phrases Final Test unlock gate changed twice, ending on Level 7
+  mastery.** Was originally gated on having browsed/practiced all 86 phrases
+  (`allSeen` in `CommonPhrases.jsx`); the user pointed out this is real
+  friction for heritage speakers who already know these everyday phrases
+  from speaking Amharic and shouldn't have to click through every card.
+  First tried gating on just having *reached* Level 7 (`highestLevel >=
+  LEVELS.length`), then tightened to `isLevel7Mastered(progress)` (the same
+  check Read mode uses) once we realized the looser version let someone
+  pass the Final Test before actually mastering Level 7, leaving Read mode
+  still locked afterward in a confusing way. Removed the now-dead
+  browse-seen tracking entirely (`browseSeen` state/`onPhraseSeen` in
+  `CommonPhrases.jsx`, `loadBrowseSeen`/`markBrowseSeen`/`BROWSE_SEEN_KEY` in
+  `src/utils/phraseProgress.js`) since nothing else read it.
+  `isReadModeUnlocked` (`src/utils/progress.js`) was also simplified to just
+  `phraseTestPassed === true` (dropped the redundant live
+  `isLevel7Mastered` re-check) — passing the Final Test already proves
+  Level 7 mastery at that moment, and `phraseTestPassed` is a permanent
+  flag, so re-checking live mastery on every render meant Read mode could
+  silently re-lock if a later practice session knocked a Level 7 char's net
+  score back down, a real regression risk that's now closed. The locked
+  screen's checklist (`SentenceReader.jsx`'s `LockedScreen`) dropped from two
+  items to one ("Pass the Common Phrases final test") accordingly.
+- **Live "Generate a sentence" button in Read mode: built, torn down,
+  rebuilt from scratch, then fixed for vocabulary repetition and UI clarity.**
+  First build was iterated on extensively (constrained → unconstrained
+  vocabulary, speed tuning, punctuation, duplicate-avoidance) but the user
+  judged sentence quality not good enough and asked for a full teardown.
+  Rebuilt immediately after with the same four requirements (any Amharic
+  sentence, audio, bookmarking, speed) using the same architecture already
+  proven to work mechanically: `server/lib/gemini.js`
+  (`gemini-flash-lite-latest`, `thinkingConfig.thinkingBudget: 128`, raw
+  `fetch`, no SDK — measured ~500-950ms including TTS), `server/lib/tts.js`
+  (Google Cloud TTS REST, base64 MP3, never written to disk),
+  `server/routes/generatedSentences.js` (`/generate` with
+  retry-on-malformed/duplicate, rate-limited 100/hour per uid via
+  `express-rate-limit`; plain CRUD for saved ones), the `generated_sentences`
+  table (in `db/schema.sql`, applied to local Postgres — **still needs the
+  same manually run against Neon before this works in production**, see
+  Deployment checklist), the `generateSentence`/`saveGeneratedSentence`/
+  `loadSavedGeneratedSentences`/`deleteSavedGeneratedSentence`/
+  `fetchGeneratedAudio` exports in `src/utils/firebase.js`,
+  `playAudioFromBase64`/`speakAmharicText` in `src/utils/audio.js`, and the
+  Generate button/ephemeral preview/saved-list UI in
+  `src/components/SentenceReader.jsx` (`SentenceCard` takes optional
+  `onPlayAudio`/`onPlayWordAudio`/`bookmarkTitle` overrides so it serves both
+  static and generated sentences). But even after the rebuild, the user
+  reported the same few nouns (bank, doro wat, hotel) showing up constantly
+  across generations — root cause was `theme` being picked from the app's
+  own curriculum categories (`CATEGORY_ORDER` in `amharicPhrases.js`:
+  greetings/food/travel/etc.), which are the exact categories the 40 static
+  `SENTENCES` already draw canonical vocabulary from, so theming off them
+  just steered Gemini back to the same "textbook" nouns. Fixed by replacing
+  that with a ~95-item pool of specific, curriculum-independent everyday
+  micro-scenarios (`THEMES`/`pickTheme()` in `server/lib/gemini.js`) too
+  narrow for the model to fall back on one canonical answer, plus a live
+  `extractOverusedWords()` in the route that scans the session's recent
+  sentences and tells Gemini by name not to reuse whatever's already shown
+  up twice. User confirmed this fixed the variety problem. Then did two UI
+  passes: (1) added `ReadSectionHeader` (gold "Generate your own" vs. green
+  "Practice sentences" sections in `SentenceReader.jsx`/`App.css`) so the
+  AI-generated and curated-40 sentences aren't confused for each other,
+  including a bookmarked-only-view variant that swaps the generate header to
+  "Saved generated sentences" instead of showing an inert generate button;
+  (2) fixed inconsistent ad hoc spacing by wrapping each section in a flex
+  column with one consistent `gap` instead of scattered inline
+  `marginBottom`s, and fixing the saved-generated list's label which had
+  been sharing the same large flex gap as the cards themselves. Duplicate
+  avoidance checks both the 40 static `SENTENCES` and a client-tracked,
+  session-only `recentGeneratedTexts` ref (capped at 20, never persisted).
+  Backend verified via direct smoke tests (694-964ms end-to-end,
+  no duplicates, correct punctuation, DB round-trip); the vocabulary-variety
+  fix was also smoke-tested (8 generations, 8 distinct topics/nouns). The
+  Dialogues tab has no equivalent generate feature and no matching section
+  header yet — user flagged this as a gap but said to hold off on deciding
+  scope (just polish vs. also building AI-generated dialogues) for now.
 - **`SENTENCES` went from 35 to 40, now covering all 86 `amharicPhrases.js`
   entries on its own and with less template repetition than the original 35
   had.** Two separate passes: (1) previously 32 phrases were only used in
@@ -100,19 +132,9 @@ partner across sessions.
   explicitly ruled out as a quality signal for this pass, not a reliable
   proxy for which phrases matter. Audio generated/cleaned up for all
   additions and removals via the usual `find-missing-audio.js` +
-  `generate-missing-audio.js` pipeline. This matters because the "Generate a
-  sentence" button's error-fallback only reads from `SENTENCES`, so
-  the Sentences tab needed to be a complete, self-contained, and reasonably
-  non-repetitive unit rather than relying on `DIALOGUES` for full phrase
-  coverage. `SentenceReader.jsx`'s Sentences tab layout: "Generate a
-  sentence" (button/preview/saved-list, under a "Want more? Generate a new
-  sentence" heading) is at the **top**, followed by a "Sentences" heading and
-  then the static list with its own "Continue" button. Went through two
-  orderings this session: static-list-first (when Generate still meant
-  "surface an unread static one"), then flipped to Generate-first once that
-  behavior became a pure error-fallback (see above) and the button turned
-  into an independent, always-available feature rather than a reward for
-  finishing the list, so burying it below 40 sentences no longer made sense.
+  `generate-missing-audio.js` pipeline. This content work is independent of
+  the live-generation feature above and stayed in place when that got torn
+  down.
 - **`scripts/validate-reading-vocab.js`**: audits `readingSentences.js` against
   the actual allowed vocabulary (Common Phrases + new `src/data/cognates.js`
   centralized loanword/proper-noun list + `ethiopicNumbers.js` + the fixed
@@ -182,9 +204,9 @@ partner across sessions.
    console.neon.tech. **Watch out**: a fresh Neon SQL Editor pre-populates
    placeholder example queries (`playing_with_neon` table) — don't run those,
    only the actual migration lines.
-4. New env var added (e.g. `GEMINI_API_KEY`) → set it in both local
-   `server/.env` and Render's dashboard env vars; Render does not read from
-   `.env.example` or infer anything, it needs the real value entered manually.
+4. New env var added → set it in both local `server/.env` and Render's
+   dashboard env vars; Render does not read from `.env.example` or infer
+   anything, it needs the real value entered manually.
 
 ## Where to look
 - Auth logic: `src/utils/firebase.js`, `src/App.jsx` (the `onAuthChange` effect)
@@ -192,16 +214,21 @@ partner across sessions.
 - Read mode (sentences/dialogues, bookmarks, read-status):
   `src/components/SentenceReader.jsx`, `src/utils/readingProgress.js`,
   `server/routes/readingProgress.js`
-- Live sentence generation: `server/routes/generatedSentences.js`,
-  `server/lib/gemini.js`, `server/lib/tts.js`, `src/utils/readingVocab.js`
+- Live "Generate a sentence" (unconstrained AI sentence + audio + save):
+  `server/lib/gemini.js`, `server/lib/tts.js`,
+  `server/routes/generatedSentences.js`, the `generated_sentences` table in
+  `db/schema.sql`
+- Common Phrases Final Test gate + Read mode unlock:
+  `src/components/CommonPhrases.jsx` (`testUnlocked`), `src/utils/progress.js`
+  (`isLevel7Mastered`, `isReadModeUnlocked`)
 - Shared CSS patterns/design tokens: `src/App.css` (`:root` variables,
   `.quiz-next-bar`/`.wr-sticky-footer` no-scroll patterns, `.nav-item-overflow`
   responsive nav breakpoint)
 - Progress/mastery logic: `src/utils/progress.js` (`getLevelProgress`,
   `isLevelUnlocked`, mastery = net score ≥ 5 reading / ≥ 3 writing)
 - Read-mode vocabulary audit: `scripts/validate-reading-vocab.js`,
-  `src/data/cognates.js` (centralized loanwords/proper nouns not in
-  `amharicPhrases.js`)
+  `src/utils/readingVocab.js` (allowed-vocab builder/checker), `src/data/cognates.js`
+  (centralized loanwords/proper nouns not in `amharicPhrases.js`)
 
 ## Separate from this file
 The user-preferences/feedback/stable-facts memory system at

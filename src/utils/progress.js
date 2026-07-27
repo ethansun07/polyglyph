@@ -145,7 +145,13 @@ export function isLevel7Mastered(progress) {
 
 export function isReadModeUnlocked(progress) {
   if (progress.readUnlockedByAdmin) return true;
-  return isLevel7Mastered(progress) && progress.phraseTestPassed === true;
+  // phraseTestPassed alone is enough: the Common Phrases Final Test itself
+  // is now gated on isLevel7Mastered (see CommonPhrases.jsx), so passing it
+  // already proves Level 7 mastery at that point in time. Not re-checking
+  // mastery here is deliberate — it's a permanent flag like phraseTestPassed
+  // itself, not something that should re-lock Read mode if later practice
+  // knocks a Level 7 character's net score back down.
+  return progress.phraseTestPassed === true;
 }
 
 // ─── Streak ───────────────────────────────────────────────────────────────────

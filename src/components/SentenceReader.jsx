@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { ScrollText, Check, Circle, Lock, MessagesSquare, Volume2, Wrench, Bookmark, Sparkles, Trash2, Loader2 } from 'lucide-react';
+import { ScrollText, Check, Circle, Lock, MessagesSquare, Volume2, Wrench, Bookmark, Sparkles } from 'lucide-react';
 import { SENTENCES, DIALOGUES, CONNECTOR_NOTE } from '../data/readingSentences.js';
-import { isReadModeUnlocked, isLevel7Mastered } from '../utils/progress.js';
+import { isReadModeUnlocked } from '../utils/progress.js';
 import {
   loadReadingProgress, saveReadingProgress,
   isRead, isBookmarked, markRead, toggleBookmark,
@@ -13,10 +13,7 @@ import {
   deleteSavedGeneratedSentence, fetchGeneratedAudio,
 } from '../utils/firebase.js';
 import { PUNCTUATION } from '../data/fidel.js';
-import {
-  playSentenceAudio, playSentenceWordAudio, playDialogueLineAudio,
-  playAudioFromBase64, speakAmharicText,
-} from '../utils/audio.js';
+import { playSentenceAudio, playSentenceWordAudio, playDialogueLineAudio, playAudioFromBase64, speakAmharicText } from '../utils/audio.js';
 
 // ─── Grammar Note (collapsible) ───────────────────────────────────────────────
 function GrammarNote() {
@@ -59,10 +56,26 @@ function PunctuationNote() {
   );
 }
 
+// ─── Section Header (distinguishes generated vs. curated sentences) ─────────
+function ReadSectionHeader({ icon, title, description, tone }) {
+  return (
+    <div className={`read-section-header read-section-header-${tone}`}>
+      <div className="read-section-header-title">{icon}<span>{title}</span></div>
+      <p className="read-section-header-desc">{description}</p>
+    </div>
+  );
+}
+
 // ─── Individual Sentence Card (word-by-word reveal) ───────────────────────────
-function SentenceCard({ sentence, settings, read, onRead, bookmarked, onToggleBookmark, onPlayAudio, onPlayWordAudio, bookmarkTitle }) {
+function SentenceCard({
+  sentence, settings, read, onRead, bookmarked, onToggleBookmark,
+  onPlayAudio, onPlayWordAudio, bookmarkTitle,
+}) {
   const [revealed, setRevealed]   = useState(new Set());
   const [showMeaning, setMeaning] = useState(false);
+
+  const playAudio     = onPlayAudio     || (() => playSentenceAudio(sentence, settings));
+  const playWordAudio = onPlayWordAudio || ((i, word) => playSentenceWordAudio(sentence.id, i, word.amharic, settings));
 
   function toggleWord(i) {
     onRead();
@@ -72,8 +85,7 @@ function SentenceCard({ sentence, settings, read, onRead, bookmarked, onToggleBo
         next.delete(i);
       } else {
         next.add(i);
-        if (onPlayWordAudio) onPlayWordAudio(i, sentence.words[i].amharic);
-        else playSentenceWordAudio(sentence.id, i, sentence.words[i].amharic, settings);
+        playWordAudio(i, sentence.words[i]);
       }
       return next;
     });
@@ -122,7 +134,7 @@ function SentenceCard({ sentence, settings, read, onRead, bookmarked, onToggleBo
         </button>
         <button
           className="btn btn-ghost btn-sm"
-          onClick={() => (onPlayAudio ? onPlayAudio() : playSentenceAudio(sentence, settings))}
+          onClick={playAudio}
           title="Play audio"
         ><Volume2 size={15} strokeWidth={2.25} /></button>
         {anyRevealed && (
@@ -219,20 +231,16 @@ function DialogueCard({ dialogue, settings, read, onRead, bookmarked, onToggleBo
 
 // ─── Locked Screen ────────────────────────────────────────────────────────────
 function LockedScreen({ progress, onAdminUnlock }) {
-  const isAdmin      = auth.currentUser?.email === ADMIN_EMAIL;
-  const level7Done   = isLevel7Mastered(progress);
-  const testDone     = !!progress.phraseTestPassed;
+  const isAdmin  = auth.currentUser?.email === ADMIN_EMAIL;
+  const testDone = !!progress.phraseTestPassed;
 
   return (
     <div className="read-locked">
       <div className="read-locked-icon"><Lock size={45} strokeWidth={1.75} /></div>
       <h3 className="read-locked-title">Read Mode Locked</h3>
-      <p className="read-locked-sub">Complete both steps to unlock:</p>
+      <p className="read-locked-sub">Complete this to unlock:</p>
 
       <ul className="read-locked-checklist">
-        <li className={level7Done ? 'check-done' : 'check-todo'}>
-          {level7Done ? <Check size={15} strokeWidth={2.5} /> : <Circle size={15} strokeWidth={2.25} />} Master all Level 7 characters (85% threshold)
-        </li>
         <li className={testDone ? 'check-done' : 'check-todo'}>
           {testDone ? <Check size={15} strokeWidth={2.5} /> : <Circle size={15} strokeWidth={2.25} />} Pass the Common Phrases final test (85% score)
         </li>
@@ -240,7 +248,7 @@ function LockedScreen({ progress, onAdminUnlock }) {
 
       {!testDone && (
         <p className="read-locked-hint">
-          Head to <MessagesSquare size={13} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> Phrases → browse all phrases → take the Final Test.
+          Head to <MessagesSquare size={13} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> Phrases → master Level 7 letters → take the Final Test.
         </p>
       )}
 
@@ -258,18 +266,16 @@ export default function SentenceReader({ progress, onProgressUpdate }) {
   const [tab, setTab] = useState('sentences');
   const [readingProgress, setReadingProgress] = useState(() => loadReadingProgress());
   const [bookmarkedOnly, setBookmarkedOnly] = useState(false);
+  const [generated, setGenerated]     = useState(null);
+  const [generating, setGenerating]   = useState(false);
+  const [generateError, setGenerateError] = useState(null);
+  const [savedGenerated, setSavedGenerated] = useState([]);
+  // Sentences already shown this browsing session (not persisted), so the
+  // server can steer Gemini away from repeating one it just gave this user.
+  const recentGeneratedTexts = useRef([]);
   const prevUid = useRef(null);
   const unlocked = isReadModeUnlocked(progress);
   const isAdmin  = auth.currentUser?.email === ADMIN_EMAIL;
-
-  // Live AI-generated sentences: `generated` is the current ephemeral
-  // preview (cleared on regenerate/tab switch, never persisted unless the
-  // user hits Save); `savedGenerated` are the ones they did save, hydrated
-  // from the server like readingProgress above.
-  const [generated, setGenerated]           = useState(null);
-  const [generating, setGenerating]         = useState(false);
-  const [generateError, setGenerateError]   = useState(null);
-  const [savedGenerated, setSavedGenerated] = useState([]);
 
   // Every visitor (guest or not) has a real uid, so this just re-syncs
   // whenever the active identity changes — no merge needed, cloud always
@@ -290,54 +296,52 @@ export default function SentenceReader({ progress, onProgressUpdate }) {
         setReadingProgress(data || {});
         saveReadingProgress(data || {});
       }).catch(() => {});
-      loadSavedGeneratedSentences().then(data => {
+      loadSavedGeneratedSentences().then(rows => {
         if (auth.currentUser?.uid !== firebaseUser.uid) return;
-        setSavedGenerated(data || []);
+        setSavedGenerated(rows || []);
       }).catch(() => {});
     });
   }, []);
 
-  // "Generate" always tries a live Gemini call first, that's what the button
-  // says it does, and the full static set is already separately browsable
-  // in the list above (with its own "Continue" button), so re-surfacing an
-  // unread one here first just duplicated that. Falls back to a random
-  // unread static sentence (free, instant, already has real recorded audio)
-  // only if the live call fails, e.g. API quota/billing issues, so a click
-  // always shows *something* instead of a bare error. Marks a fallback pick
-  // as read immediately (rather than waiting for the user to tap into its
-  // words, like the normal list does) since clicking this button at all is
-  // itself "I've seen this one."
   async function handleGenerate() {
     setGenerating(true);
     setGenerateError(null);
     try {
-      const s = await generateSentence();
-      setGenerated({ ...s, isStatic: false });
-    } catch {
-      const unread = SENTENCES.filter(s => !isRead(readingProgress, s.id));
-      if (unread.length > 0) {
-        const pick = unread[Math.floor(Math.random() * unread.length)];
-        setGenerated({ ...pick, isStatic: true });
-        handleMarkRead(pick.id);
-      } else {
-        setGenerateError("Couldn't generate a sentence right now, try again.");
-      }
+      const sentence = await generateSentence(recentGeneratedTexts.current);
+      setGenerated(sentence);
+      recentGeneratedTexts.current = [sentence.amharic, ...recentGeneratedTexts.current].slice(0, 20);
+    } catch (err) {
+      setGenerateError(err.message || "Couldn't generate a sentence right now, try again.");
     } finally {
       setGenerating(false);
     }
   }
 
   async function handleSaveGenerated() {
-    if (!generated || generated.isStatic) return;
-    const { id, amharic, meaning, words } = generated;
-    await saveGeneratedSentence({ id, amharic, meaning, words }).catch(() => {});
-    setSavedGenerated(prev => [{ id, amharic, meaning, words, type: 'sentence' }, ...prev]);
+    if (!generated) return;
+    const toSave = generated;
     setGenerated(null);
+    setSavedGenerated(prev => [{ ...toSave, type: 'sentence' }, ...prev]);
+    try {
+      await saveGeneratedSentence(toSave);
+    } catch {
+      // Saved optimistically in local state; a failed request here just
+      // means it won't survive a reload, not worth a user-facing error.
+    }
   }
 
-  async function handleDeleteSaved(id) {
+  async function handleRemoveSavedGenerated(id) {
     setSavedGenerated(prev => prev.filter(s => s.id !== id));
     deleteSavedGeneratedSentence(id).catch(() => {});
+  }
+
+  async function handlePlaySavedGeneratedAudio(id) {
+    try {
+      const { audioBase64 } = await fetchGeneratedAudio(id);
+      playAudioFromBase64(audioBase64, progress.settings);
+    } catch {
+      // Silent — audio just won't play this time.
+    }
   }
 
   function handleMarkRead(id) {
@@ -427,108 +431,97 @@ export default function SentenceReader({ progress, onProgressUpdate }) {
 
       {tab === 'sentences' && (
         <>
-          {!bookmarkedOnly && (
-            <>
-              <h3 className="section-title">Want more? Generate a new sentence</h3>
-              <div className="read-generate-bar" style={{ marginBottom: '0.75rem' }}>
-                <button
-                  className="btn btn-secondary btn-sm"
-                  onClick={handleGenerate}
-                  disabled={generating}
-                >
-                  {generating
-                    ? <Loader2 size={15} strokeWidth={2.25} className="spin" />
-                    : <Sparkles size={15} strokeWidth={2.25} />}
-                  {generating ? 'Generating…' : 'Generate a sentence'}
-                </button>
-                {generateError && <span className="read-generate-error">{generateError}</span>}
-              </div>
+          {(!bookmarkedOnly || savedGenerated.length > 0) && (
+            <section className="read-generate-section">
+              <ReadSectionHeader
+                tone="generate"
+                icon={<Sparkles size={16} strokeWidth={2.25} />}
+                title={bookmarkedOnly ? 'Saved generated sentences' : 'Generate your own'}
+                description={bookmarkedOnly
+                  ? 'Sentences you generated and chose to keep. Turn off the bookmark filter to generate new ones.'
+                  : "AI-generated on the spot, drawing on the full Amharic language, not just what's taught in this app. Best once you already understand spoken Amharic and just want more script-reading practice. Tap the bookmark icon to save one."}
+              />
 
-              {generated && (
-                <div className="sentence-list" style={{ marginBottom: '0.75rem' }}>
-                  {generated.isStatic ? (
+              {!bookmarkedOnly && (
+                <div className="read-generate-bar">
+                  <button className="btn btn-primary btn-sm" onClick={handleGenerate} disabled={generating}>
+                    <Sparkles size={15} strokeWidth={2.25} className={generating ? 'spin' : ''} />
+                    {generating ? 'Generating…' : generated ? 'Generate another' : 'Generate a sentence'}
+                  </button>
+                  {generateError && <p className="read-generate-error">{generateError}</p>}
+                  {generated && (
                     <SentenceCard
-                      key={generated.id}
-                      sentence={generated}
-                      settings={progress.settings}
-                      read={isRead(readingProgress, generated.id)}
-                      onRead={() => handleMarkRead(generated.id)}
-                      bookmarked={isBookmarked(readingProgress, generated.id)}
-                      onToggleBookmark={() => handleToggleBookmark(generated.id)}
-                    />
-                  ) : (
-                    <SentenceCard
-                      key={generated.id}
                       sentence={generated}
                       settings={progress.settings}
                       read={false}
                       onRead={() => {}}
                       bookmarked={false}
-                      bookmarkTitle="Save this sentence"
                       onToggleBookmark={handleSaveGenerated}
+                      bookmarkTitle="Save this sentence"
                       onPlayAudio={() => playAudioFromBase64(generated.audioBase64, progress.settings)}
-                      onPlayWordAudio={(i, amharic) => speakAmharicText(amharic, progress.settings)}
+                      onPlayWordAudio={(i, word) => speakAmharicText(word.amharic, progress.settings)}
                     />
                   )}
-                  <button className="btn btn-ghost btn-sm" onClick={handleGenerate} disabled={generating}>
-                    Generate another
-                  </button>
                 </div>
               )}
-            </>
+
+              {savedGenerated.length > 0 && (
+                <div className="read-generate-saved">
+                  {!bookmarkedOnly && <p className="read-generate-saved-title">Saved</p>}
+                  <div className="sentence-list">
+                    {savedGenerated.map(s => (
+                      <SentenceCard
+                        key={s.id}
+                        sentence={s}
+                        settings={progress.settings}
+                        read={false}
+                        onRead={() => {}}
+                        bookmarked={true}
+                        onToggleBookmark={() => handleRemoveSavedGenerated(s.id)}
+                        bookmarkTitle="Remove from saved"
+                        onPlayAudio={() => handlePlaySavedGeneratedAudio(s.id)}
+                        onPlayWordAudio={(i, word) => speakAmharicText(word.amharic, progress.settings)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </section>
           )}
 
-          {savedGenerated.length > 0 && (
-            <>
-              <h3 className="section-title">Your saved generated sentences</h3>
-              <div className="sentence-list" style={{ marginBottom: '0.75rem' }}>
-                {savedGenerated.map(s => (
-                  <SentenceCard
-                    key={s.id}
-                    sentence={s}
-                    settings={progress.settings}
-                    read={false}
-                    onRead={() => {}}
-                    bookmarked={true}
-                    bookmarkTitle="Remove from saved"
-                    onToggleBookmark={() => handleDeleteSaved(s.id)}
-                    onPlayAudio={() => fetchGeneratedAudio(s.id).then(({ audioBase64 }) => playAudioFromBase64(audioBase64, progress.settings))}
-                    onPlayWordAudio={(i, amharic) => speakAmharicText(amharic, progress.settings)}
-                  />
+          <section className="read-practice-section">
+            <ReadSectionHeader
+              tone="curated"
+              icon={<ScrollText size={16} strokeWidth={2.25} />}
+              title={bookmarkedOnly ? 'Bookmarked practice sentences' : 'Practice sentences'}
+              description="Built entirely from the phrases and words you've already learned in Phrases mode, a curated set that's always safe to read even before you know much spoken Amharic."
+            />
+
+            {!bookmarkedOnly && sentencesReadCount < SENTENCES.length && (
+              <button
+                className="btn btn-secondary btn-sm read-continue-btn"
+                onClick={() => scrollToFirstUnread(SENTENCES)}
+              >Continue → (skip to next unread)</button>
+            )}
+            {bookmarkedOnly && visibleSentences.length === 0 ? (
+              <p className="read-empty-state">No bookmarked sentences yet, tap the bookmark icon on any sentence to save it here.</p>
+            ) : (
+              <div className="sentence-list">
+                {visibleSentences.map(s => (
+                  <div key={s.id} ref={el => { if (el) cardRefs.current.set(s.id, el); }}>
+                    <SentenceCard
+                      sentence={s}
+                      settings={progress.settings}
+                      read={isRead(readingProgress, s.id)}
+                      onRead={() => handleMarkRead(s.id)}
+                      bookmarked={isBookmarked(readingProgress, s.id)}
+                      onToggleBookmark={() => handleToggleBookmark(s.id)}
+                    />
+                  </div>
                 ))}
               </div>
-            </>
-          )}
-
-          {!bookmarkedOnly && <h3 className="section-title">Sentences</h3>}
-
-          {!bookmarkedOnly && sentencesReadCount < SENTENCES.length && (
-            <button
-              className="btn btn-secondary btn-sm"
-              style={{ marginBottom: '0.75rem' }}
-              onClick={() => scrollToFirstUnread(SENTENCES)}
-            >Continue → (skip to next unread)</button>
-          )}
-          {bookmarkedOnly && visibleSentences.length === 0 ? (
-            savedGenerated.length === 0 && (
-              <p className="read-empty-state">No bookmarked sentences yet, tap the bookmark icon on any sentence to save it here.</p>
-            )
-          ) : (
-            <div className="sentence-list">
-              {visibleSentences.map(s => (
-                <div key={s.id} ref={el => { if (el) cardRefs.current.set(s.id, el); }}>
-                  <SentenceCard
-                    sentence={s}
-                    settings={progress.settings}
-                    read={isRead(readingProgress, s.id)}
-                    onRead={() => handleMarkRead(s.id)}
-                    bookmarked={isBookmarked(readingProgress, s.id)}
-                    onToggleBookmark={() => handleToggleBookmark(s.id)}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
+            )}
+          </section>
         </>
       )}
 
@@ -542,7 +535,7 @@ export default function SentenceReader({ progress, onProgressUpdate }) {
             >Continue → (skip to next unread)</button>
           )}
           {bookmarkedOnly && visibleDialogues.length === 0 ? (
-            <p className="read-empty-state">No bookmarked dialogues yet — tap the bookmark icon on any dialogue to save it here.</p>
+            <p className="read-empty-state">No bookmarked dialogues yet, tap the bookmark icon on any dialogue to save it here.</p>
           ) : (
             <div className="dialogue-list">
               {visibleDialogues.map(d => (

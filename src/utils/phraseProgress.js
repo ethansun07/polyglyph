@@ -1,5 +1,4 @@
-const PHRASE_KEY        = 'amharic_phrases_v1';
-const BROWSE_SEEN_KEY   = 'amharic_phrases_browse_seen_v1';
+const PHRASE_KEY = 'amharic_phrases_v1';
 
 const DEFAULT = { seen: 0, easy: 0, hard: 0, didntKnow: 0, lastPracticed: null };
 
@@ -17,22 +16,6 @@ export function savePhraseProgress(p) {
 
 export function resetPhraseProgress() {
   localStorage.removeItem(PHRASE_KEY);
-  localStorage.removeItem(BROWSE_SEEN_KEY);
-}
-
-// ─── Browse-seen tracking (local only, no cloud sync needed) ─────────────────
-
-export function loadBrowseSeen() {
-  try {
-    return new Set(JSON.parse(localStorage.getItem(BROWSE_SEEN_KEY) || '[]'));
-  } catch { return new Set(); }
-}
-
-export function markBrowseSeen(phraseId, currentSet) {
-  const next = new Set(currentSet);
-  next.add(phraseId);
-  localStorage.setItem(BROWSE_SEEN_KEY, JSON.stringify([...next]));
-  return next;
 }
 
 // ─── Per-phrase state ─────────────────────────────────────────────────────────

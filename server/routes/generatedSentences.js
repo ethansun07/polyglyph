@@ -2,72 +2,96 @@ import { Router } from 'express';
 import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
 import pool from '../db.js';
-import { buildAllowedVocab, findDisallowedWords, splitWords } from '../../src/utils/readingVocab.js';
-import { callGemini, buildSentencePrompt } from '../lib/gemini.js';
+import { callGemini, buildSentencePrompt, pickTheme } from '../lib/gemini.js';
 import { synthesizeAmharic } from '../lib/tts.js';
-import { PHRASES, CATEGORY_ORDER } from '../../src/data/amharicPhrases.js';
+import { SENTENCES } from '../../src/data/readingSentences.js';
 
 const router = Router();
 const MAX_ATTEMPTS = 3;
 
 // Only /generate has real per-call cost (an LLM call + a TTS call), so only
 // it is rate-limited: keyed by uid (set by requireAuth upstream) rather
-// than IP, since every visitor including guests has a stable uid.
+// than IP, since every visitor including guests has a stable uid. A call
+// costs well under a cent and takes under a second on the lite model, so
+// this is really just a guard against a genuine runaway loop, not a limit
+// on normal active use.
 const generateLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: 20,
+  max: 100,
   keyGenerator: (req) => req.user.uid,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Generation limit reached for this hour, try again later.' },
 });
 
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
+// The model is told not to put a space before ending punctuation but doesn't
+// always comply; strip it deterministically rather than relying on the
+// prompt alone.
+function tidyPunctuationSpacing(text) {
+  return text.replace(/\s+([።፣፤፥!?])/g, '$1');
 }
 
-// Sending the *entire* allowed vocabulary (a few hundred words) in every
-// prompt inflates input tokens (and cost) far more than a short prompt
-// needs. Instead, show the model just the words from phrases in the chosen
-// theme's category, plus a modest random sample of everything else for
-// general utility. Validation below still checks the candidate sentence
-// against the full allowed set, this subset only shapes what the model is
-// nudged to use, it doesn't relax what's actually acceptable.
-function themedVocabSubset(allowed, theme, extraCount = 25) {
-  const themed = new Set();
-  for (const p of PHRASES) {
-    if (p.category !== theme) continue;
-    [p.amharic, p.femaleAmharic, p.formalAmharic, p.groupAmharic].forEach(s => {
-      splitWords(s).forEach(w => themed.add(w));
-    });
-  }
-  const rest = shuffle([...allowed].filter(w => !themed.has(w))).slice(0, extraCount);
-  return shuffle([...themed, ...rest]);
+// Punctuation/whitespace-insensitive comparison so "ደህና ነህ?" and "ደህና  ነህ ?"
+// count as the same sentence for duplicate-detection purposes.
+function normalizeForComparison(text) {
+  return text.replace(/[።፣፤፥!?]/g, '').replace(/\s+/g, ' ').trim();
 }
+
+// Copulas/particles common enough in nearly every sentence that flagging
+// them as "overused" would be noise, not signal.
+const COMMON_WORDS = new Set(['ነው', 'ናት', 'ናቸው', 'ነኝ', 'ነህ', 'ነሽ', 'እና', 'ግን', 'በጣም']);
+
+// Naming specific overused content words to Gemini (see buildSentencePrompt's
+// avoidWords) is a much stronger signal than theme variety alone, since the
+// same "safe" noun can resurface under many different themes. Built from
+// whatever's actually shown up recently rather than a fixed list, so it
+// adapts as the user's session grows.
+function extractOverusedWords(texts, minCount = 2, limit = 12) {
+  const freq = new Map();
+  for (const text of texts) {
+    for (const word of normalizeForComparison(text).split(/\s+/)) {
+      if (!word || COMMON_WORDS.has(word)) continue;
+      freq.set(word, (freq.get(word) || 0) + 1);
+    }
+  }
+  return [...freq.entries()]
+    .filter(([, count]) => count >= minCount)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([word]) => word);
+}
+
+// The 40 curated SENTENCES are permanent app content; regenerating one of
+// these verbatim isn't new practice.
+const EXISTING_SENTENCE_TEXTS = SENTENCES.map(s => s.amharic);
+const EXISTING_NORMALIZED = new Set(EXISTING_SENTENCE_TEXTS.map(normalizeForComparison));
 
 // POST /api/generated-sentences/generate
 router.post('/generate', generateLimiter, async (req, res) => {
-  const allowed = buildAllowedVocab();
-  // A themed subset (not the full vocab list) plus a random theme are what
-  // produce variety across calls (see server/lib/gemini.js) while keeping
-  // the prompt, and therefore the token cost, small: without them the model
-  // kept landing on the same "I want [drink]" pattern since the vocab list
-  // looked identical and exhaustive every time.
-  const theme = CATEGORY_ORDER[Math.floor(Math.random() * CATEGORY_ORDER.length)];
-  const vocabWords = themedVocabSubset(allowed, theme);
+  // A random theme keeps this from defaulting to the same kind of sentence
+  // every time (see server/lib/gemini.js). Deliberately not one of the app's
+  // own curriculum categories, see pickTheme's comment for why.
+  const theme = pickTheme();
 
-  let disallowed = [];
+  // Sentences the client already showed this user earlier in the current
+  // session (not persisted, just kept in React state), so a rapid string of
+  // clicks doesn't repeat itself. Bounded so a malicious/buggy client can't
+  // blow up the prompt.
+  const recentTexts = Array.isArray(req.body?.recentTexts)
+    ? req.body.recentTexts.filter(t => typeof t === 'string').slice(0, 20).map(t => t.slice(0, 200))
+    : [];
+  const recentNormalized = new Set(recentTexts.map(normalizeForComparison));
+  const avoidTexts = [...EXISTING_SENTENCE_TEXTS, ...recentTexts];
+  // Only the user's own recent session, not the full 40-sentence curriculum,
+  // otherwise this would just permanently blocklist ordinary taught words.
+  const avoidWords = extractOverusedWords(recentTexts);
+
   let candidate = null;
 
   for (let attempt = 0; attempt < MAX_ATTEMPTS && !candidate; attempt++) {
     let raw;
     try {
-      raw = await callGemini(buildSentencePrompt(vocabWords, disallowed, theme));
+      raw = await callGemini(buildSentencePrompt(theme, avoidTexts, avoidWords));
     } catch (err) {
       return res.status(502).json({ error: `Sentence generation failed: ${err.message}` });
     }
@@ -76,18 +100,21 @@ router.post('/generate', generateLimiter, async (req, res) => {
     try {
       parsed = JSON.parse(raw);
     } catch {
-      disallowed = [];
-      continue; // malformed JSON, retry fresh, nothing specific to point out
+      continue; // malformed JSON, just retry
     }
 
     if (!parsed?.amharic || !parsed?.meaning || !Array.isArray(parsed.words) || parsed.words.length === 0) {
-      disallowed = [];
       continue;
     }
 
-    const bad = findDisallowedWords(parsed.amharic, allowed);
-    if (bad.length > 0) {
-      disallowed = bad;
+    parsed.amharic = tidyPunctuationSpacing(parsed.amharic);
+    parsed.words = parsed.words.map(w => ({ ...w, amharic: tidyPunctuationSpacing(w.amharic) }));
+
+    // A generated sentence identical to one already in the curated
+    // SENTENCES, or one already shown this session, isn't new practice,
+    // it's just a duplicate; retry instead of showing it again.
+    const normalized = normalizeForComparison(parsed.amharic);
+    if (EXISTING_NORMALIZED.has(normalized) || recentNormalized.has(normalized)) {
       continue;
     }
 
@@ -95,7 +122,7 @@ router.post('/generate', generateLimiter, async (req, res) => {
   }
 
   if (!candidate) {
-    return res.status(422).json({ error: "Couldn't generate a valid sentence right now, try again." });
+    return res.status(422).json({ error: "Couldn't generate a sentence right now, try again." });
   }
 
   let audioBase64;

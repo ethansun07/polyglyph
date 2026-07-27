@@ -219,40 +219,36 @@ export async function playDialogueLineAudio(dialId, lineIndex, amharic, settings
   if (voice) speakWithAmharicVoice(amharic, voice);
 }
 
-// Speaks raw text via the am-ET browser voice only (no static-file attempt
-// first), used for live-generated content that has no /audio/... path,
-// e.g. word-chip taps on a generated sentence.
-export async function speakAmharicText(text, settings) {
-  if (!settings?.audioEnabled) return;
+export function stopAudio() {
   if (currentAudio) { currentAudio.pause(); currentAudio = null; }
   if (window.speechSynthesis) window.speechSynthesis.cancel();
-
-  const voice = await resolveAmharicVoice();
-  if (voice) speakWithAmharicVoice(text, voice);
 }
 
-// Plays base64 MP3 audio returned live from the server (e.g. a freshly
-// generated sentence) rather than a static /audio/... file.
+// Live-generated sentences have no static file path, only base64 MP3 bytes
+// returned straight from the server (see server/lib/tts.js), so this skips
+// the file-then-speechSynthesis fallback chain the other players use.
 export async function playAudioFromBase64(base64, settings) {
   if (!settings?.audioEnabled || !base64) return;
+
   if (currentAudio) { currentAudio.pause(); currentAudio = null; }
   if (window.speechSynthesis) window.speechSynthesis.cancel();
 
   const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
-  const blob = new Blob([bytes], { type: 'audio/mpeg' });
-  const url = URL.createObjectURL(blob);
+  const url = URL.createObjectURL(new Blob([bytes], { type: 'audio/mpeg' }));
   const audio = new Audio(url);
   currentAudio = audio;
-  audio.addEventListener('ended', () => URL.revokeObjectURL(url));
+  const cleanup = () => { URL.revokeObjectURL(url); if (currentAudio === audio) currentAudio = null; };
+  audio.addEventListener('ended', cleanup);
+  audio.addEventListener('error', cleanup);
   try {
     await audio.play();
   } catch {
-    currentAudio = null;
-    URL.revokeObjectURL(url);
+    cleanup();
   }
 }
 
-export function stopAudio() {
-  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
-  if (window.speechSynthesis) window.speechSynthesis.cancel();
+export async function speakAmharicText(text, settings) {
+  if (!settings?.audioEnabled || !text) return;
+  const voice = await resolveAmharicVoice();
+  if (voice) speakWithAmharicVoice(text, voice);
 }

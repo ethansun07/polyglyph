@@ -7,14 +7,15 @@ import {
   CATEGORIES, CATEGORY_ORDER, PHRASES,
   getUnlockedPhrases, shuffleArray,
 } from '../data/amharicPhrases.js';
-import { getHighestUnlockedLevel } from '../utils/progress.js';
+import { getHighestUnlockedLevel, isLevel7Mastered } from '../utils/progress.js';
+import { LEVELS } from '../data/fidel.js';
 import { playPhraseAudio } from '../utils/audio.js';
 import { useChoiceKeys } from '../utils/useChoiceKeys.js';
-import { loadPhraseProgress, savePhraseProgress, resetPhraseProgress, recordPhraseResult, loadBrowseSeen, markBrowseSeen, getPhraseState, getPhraseWeight } from '../utils/phraseProgress.js';
+import { loadPhraseProgress, savePhraseProgress, resetPhraseProgress, recordPhraseResult, getPhraseWeight } from '../utils/phraseProgress.js';
 import { auth, onAuthChange, loadPhraseProgressFromCloud, savePhraseProgressToCloud, ADMIN_EMAIL } from '../utils/firebase.js';
 
 // ─── Browse Mode ──────────────────────────────────────────────────────────────
-function BrowseMode({ pool, settings, newestLevel, onPhraseSeen }) {
+function BrowseMode({ pool, settings, newestLevel }) {
   const [revealed, setRevealed] = useState({});
   const [openCats, setOpenCats] = useState(() =>
     Object.fromEntries(CATEGORY_ORDER.map(c => [c, true]))
@@ -54,11 +55,7 @@ function BrowseMode({ pool, settings, newestLevel, onPhraseSeen }) {
                   <div
                     key={phrase.id}
                     className={`phrase-card ${isOpen ? 'phrase-card-open' : ''}`}
-                    onClick={() => {
-                      const next = !revealed[phrase.id];
-                      setRevealed(r => ({ ...r, [phrase.id]: next }));
-                      if (next) onPhraseSeen(phrase.id);
-                    }}
+                    onClick={() => setRevealed(r => ({ ...r, [phrase.id]: !r[phrase.id] }))}
                   >
                     <div className="phrase-card-top">
                       <span className="phrase-amharic">{phrase.amharic}</span>
@@ -1113,7 +1110,6 @@ const BASE_MODES = [
 export default function CommonPhrases({ progress, initialMode = 'browse', onProgressUpdate }) {
   const [mode, setMode] = useState(initialMode);
   const phraseProgressRef = useRef(loadPhraseProgress());
-  const [browseSeen, setBrowseSeen] = useState(() => loadBrowseSeen());
   const prevUid = useRef(null);
 
   useEffect(() => {
@@ -1138,10 +1134,6 @@ export default function CommonPhrases({ progress, initialMode = 'browse', onProg
     });
   }, []);
 
-  function onPhraseSeen(phraseId) {
-    setBrowseSeen(prev => markBrowseSeen(phraseId, prev));
-  }
-
   function onPhraseResult(phraseId, result) {
     const updated = recordPhraseResult(phraseProgressRef.current, phraseId, result);
     phraseProgressRef.current = updated;
@@ -1152,13 +1144,15 @@ export default function CommonPhrases({ progress, initialMode = 'browse', onProg
   const highestLevel = getHighestUnlockedLevel(progress);
   const pool         = getUnlockedPhrases(highestLevel);
 
-  // A phrase counts as "seen" if it's been revealed in Browse mode, or if it
-  // has any recorded attempt from Flashcard/Typing mode — exposure to the
-  // content shouldn't depend on which mode the user happened to practice in.
-  const isPhraseSeen = (id) => browseSeen.has(id) || getPhraseState(phraseProgressRef.current, id).seen > 0;
-  const allSeen    = pool.length > 0 && pool.every(p => isPhraseSeen(p.id));
-  const seenCount  = pool.filter(p => isPhraseSeen(p.id)).length;
-  const testUnlocked = allSeen;
+  // Gated on the Fidel alphabet, not on having browsed every phrase card:
+  // someone who already speaks Amharic (a heritage speaker, say) shouldn't
+  // have to click through all 86 phrases just to reach a test on content
+  // they already know. Uses the same isLevel7Mastered() check Read mode
+  // requires (rather than just "reached" Level 7), so passing the test is
+  // always the last step: nothing else is left to unlock Read mode
+  // afterward, since Level 7 mastery is already satisfied by then.
+  const maxLevel = LEVELS.length;
+  const testUnlocked = isLevel7Mastered(progress);
   const alreadyPassed = !!progress.phraseTestPassed;
 
   const MODES = testUnlocked
@@ -1202,14 +1196,14 @@ export default function CommonPhrases({ progress, initialMode = 'browse', onProg
         <p className="phrases-pool-info">
           {pool.length} phrase{pool.length !== 1 ? 's' : ''} available
           {PHRASES.some(p => p.requiredLevel > highestLevel) && ` · unlock Level ${highestLevel + 1} for more`}
-          {!testUnlocked && pool.length > 0 && (
-            <span className="phrases-seen-hint"> · see all phrases to unlock the Final Test ({seenCount}/{pool.length} seen)</span>
+          {!testUnlocked && (
+            <span className="phrases-seen-hint"> · master Level {maxLevel} letters to unlock the Final Test</span>
           )}
         </p>
       )}
 
       {mode === 'browse' && (
-        <BrowseMode key="browse" pool={pool} settings={progress.settings} newestLevel={highestLevel} onPhraseSeen={onPhraseSeen} />
+        <BrowseMode key="browse" pool={pool} settings={progress.settings} newestLevel={highestLevel} />
       )}
       {mode === 'flashcard' && (
         <FlashcardMode key="flashcard" pool={pool} settings={progress.settings} onPhraseResult={onPhraseResult} progress={progress} onProgressUpdate={onProgressUpdate} />
