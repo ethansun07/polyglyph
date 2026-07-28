@@ -9,6 +9,150 @@ history.
 
 ---
 
+### 2026-07-27 — DIALOGUES cleanup (15→12) and renamed the tab to "Passages"
+User asked for the same treatment DIALOGUES that SENTENCES got earlier this session (35→40:
+audit for repetitive templates, consolidate near-duplicates, land on a clean number), plus
+renaming the tab since it now holds Stories too, not just dialogues.
+
+Ran the same kind of audit as before: computed phrase-id coverage and per-dialogue phrase
+frequency across all 15. Confirmed all 86 taught phrases are covered somewhere between
+SENTENCES and DIALOGUES combined (0 gaps), but frequency counts exposed the same shallow-
+template problem the original 35 sentences had, at dialogue scale: `selam` appeared in
+11/15 dialogues, `ameseginalehu`/`minim_ayidelem` (thank you / you're welcome) in most of
+them as an identical closing pair, and 5 dialogues (`dial_hotel`, `dial_minibus`,
+`dial_around_town`, `dial_cinema`, `dial_market`) were all structurally the same "is X
+near/far?" Q&A chain with just the noun swapped.
+
+Consolidated those 5 into 2 richer ones (`dial_directions`, `dial_errands`), kept the other
+10 largely as-is content-wise, and deliberately varied every dialogue's opening/closing so
+the boilerplate wrapper doesn't dominate: farewell (ደህና ሁን) reserved for the 4 dialogues
+genuinely about parting from someone, every other dialogue closes on something specific to
+its own scene (እግዚአብሔር ይመስገን, ችግር የለም, እንሂድ, ቶሎ ሂድ, ቻው), no repeats. ሰላም-openers dropped
+from 11/15 to 6/12. This was a real vocabulary-imposed ceiling, not an aesthetic choice
+alone: the taught vocabulary only offers a handful of verb-like constructions (ቅርብ/ሩቅ ነው,
+ጥሩ ነው, ስንት ነው, a short list of taught verb-phrases), so some structural repetition across
+dialogues is unavoidable, same as it was for SENTENCES. The fix is capping how many
+dialogues lean on the same construction as their *entire* structure, not eliminating the
+construction itself.
+
+Landed on exactly 12 (a clean, round number, matching what was asked for even though it went
+down rather than up like SENTENCES did — the user explicitly said the count could change
+either direction as long as it landed clean). `validate-reading-vocab.js` passes at 0
+flagged on the new set. Deleted 39 stale audio files for the 5 removed dialogue ids, generated
+20 new ones for the 2 new ids via the existing pipeline.
+
+Separately, renamed the tab from "Dialogues" to "Passages" (`SentenceReader.jsx`'s `tab`
+state value, `'dialogues'` → `'passages'`) since it now contains both the Stories section and
+the curated dialogues — "Dialogues" wasn't accurate anymore once Stories was added under the
+same tab. The `DIALOGUES` data export name and its own "Practice dialogues" sub-section label
+didn't need to change, since those still correctly describe just that one part of the tab.
+
+### 2026-07-27 — Discussed, then shelved, loosening the Final Test / Read Mode gate
+User asked whether Final Test/Read should really require full sequential mastery of
+levels 1-7 (`isLevelUnlocked` chain + `isLevel7Mastered` in `progress.js`), worried it's
+too much friction for someone who already knows how to read Fidel but is rusty and just
+wants practice, without grinding through 7 levels of letter drills they don't need.
+
+Talked through a few approaches and each fell apart under scrutiny:
+- A single one-shot placement test spanning all levels: rejected, too gameable (a
+  level-6 user could fluke through level-7 questions via guessing and get marked
+  "mastered" without ever really learning those characters).
+- Removing the sequential unlock but keeping the existing per-character net-score bar
+  (≥5 net reading / ≥3 net writing) aggregated across *all* characters instead of just
+  level 7: fixed the gameability problem and the "level 7 alone isn't a real literacy
+  proxy" problem, but then the user pointed out it doesn't actually reduce anything —
+  same total number of correct reps required either way, just reordered, so it wouldn't
+  actually help the persona it was meant for.
+- A stricter-but-shorter placement test (fewer reps required, but perfect/near-perfect
+  accuracy demanded, production-based not multiple-choice) would be a genuinely
+  different tradeoff and could work, but only for a fairly narrow persona.
+
+Landed on: not worth building. If someone already reads Fidel fluently and just wants
+rust-shaking practice, they have far better options than this app (native content, news,
+etc.) — this app's value prop is structured from-scratch character drilling, not a
+practice surface for people who already know the script. Building a bypass for a persona
+unlikely to pick this tool as their primary practice destination isn't worth the
+complexity. **No code changed** — gate stays exactly as it is
+(`isLevelUnlocked`/`isLevel7Mastered`/`isReadModeUnlocked` in `src/utils/progress.js`).
+If this comes up again, start from "does a real user actually hit this friction" rather
+than re-deriving the design space from scratch.
+
+### 2026-07-27 — Corrected: Stories do include English translations after all
+The story entry directly below says stories deliberately have no English translation,
+"same 'amharic only' philosophy as the live generator." That claim was wrong on my part —
+the live sentence generator actually does include a translation (the `meaning` field,
+revealed via a "Show translation" button on `SentenceCard`, same for per-word meanings). The
+user caught this directly ("the sentence generator does include translations idk why u
+think it doesnt"). Once corrected, decided stories should include translations, and more
+so than the sentence generator: these are longer real narratives with less common/literary
+vocabulary (e.g. "ወረበላዎች" in the Abera folktale), so losing the thread mid-paragraph is a
+real risk in a way that losing one 3-6 word sentence isn't.
+
+Turned out to be easy to source properly rather than manually translating: African
+Storybook publishes the same stories in multiple languages, and the GitHub markdown mirror
+(`global-asp/asp-source`) has an `en/` folder with matching numeric IDs, so the English
+edition of each of the 4 shipped stories was already sitting right next to the Amharic one.
+Confirmed page-for-page 1:1 alignment for 3 of the 4. The 4th, "Young Abera," turned out to
+be a real localization, not a line-for-line translation: the English original
+(`young-palinyang`) uses entirely different character names (Palinyang', Sausau,
+Lokeyokoni, Alinyang') and a different nonsense call-song than what the Amharic translation
+actually reads (a "moo, come find me" cattle-calling song built around ቦራ/Bora), so pasting
+the English original's text as the `meaning` field would have shown character names on
+screen that contradicted the Amharic text right next to them. Wrote that story's `meaning`
+fields as a direct translation of the Amharic text itself instead, keeping the English
+original only as a structural/plot reference, not literal source text.
+
+Changed `pages` in `src/data/stories.js` from an array of Amharic strings to
+`{ amharic, meaning }` objects, and reworked `StoryCard` (`SentenceReader.jsx`) so each page
+is now a tappable button: tap reveals the English meaning and plays audio (same reveal
+pattern as `DialogueCard`'s lines), tap again to hide. Also added a `titleMeaning` per story,
+shown as a small dim gloss next to the Amharic title. No changes needed to the audio
+pipeline since the underlying Amharic text per page didn't change, only how it's wrapped in
+the data structure.
+
+### 2026-07-27 — Added real (non-AI) Amharic children's stories to the Dialogues tab
+The user floated reworking the Dialogues tab the same way Sentences had been split:
+a heritage-speaker section and a beginner section. Their idea for the heritage side was
+short children's stories in Amharic, explicitly *not* AI-generated, pulled from real
+existing sources instead, since generation quality had already been a whole saga this
+session. Wasn't sure yet what the non-heritage side would be.
+
+Researched where such stories could actually come from. The African Storybook Initiative
+(africanstorybook.org) turned out to have exactly this: openly-licensed (mostly CC-BY)
+short illustrated stories in African languages including Amharic. Its content is also
+mirrored as plain Markdown on GitHub (`global-asp/asp-source`), which made it possible to
+pull real story text programmatically instead of scraping a JS-heavy site. That repo has 17
+Amharic stories, 15 of them plain CC-BY, ranging from single-sentence-per-page picture books
+up to full folktales.
+
+Also looked at Bloom Library, which has a much bigger Amharic catalog (~48+ books found via
+its OPDS API at api.bloomlibrary.org) and, notably, explicit reading-level tags ("first
+sentences" / "first paragraphs" / "longer paragraphs") baked into the metadata, real graded
+readers. But its licensing is messier: most of that catalog is CC-BY-NC or CC-BY-NC-SA (fine
+for a free app, just needs attribution), some is CC-BY-NC-**ND** (riskier since reformatting
+into the app's own card UI could count as a derivative, which ND forbids), 2 titles were
+flagged "ask" (not freely usable at all), and a large fraction of the catalog turned out to
+be Bible/Gospel stories and parables, not generally appropriate for a general-audience
+language app. Extracting actual page text from Bloom also means parsing epub or PDF
+downloads (not plain text like African Storybook's markdown mirror), so it was set aside for
+a future expansion rather than this first batch.
+
+Landed on: reuse the existing curated `DIALOGUES` as the non-heritage side (unchanged,
+matches its existing role), add a new gold "Stories" section for the heritage side, sourced
+from African Storybook via the GitHub markdown mirror. No English translation on the story
+text itself, matching the same design philosophy as the live sentence generator (heritage
+speakers already understand spoken Amharic; this is unaided script practice). Shipped 4
+stories (`src/data/stories.js`): a very simple animal-sounds picture book
+(`story_look_at_animals`, CC-BY-NC), a cute short family scene about porridge
+(`story_porridge`, CC-BY), a repetitive simple "chasing the cat" story (`story_come_back_my_cat`,
+CC-BY), and a fuller folktale about an orphan boy and his lost cattle (`story_young_abera`,
+CC-BY) — deliberately a range from easiest to richest. Built a new `StoryCard` component
+(list of pages, per-page play-audio button, bookmark, and a visible attribution/credit line
+per the license requirements) and `playStoryPageAudio` in `audio.js`. Reused the existing
+`reading_progress` table for bookmarking/read-status (no schema change, `item_id` is just
+text) and the existing `find-missing-audio.js`/`generate-missing-audio.js` pipeline for
+audio (42 files generated and confirmed present in `public/audio/stories/`).
+
 ### 2026-07-27 — Generator vocabulary variety fix, UI polish, and Phrases Final Test regating
 Same day as the rebuild entry directly below: after trying the freshly-rebuilt generator,
 the user reported the same problem in a new form, the same handful of nouns (bank, doro

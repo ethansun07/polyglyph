@@ -3176,7 +3176,11 @@ code {
 }
 
 .read-admin-unlock {
-  margin-top: 0.5rem;
+  /* No margin-top: inside .read-locked it's a flex child already spaced by
+     that container's own `gap`, adding one here on top would double it up.
+     margin-bottom covers the other usage, standalone before GrammarNote in
+     the unlocked page, so it doesn't sit flush against it. */
+  margin-bottom: 0.75rem;
   font-size: 0.8rem;
   padding: 0.4rem 0.9rem;
 }
@@ -3245,7 +3249,7 @@ code {
   position: relative;
 }
 
-.read-card-seen { opacity: 0.65; }
+.read-card-seen { opacity: 0.92; }
 
 .read-card-badges {
   position: absolute;
@@ -3393,12 +3397,122 @@ code {
   to { transform: rotate(360deg); }
 }
 
+.story-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  position: relative;
+}
+
+.story-title {
+  font-family: var(--fidel-font);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.story-title-toggle {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  padding-right: 3rem; /* clears the absolutely-positioned bookmark/check badges */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.story-toggle-arrow {
+  font-family: var(--ui-font);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.story-pages {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--border);
+}
+
+.story-page {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+  width: 100%;
+  text-align: left;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 0.55rem 0.7rem;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.story-page:hover { background: var(--surface-hover, #f0f0f0); }
+
+.story-page.story-page-open {
+  background: var(--primary-light, #e8f0fe);
+  border-color: var(--primary);
+}
+
+.story-page-text {
+  font-family: var(--fidel-font);
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.story-page-meaning {
+  font-size: 0.82rem;
+  color: var(--primary-dark);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.story-title-meaning {
+  font-family: var(--ui-font);
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.story-credit {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  font-style: italic;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
 .dialogue-card-title {
   display: flex;
   align-items: baseline;
   gap: 0.65rem;
-  padding-bottom: 0.6rem;
-  border-bottom: 1px solid var(--border);
+}
+
+.dialogue-title-toggle {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  padding-right: 3rem; /* clears the absolutely-positioned bookmark/check badges */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
 
 .para-title-amharic {
@@ -3409,6 +3523,7 @@ code {
 }
 
 .para-title-meaning {
+  margin-left: 0.65rem;
   font-size: 0.82rem;
   color: var(--text-dim);
   font-style: italic;
@@ -3418,6 +3533,8 @@ code {
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--border);
 }
 
 .dialogue-line {

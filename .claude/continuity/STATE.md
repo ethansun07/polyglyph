@@ -40,6 +40,88 @@ partner across sessions.
   architecture that had a serious cross-account data leak bug (see LOG.md).
 
 ## Recently shipped (most recent first)
+- **`DIALOGUES` cleaned up the same way `SENTENCES` was (35→40): audited for
+  repetitive templates, cut/merged the worst offenders, landed on a clean
+  round number.** Went from 15 to 12. Before: 11/15 dialogues opened with
+  "ሰላም" and closed with the identical "አመሰግናለሁ! / ምንም አይደለም!" pair, and 5 of
+  them (`dial_hotel`, `dial_minibus`, `dial_around_town`, `dial_cinema`,
+  `dial_market`) were structurally near-duplicates, just chaining "is X
+  near/far?" Q&A with the noun swapped, the dialogue-scale version of the
+  "X እፈልጋለሁ" problem the original 35 sentences had. Consolidated those 5
+  into 2 richer ones: `dial_directions` (hotel + minibus, keeps the
+  charming "I don't understand, go slowly" beat) and `dial_errands` (around
+  town + cinema + market folded into one natural outing: bank, pharmacy,
+  cinema, then market bargaining), dropping some of the more marginal
+  loanwords (ካፌ/ኢንተርኔት/ቡፌ/ሳንዱዊች/ፖሊስ from `cognates.js`) that only existed to
+  pad out `dial_around_town` rather than serve any real content need — those
+  are still valid allowed cognates, just not currently used anywhere in Read
+  mode, that's fine, not a requirement. Farewell (ደህና ሁን) reserved for the 4
+  dialogues that are genuinely about parting from someone (greeting,
+  formal_greeting, intro, airport); every other dialogue now closes on
+  something specific to its own scene instead (እግዚአብሔር ይመስገን, ችግር የለም, እንሂድ,
+  ቶሎ ሂድ, ቻው, etc.), no two alike. ሰላም-openers dropped from 11/15 to 6/12,
+  each remaining one contextually justified (first meeting a stranger, or a
+  casual friend catch-up) rather than reflexive boilerplate. `phraseIds` per
+  dialogue were also corrected to match actual line content (a few had
+  drifted, e.g. old `dial_restaurant` listed `tej` despite ጠጅ never
+  appearing in its lines). Deleted the 39 stale audio files for the 5
+  removed dialogue ids and generated 20 new ones for the 2 new ids via the
+  usual `find-missing-audio.js`/`generate-missing-audio.js` pipeline;
+  `validate-reading-vocab.js` passes clean (0 flagged) on the new set.
+- **Renamed the "Dialogues" tab to "Passages"** since it now holds both the
+  Stories section and the curated dialogues — "Dialogues" stopped being an
+  accurate name for the whole tab once Stories was added under it. Only the
+  tab label/internal `tab` state value changed (`'dialogues'` → `'passages'`
+  in `SentenceReader.jsx`); the `DIALOGUES` data export and its own
+  "Practice dialogues" sub-section label are unchanged, since those still
+  accurately describe just that one part of the tab.
+- **Passages tab (formerly "Dialogues") reworked to add "Stories": real,
+  existing Amharic children's stories, not AI-generated.** Mirrors the Sentences tab's heritage-speaker
+  vs. beginner split: the existing curated `DIALOGUES` (vocab-constrained,
+  built from taught phrases) stayed as-is as the "Practice dialogues"
+  section, and a new gold "Stories" section was added above it for heritage
+  speakers who want real narrative reading practice, not just phrase-level
+  dialogues. Unlike the live sentence generator, these are **not
+  AI-generated** — the user was explicit about that — they're real,
+  existing children's stories reused with attribution under open licenses.
+  Sourced from the African Storybook Initiative (africanstorybook.org) via
+  its open-source text mirror at github.com/global-asp/asp-source (17
+  Amharic stories there, 15 plain CC-BY). Also researched Bloom Library's
+  Amharic catalog (has an OPDS API at api.bloomlibrary.org, ~48+ books with
+  real reading-level tags: "first sentences"/"first paragraphs"/"longer
+  paragraphs") as a bigger but more license-mixed source (lots of NC/ND/
+  Bible-story content) for future expansion — not used for this first batch
+  since extracting text means parsing epub/PDF downloads rather than plain
+  markdown. First batch: 4 stories in `src/data/stories.js`
+  (`story_look_at_animals`, `story_porridge`, `story_come_back_my_cat`,
+  `story_young_abera`), each page shaped `{ amharic, meaning }` with a
+  `credit` field (text/illustration/translation/license/source) rendered on
+  the card. Each page's English meaning is hidden until tapped, then reveals
+  + plays audio, same reveal pattern as `DialogueCard`'s lines — **do**
+  include translations here, unlike the live generator's short 3-6 word
+  sentences: these are longer real narratives with less common/literary
+  vocabulary where losing the thread mid-paragraph is a real risk, not just
+  simple everyday phrases a heritage speaker recognizes instantly. English
+  text was pulled from African Storybook's matching English-language
+  edition of each story (same GitHub mirror, `en/` folder, same numeric
+  IDs), page-aligned 1:1 with the Amharic version, **except** `story_young_abera`:
+  its English original (`young-palinyang`) uses different character names
+  (Palinyang', Sausau, Lokeyokoni, Alinyang') and a different call-song than
+  the Amharic translation actually reads, so that story's `meaning` fields
+  are a direct translation of the Amharic text itself (Abera, Solomon,
+  Laqew, Bora), not a copy-paste of the English edition — otherwise the
+  names on screen would contradict the English gloss. New `StoryCard`
+  component in `SentenceReader.jsx`, new `playStoryPageAudio` in
+  `src/utils/audio.js` (same static-file-then-browser-TTS-fallback pattern
+  as `playDialogueLineAudio`), audio pre-generated per page via the existing
+  `find-missing-audio.js` +
+  `generate-missing-audio.js` pipeline (42 files, all in
+  `public/audio/stories/`). Bookmarking/read-status reuses the existing
+  generic `reading_progress` table (`item_id` is just a TEXT column, no
+  schema change needed). **Only 4 stories so far** — expanding this
+  (especially pulling from Bloom Library's much bigger, level-tagged
+  catalog) means building epub/PDF text extraction first, that hasn't been
+  done yet.
 - **Common Phrases Final Test unlock gate changed twice, ending on Level 7
   mastery.** Was originally gated on having browsed/practiced all 86 phrases
   (`allSeen` in `CommonPhrases.jsx`); the user pointed out this is real
@@ -221,6 +303,9 @@ partner across sessions.
 - Common Phrases Final Test gate + Read mode unlock:
   `src/components/CommonPhrases.jsx` (`testUnlocked`), `src/utils/progress.js`
   (`isLevel7Mastered`, `isReadModeUnlocked`)
+- Stories (heritage-speaker real-story reading, Dialogues tab):
+  `src/data/stories.js`, `StoryCard` in `src/components/SentenceReader.jsx`,
+  `playStoryPageAudio` in `src/utils/audio.js`
 - Shared CSS patterns/design tokens: `src/App.css` (`:root` variables,
   `.quiz-next-bar`/`.wr-sticky-footer` no-scroll patterns, `.nav-item-overflow`
   responsive nav breakpoint)

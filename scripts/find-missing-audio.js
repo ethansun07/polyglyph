@@ -18,6 +18,7 @@ const AUDIO = join(ROOT, 'public', 'audio');
 
 const { PHRASES } = await import('../src/data/amharicPhrases.js');
 const { SENTENCES, DIALOGUES } = await import('../src/data/readingSentences.js');
+const { STORIES } = await import('../src/data/stories.js');
 const { LEVEL_WORDS } = await import('../src/data/levelWords.js');
 
 const missing = [];
@@ -51,6 +52,13 @@ for (const s of SENTENCES) {
 for (const d of DIALOGUES) {
   d.lines.forEach((line, i) => {
     check(`dialogues/${d.id}_${i}.mp3`, line.amharic, { kind: 'dialogue', id: d.id, index: i });
+  });
+}
+
+// ── Story pages ──────────────────────────────────────────────────────────
+for (const s of STORIES) {
+  s.pages.forEach((page, i) => {
+    check(`stories/${s.id}_${i}.mp3`, page.amharic, { kind: 'story', id: s.id, index: i });
   });
 }
 

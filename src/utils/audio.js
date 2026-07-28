@@ -219,6 +219,26 @@ export async function playDialogueLineAudio(dialId, lineIndex, amharic, settings
   if (voice) speakWithAmharicVoice(amharic, voice);
 }
 
+export async function playStoryPageAudio(storyId, pageIndex, amharic, settings) {
+  if (!settings?.audioEnabled) return;
+
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+
+  const path = `/audio/stories/${storyId}_${pageIndex}.mp3`;
+  const audio = new Audio(path);
+  currentAudio = audio;
+  try {
+    await audio.play();
+    return;
+  } catch {
+    currentAudio = null;
+  }
+
+  const voice = await resolveAmharicVoice();
+  if (voice) speakWithAmharicVoice(amharic, voice);
+}
+
 export function stopAudio() {
   if (currentAudio) { currentAudio.pause(); currentAudio = null; }
   if (window.speechSynthesis) window.speechSynthesis.cancel();

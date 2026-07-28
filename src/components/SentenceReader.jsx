@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ScrollText, Check, Circle, Lock, MessagesSquare, Volume2, Wrench, Bookmark, Sparkles } from 'lucide-react';
 import { SENTENCES, DIALOGUES, CONNECTOR_NOTE } from '../data/readingSentences.js';
+import { STORIES } from '../data/stories.js';
 import { isReadModeUnlocked } from '../utils/progress.js';
 import {
   loadReadingProgress, saveReadingProgress,
@@ -13,7 +14,7 @@ import {
   deleteSavedGeneratedSentence, fetchGeneratedAudio,
 } from '../utils/firebase.js';
 import { PUNCTUATION } from '../data/fidel.js';
-import { playSentenceAudio, playSentenceWordAudio, playDialogueLineAudio, playAudioFromBase64, speakAmharicText } from '../utils/audio.js';
+import { playSentenceAudio, playSentenceWordAudio, playDialogueLineAudio, playStoryPageAudio, playAudioFromBase64, speakAmharicText } from '../utils/audio.js';
 
 // ─── Grammar Note (collapsible) ───────────────────────────────────────────────
 function GrammarNote() {
@@ -79,14 +80,10 @@ function SentenceCard({
 
   function toggleWord(i) {
     onRead();
+    playWordAudio(i, sentence.words[i]);
     setRevealed(prev => {
       const next = new Set(prev);
-      if (next.has(i)) {
-        next.delete(i);
-      } else {
-        next.add(i);
-        playWordAudio(i, sentence.words[i]);
-      }
+      if (next.has(i)) next.delete(i); else next.add(i);
       return next;
     });
   }
@@ -149,7 +146,10 @@ function SentenceCard({
 }
 
 // ─── Dialogue Card (line-by-line reveal, chat-bubble style) ──────────────────
+// Collapsed by default (just the title), same reasoning as StoryCard: a full
+// dialogue's lines take up more space than a single sentence would.
 function DialogueCard({ dialogue, settings, read, onRead, bookmarked, onToggleBookmark }) {
+  const [open, setOpen] = useState(false);
   const [revealed, setRevealed] = useState(new Set());
   const [showAll, setShowAll]   = useState(false);
 
@@ -181,50 +181,123 @@ function DialogueCard({ dialogue, settings, read, onRead, bookmarked, onToggleBo
           <Bookmark size={16} strokeWidth={2.25} fill={bookmarked ? 'currentColor' : 'none'} />
         </button>
       </div>
-      <div className="dialogue-card-title">
-        <span className="para-title-amharic">{dialogue.title}</span>
-        <span className="para-title-meaning">{dialogue.titleMeaning}</span>
-      </div>
 
-      <div className="dialogue-lines">
-        {dialogue.lines.map((line, i) => {
-          const isOpen = showAll || revealed.has(i);
-          return (
-            <div key={i} className={`dialogue-line dialogue-line-${line.speaker.toLowerCase()}`}>
-              <span className="dialogue-speaker">{line.speaker}</span>
-              <div className="dialogue-bubble-wrap">
-                <button
-                  className={`dialogue-bubble ${isOpen ? 'bubble-open' : ''}`}
-                  onClick={() => toggleLine(i)}
-                >
-                  <span className="dialogue-amharic">{line.amharic}</span>
-                  {isOpen && <span className="dialogue-translation">{line.meaning}</span>}
-                </button>
-                <button
-                  className="btn btn-ghost btn-sm dialogue-audio-btn"
-                  onClick={() => playDialogueLineAudio(dialogue.id, i, line.amharic, settings)}
-                  title="Play audio"
-                ><Volume2 size={15} strokeWidth={2.25} /></button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      <button className="dialogue-card-title dialogue-title-toggle" onClick={() => setOpen(o => !o)}>
+        <span>
+          <span className="para-title-amharic">{dialogue.title}</span>
+          <span className="para-title-meaning">{dialogue.titleMeaning}</span>
+        </span>
+        <span className="story-toggle-arrow">{open ? '▲' : '▼'}</span>
+      </button>
 
-      <div className="sentence-card-actions">
+      {open && (
+        <>
+          <div className="dialogue-lines">
+            {dialogue.lines.map((line, i) => {
+              const isOpen = showAll || revealed.has(i);
+              return (
+                <div key={i} className={`dialogue-line dialogue-line-${line.speaker.toLowerCase()}`}>
+                  <span className="dialogue-speaker">{line.speaker}</span>
+                  <div className="dialogue-bubble-wrap">
+                    <button
+                      className={`dialogue-bubble ${isOpen ? 'bubble-open' : ''}`}
+                      onClick={() => toggleLine(i)}
+                    >
+                      <span className="dialogue-amharic">{line.amharic}</span>
+                      {isOpen && <span className="dialogue-translation">{line.meaning}</span>}
+                    </button>
+                    <button
+                      className="btn btn-ghost btn-sm dialogue-audio-btn"
+                      onClick={() => playDialogueLineAudio(dialogue.id, i, line.amharic, settings)}
+                      title="Play audio"
+                    ><Volume2 size={15} strokeWidth={2.25} /></button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="sentence-card-actions">
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={() => { onRead(); setShowAll(a => !a); }}
+            >
+              {showAll ? 'Hide all translations' : 'Show all translations'}
+            </button>
+            {anyRevealed && (
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={() => { setRevealed(new Set()); setShowAll(false); }}
+              >Reset</button>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── Story Card (short real story, tap a page to reveal its meaning + hear it) ───
+// Collapsed by default (just the title) since a full story's pages take up
+// a lot more vertical space than a single sentence or short dialogue would,
+// same reasoning as the collapsible browse-mode phrase categories.
+function StoryCard({ story, settings, read, onRead, bookmarked, onToggleBookmark }) {
+  const [open, setOpen] = useState(false);
+  const [revealed, setRevealed] = useState(new Set());
+
+  function togglePage(i) {
+    onRead();
+    playStoryPageAudio(story.id, i, story.pages[i].amharic, settings);
+    setRevealed(prev => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i); else next.add(i);
+      return next;
+    });
+  }
+
+  return (
+    <div className={`story-card ${read ? 'read-card-seen' : ''}`}>
+      <div className="read-card-badges">
+        {read && <span className="read-seen-check" title="Already read"><Check size={15} strokeWidth={2.5} /></span>}
         <button
-          className="btn btn-secondary btn-sm"
-          onClick={() => { onRead(); setShowAll(a => !a); }}
+          className={`read-bookmark-btn ${bookmarked ? 'bookmarked' : ''}`}
+          onClick={onToggleBookmark}
+          title={bookmarked ? 'Remove bookmark' : 'Bookmark this story'}
         >
-          {showAll ? 'Hide all translations' : 'Show all translations'}
+          <Bookmark size={16} strokeWidth={2.25} fill={bookmarked ? 'currentColor' : 'none'} />
         </button>
-        {anyRevealed && (
-          <button
-            className="btn btn-ghost btn-sm"
-            onClick={() => { setRevealed(new Set()); setShowAll(false); }}
-          >Reset</button>
-        )}
       </div>
+
+      <button className="story-title story-title-toggle" onClick={() => setOpen(o => !o)}>
+        <span>
+          {story.title}
+          {story.titleMeaning && <span className="story-title-meaning"> — {story.titleMeaning}</span>}
+        </span>
+        <span className="story-toggle-arrow">{open ? '▲' : '▼'}</span>
+      </button>
+
+      {open && (
+        <>
+          <div className="story-pages">
+            {story.pages.map((page, i) => {
+              const isOpen = revealed.has(i);
+              return (
+                <button key={i} className={`story-page ${isOpen ? 'story-page-open' : ''}`} onClick={() => togglePage(i)}>
+                  <span className="story-page-text">{page.amharic}</span>
+                  {isOpen && <span className="story-page-meaning">{page.meaning}</span>}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="story-credit">
+            {story.credit.text && `Text: ${story.credit.text}. `}
+            {story.credit.illustration && `Illustration: ${story.credit.illustration}. `}
+            {story.credit.translation && `Amharic translation: ${story.credit.translation}. `}
+            {story.credit.license} · {story.credit.source}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -364,6 +437,7 @@ export default function SentenceReader({ progress, onProgressUpdate }) {
 
   const visibleSentences = bookmarkedOnly ? SENTENCES.filter(s => isBookmarked(readingProgress, s.id)) : SENTENCES;
   const visibleDialogues = bookmarkedOnly ? DIALOGUES.filter(d => isBookmarked(readingProgress, d.id)) : DIALOGUES;
+  const visibleStories   = bookmarkedOnly ? STORIES.filter(s => isBookmarked(readingProgress, s.id))   : STORIES;
 
   const cardRefs = useRef(new Map());
 
@@ -416,9 +490,9 @@ export default function SentenceReader({ progress, onProgressUpdate }) {
           onClick={() => setTab('sentences')}
         >Sentences ({sentencesReadCount}/{SENTENCES.length})</button>
         <button
-          className={`writing-mode-tab ${tab === 'dialogues' ? 'active' : ''}`}
-          onClick={() => setTab('dialogues')}
-        >Dialogues ({dialoguesReadCount}/{DIALOGUES.length})</button>
+          className={`writing-mode-tab ${tab === 'passages' ? 'active' : ''}`}
+          onClick={() => setTab('passages')}
+        >Passages ({dialoguesReadCount}/{DIALOGUES.length})</button>
       </div>
 
       <button
@@ -525,33 +599,68 @@ export default function SentenceReader({ progress, onProgressUpdate }) {
         </>
       )}
 
-      {tab === 'dialogues' && (
+      {tab === 'passages' && (
         <>
-          {!bookmarkedOnly && dialoguesReadCount < DIALOGUES.length && (
-            <button
-              className="btn btn-secondary btn-sm"
-              style={{ marginBottom: '0.75rem' }}
-              onClick={() => scrollToFirstUnread(DIALOGUES)}
-            >Continue → (skip to next unread)</button>
-          )}
-          {bookmarkedOnly && visibleDialogues.length === 0 ? (
-            <p className="read-empty-state">No bookmarked dialogues yet, tap the bookmark icon on any dialogue to save it here.</p>
-          ) : (
-            <div className="dialogue-list">
-              {visibleDialogues.map(d => (
-                <div key={d.id} ref={el => { if (el) cardRefs.current.set(d.id, el); }}>
-                  <DialogueCard
-                    dialogue={d}
-                    settings={progress.settings}
-                    read={isRead(readingProgress, d.id)}
-                    onRead={() => handleMarkRead(d.id)}
-                    bookmarked={isBookmarked(readingProgress, d.id)}
-                    onToggleBookmark={() => handleToggleBookmark(d.id)}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
+          <section className="read-generate-section">
+            <ReadSectionHeader
+              tone="generate"
+              icon={<Sparkles size={16} strokeWidth={2.25} />}
+              title="Stories"
+              description="Real, existing Amharic children's stories (not AI-generated), reused with attribution from openly-licensed collections. Tap a page to reveal its meaning and hear it read aloud."
+            />
+            {bookmarkedOnly && visibleStories.length === 0 ? (
+              <p className="read-empty-state">No bookmarked stories yet, tap the bookmark icon on any story to save it here.</p>
+            ) : (
+              <div className="sentence-list">
+                {visibleStories.map(s => (
+                  <div key={s.id} ref={el => { if (el) cardRefs.current.set(s.id, el); }}>
+                    <StoryCard
+                      story={s}
+                      settings={progress.settings}
+                      read={isRead(readingProgress, s.id)}
+                      onRead={() => handleMarkRead(s.id)}
+                      bookmarked={isBookmarked(readingProgress, s.id)}
+                      onToggleBookmark={() => handleToggleBookmark(s.id)}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className="read-practice-section">
+            <ReadSectionHeader
+              tone="curated"
+              icon={<MessagesSquare size={16} strokeWidth={2.25} />}
+              title={bookmarkedOnly ? 'Bookmarked practice dialogues' : 'Practice dialogues'}
+              description="Built entirely from the phrases you've already learned in Phrases mode, a curated set that's always safe to read even before you know much spoken Amharic."
+            />
+
+            {!bookmarkedOnly && dialoguesReadCount < DIALOGUES.length && (
+              <button
+                className="btn btn-secondary btn-sm read-continue-btn"
+                onClick={() => scrollToFirstUnread(DIALOGUES)}
+              >Continue → (skip to next unread)</button>
+            )}
+            {bookmarkedOnly && visibleDialogues.length === 0 ? (
+              <p className="read-empty-state">No bookmarked dialogues yet, tap the bookmark icon on any dialogue to save it here.</p>
+            ) : (
+              <div className="dialogue-list">
+                {visibleDialogues.map(d => (
+                  <div key={d.id} ref={el => { if (el) cardRefs.current.set(d.id, el); }}>
+                    <DialogueCard
+                      dialogue={d}
+                      settings={progress.settings}
+                      read={isRead(readingProgress, d.id)}
+                      onRead={() => handleMarkRead(d.id)}
+                      bookmarked={isBookmarked(readingProgress, d.id)}
+                      onToggleBookmark={() => handleToggleBookmark(d.id)}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
         </>
       )}
     </div>
