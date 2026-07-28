@@ -28,7 +28,7 @@ import WordReadingExercise from './components/WordReadingExercise.jsx';
 import LessonMode from './components/LessonMode.jsx';
 import SentenceReader from './components/SentenceReader.jsx';
 import { LEVEL_WORDS } from './data/levelWords.js';
-import { getHighestUnlockedLevel, isReadModeUnlocked, isLevel7Mastered } from './utils/progress.js';
+import { getHighestUnlockedLevel, isLevel7Mastered, isReadModeUnlocked } from './utils/progress.js';
 
 // Levels 1-6 finish their word drill when the next level unlocks. Level 7 has
 // no level 8 to unlock, so it's eligible once level 7 mastery itself is hit.
@@ -196,6 +196,7 @@ export default function App() {
   }
 
   function navigate(newPage, initialMode = null) {
+    window.scrollTo(0, 0);
     if (newPage !== 'learn')   setLearnLevel(null);
     if (newPage !== 'quiz')    setQuizLevel(null);
     if (newPage !== 'lesson')  setLessonLevel(null);
@@ -277,7 +278,7 @@ export default function App() {
           />
         );
       case 'read':
-        return <SentenceReader progress={progress} onProgressUpdate={handleProgressUpdate} />;
+        return <SentenceReader progress={progress} />;
       case 'write':
         return <WritingPractice key={writeInitialMode} progress={progress} initialMode={writeInitialMode || 'copy'} />;
       case 'phrases':

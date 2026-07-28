@@ -40,6 +40,70 @@ partner across sessions.
   architecture that had a serious cross-account data leak bug (see LOG.md).
 
 ## Recently shipped (most recent first)
+- **Read mode's gate replaced with a level-based one, decoupled entirely
+  from the Common Phrases Final Test.** Went through three states in one
+  session: full gate (`phraseTestPassed`, i.e. Level 7 mastery + passing the
+  Final Test) → removed entirely (argument: illegible content already gives
+  a beginner the same "can't use this" signal a hard block would, so the
+  gate wasn't protecting anything) → reconsidered and landed on a **partial
+  gate**, `isReadModeUnlocked(progress)` in `src/utils/progress.js` = has
+  reached Level 6 of 7 (`READ_MODE_MIN_LEVEL` constant there). The "remove
+  entirely" argument proved too much — it would justify removing the
+  level-progression gates too — and didn't distinguish a brand-new Level-1
+  user (for whom Read is guaranteed useless, decoding ability is the
+  bottleneck regardless of vocabulary knowledge) from someone most of the
+  way through who just doesn't want to grind the last couple levels first.
+  Level 6 blocks the former, not the latter — originally set to 5, but
+  "reached Level N" only guarantees ~85% mastery of levels 1..N-1 (the
+  unlock threshold), not full mastery, so Level 5 only guaranteed ~49% of
+  the 231-character core alphabet, not "most of it" like the copy claimed;
+  Level 6 guarantees ~62%, a real middle ground between that and Level 7
+  (~75%, close enough to the original full-mastery gate to barely loosen
+  anything). `SentenceReader.jsx`'s
+  `LockedScreen` is back but simpler than the original (no checklist, no
+  admin bypass, just "Level {current} of 7") since there's no discrete
+  action to complete, just normal practice. The nav's lock-icon/dimmed
+  treatment (`nav-locked` in `App.css`, `isReadLocked` in `App.jsx`) is back
+  too, now genuinely meaningful again since the gate is real. Fixed a
+  correctness bug found along the way: the Final Test's pass/fail screens in
+  `CommonPhrases.jsx` still said "Read mode unlocked!" / "you need 85% to
+  unlock Read mode" — false since the first "remove entirely" step, doubly
+  false now since Read's gate has no relationship to the Final Test at all
+  anymore. Copy fixed to just describe the test result. As a follow-up, the
+  Final Test's own attempt-gate (`isLevel7Mastered` required to try it) was
+  also removed — once it stopped unlocking anything, it was the only mode on
+  the Common Phrases page still gated on full mastery while
+  Browse/Flashcard/Type are all open from Level 2 on; it already scopes its
+  content to `getUnlockedPhrases(highestLevel)` like the others, so an early
+  attempt is just a smaller/easier version, not exposure to ungated content.
+- **Passages tab split into "Stories" and "Dialogues" sub-tabs**
+  (`passagesSubTab` state in `SentenceReader.jsx`) instead of stacking both
+  sections in one scroll — done ahead of adding more stories, since Stories
+  is expected to grow much larger than Dialogues' fixed ~12 (the Bloom
+  Library catalog alone is 48+ books) and a single stacked scroll would
+  eventually bury Dialogues. Stories renders first (matches the
+  Sentences tab's Generate-first convention: heritage speakers who already
+  understand spoken Amharic are this app's real primary audience once
+  they've cleared the levels, so unconstrained real content leads).
+  Bookmark filter moved to an icon-only toggle at the end of the main
+  Sentences/Passages tab row (`.read-bookmark-filter`) after two rounds of
+  layout feedback — it previously looked like a third tab option.
+- **Lesson mode now actually persists progress.** `QuizStep`/`AudioStep` in
+  `LessonMode.jsx` now call `onProgressUpdate(recordAnswer(...))` per
+  answer, same as `QuizMode.jsx` — previously `onProgressUpdate` was
+  accepted as a prop but never called anywhere in the file, so a full
+  "Lesson complete!" run recorded nothing toward mastery, admin stats, or
+  even the user's own progress. `MatchStep` deliberately still doesn't
+  count: `MatchingGame.jsx` only returns one aggregate `errors` count per
+  round with no per-character attribution, and with only 4 pairs the last
+  match is always forced/zero-signal, so it can't feed the per-character
+  net-score system cleanly the way Quiz/Audio's independent-choice
+  questions can.
+- **Page navigation now resets scroll to top** (`window.scrollTo(0, 0)` at
+  the top of `navigate()` in `App.jsx`) — there's no router, so switching
+  pages was just a React state change and the browser kept whatever scroll
+  position the previous page was at. Affected every page, not just Read;
+  Read's long content just made it obvious.
 - **`DIALOGUES` cleaned up the same way `SENTENCES` was (35→40): audited for
   repetitive templates, cut/merged the worst offenders, landed on a clean
   round number.** Went from 15 to 12. Before: 11/15 dialogues opened with
@@ -293,19 +357,26 @@ partner across sessions.
 ## Where to look
 - Auth logic: `src/utils/firebase.js`, `src/App.jsx` (the `onAuthChange` effect)
 - Admin dashboard: `src/components/AdminDashboard.jsx`, `server/routes/users.js`
-- Read mode (sentences/dialogues, bookmarks, read-status):
-  `src/components/SentenceReader.jsx`, `src/utils/readingProgress.js`,
-  `server/routes/readingProgress.js`
+- Read mode (sentences/passages, bookmarks, read-status): gated on reaching
+  **Level 6 of 7** (`isReadModeUnlocked` in `src/utils/progress.js`,
+  `READ_MODE_MIN_LEVEL` constant there), fully decoupled from the Common
+  Phrases Final Test now — see LOG.md for how this went through "full gate"
+  → "no gate" → "partial gate" in one session. `src/components/SentenceReader.jsx`
+  (`LockedScreen`), `src/utils/readingProgress.js`, `server/routes/readingProgress.js`
 - Live "Generate a sentence" (unconstrained AI sentence + audio + save):
   `server/lib/gemini.js`, `server/lib/tts.js`,
   `server/routes/generatedSentences.js`, the `generated_sentences` table in
   `db/schema.sql`
-- Common Phrases Final Test gate + Read mode unlock:
-  `src/components/CommonPhrases.jsx` (`testUnlocked`), `src/utils/progress.js`
-  (`isLevel7Mastered`, `isReadModeUnlocked`)
-- Stories (heritage-speaker real-story reading, Dialogues tab):
-  `src/data/stories.js`, `StoryCard` in `src/components/SentenceReader.jsx`,
-  `playStoryPageAudio` in `src/utils/audio.js`
+- Common Phrases Final Test: **not gated at all now** either (attempt-gate on
+  `isLevel7Mastered` removed) — it's just another practice mode like
+  Browse/Flashcard/Type, scoped to `getUnlockedPhrases(highestLevel)` same as
+  the others, available from Level 2 onward same as the rest of the page.
+  `src/components/CommonPhrases.jsx` (`MODES`, `PhraseTestMode`)
+- Stories (heritage-speaker real-story reading, now its own sub-tab inside
+  Passages alongside Dialogues — `passagesSubTab` state in
+  `SentenceReader.jsx`): `src/data/stories.js`, `StoryCard` in
+  `src/components/SentenceReader.jsx`, `playStoryPageAudio` in
+  `src/utils/audio.js`
 - Shared CSS patterns/design tokens: `src/App.css` (`:root` variables,
   `.quiz-next-bar`/`.wr-sticky-footer` no-scroll patterns, `.nav-item-overflow`
   responsive nav breakpoint)

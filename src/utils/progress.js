@@ -39,7 +39,6 @@ export function makeDefaultProgress() {
     streak: { lastDate: null, count: 0 },
     settings: { audioEnabled: true, englishFallback: true, extendedChars: false },
     phraseTestPassed: false,
-    readUnlockedByAdmin: false,
   };
 }
 
@@ -110,6 +109,20 @@ export function getUnlockedLevels(progress) {
   return LEVELS.filter(l => isLevelUnlocked(progress, l.level)).map(l => l.level);
 }
 
+// Read mode is genuinely unusable before a learner can decode most of the
+// alphabet — gate on reaching this level (not full Level 7 mastery, and not
+// the Common Phrases Final Test, which is a vocabulary check, not a
+// decoding one). "Reached" Level N only guarantees ~85% mastery of levels
+// 1..N-1 (the unlock threshold), not full mastery, so this needs to sit a
+// level or two above the naive halfway point to actually guarantee "most of
+// the alphabet": reaching Level 6 guarantees ~85% of levels 1-5 (~62% of all
+// 231 core characters) is mastered, vs. only ~49% at Level 5.
+const READ_MODE_MIN_LEVEL = 6;
+
+export function isReadModeUnlocked(progress) {
+  return getHighestUnlockedLevel(progress) >= READ_MODE_MIN_LEVEL;
+}
+
 // ─── Stats helpers ────────────────────────────────────────────────────────────
 export function getLevelProgress(progress, levelNum) {
   const chars = getLevelChars(levelNum);
@@ -134,24 +147,13 @@ export function getTotalStats(progress) {
   };
 }
 
-// ─── Read mode unlock ────────────────────────────────────────────────────────
+// ─── Level 7 mastery ─────────────────────────────────────────────────────────
 
 export function isLevel7Mastered(progress) {
   const level7Chars = getLevelChars(7);
   if (level7Chars.length === 0) return false;
   const masteredCount = level7Chars.filter(c => isCharMastered(progress, c.id)).length;
   return masteredCount / level7Chars.length >= LEVEL_UNLOCK_THRESHOLD;
-}
-
-export function isReadModeUnlocked(progress) {
-  if (progress.readUnlockedByAdmin) return true;
-  // phraseTestPassed alone is enough: the Common Phrases Final Test itself
-  // is now gated on isLevel7Mastered (see CommonPhrases.jsx), so passing it
-  // already proves Level 7 mastery at that point in time. Not re-checking
-  // mastery here is deliberate — it's a permanent flag like phraseTestPassed
-  // itself, not something that should re-lock Read mode if later practice
-  // knocks a Level 7 character's net score back down.
-  return progress.phraseTestPassed === true;
 }
 
 // ─── Streak ───────────────────────────────────────────────────────────────────

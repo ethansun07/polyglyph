@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Volume2, VolumeX, Check, CheckCircle2, XCircle, Grid3x3, PartyPopper } from 'lucide-react';
 import { getLevelChars, getLevelRows, VOWEL_ORDERS } from '../data/fidel.js';
+import { recordAnswer } from '../utils/progress.js';
 import { weightedRandomPick, buildQuizChoices, shuffle } from '../utils/quiz.js';
 import { playCharAudio } from '../utils/audio.js';
 import { useEnterKey } from '../utils/useEnterKey.js';
@@ -186,7 +187,7 @@ function MatchStep({ chars, progress, round, totalRounds, audioMode, onComplete 
   );
 }
 
-function QuizStep({ chars, progress, onComplete }) {
+function QuizStep({ chars, progress, onProgressUpdate, onComplete }) {
   const [seenIds, setSeenIds] = useState(() => new Set());
   const [q, setQ]             = useState(() => buildQ(chars, progress, new Set()));
   const [chosen, setChosen]   = useState(null);
@@ -211,6 +212,7 @@ function QuizStep({ chars, progress, onComplete }) {
     const isCorrect = choice === q.char.romanization;
     if (isCorrect) playCharAudio(q.char, progressRef.current.settings);
     if (isCorrect) setScore(s => s + 1);
+    onProgressUpdate(recordAnswer(progressRef.current, q.char.id, isCorrect));
   }
 
   function handleNext() {
@@ -283,7 +285,7 @@ function QuizStep({ chars, progress, onComplete }) {
   );
 }
 
-function AudioStep({ chars, progress, onComplete }) {
+function AudioStep({ chars, progress, onProgressUpdate, onComplete }) {
   const available  = chars.filter(c => c.rowId && c.order);
   const [seenIds, setSeenIds]     = useState(() => new Set());
   const [q, setQ]                 = useState(() => buildAudioQ(available, progress, new Set()));
@@ -330,6 +332,7 @@ function AudioStep({ chars, progress, onComplete }) {
     setChosen(choice.id);
     const isCorrect = choice.id === q.char.id;
     if (isCorrect) setScore(s => s + 1);
+    onProgressUpdate(recordAnswer(progressRef.current, q.char.id, isCorrect));
   }
 
   function handleNext() {
@@ -527,6 +530,7 @@ export default function LessonMode({ level, progress, onProgressUpdate, onDone }
         <QuizStep
           chars={chars}
           progress={progress}
+          onProgressUpdate={onProgressUpdate}
           onComplete={(score, total) => {
             addScore('Read', score, total);
             advance('audio');
@@ -538,6 +542,7 @@ export default function LessonMode({ level, progress, onProgressUpdate, onDone }
         <AudioStep
           chars={chars}
           progress={progress}
+          onProgressUpdate={onProgressUpdate}
           onComplete={(score, total) => {
             addScore('Listen', score, total);
             advance('done');

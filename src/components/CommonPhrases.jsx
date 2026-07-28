@@ -1,14 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   X, MessagesSquare, Lightbulb, Volume2, Check, Undo2, XCircle,
-  Trophy, ScrollText, PartyPopper, BookOpen, Grid3x3, Target, Layers, Keyboard,
+  Trophy, PartyPopper, BookOpen, Grid3x3, Target, Layers, Keyboard,
 } from 'lucide-react';
 import {
   CATEGORIES, CATEGORY_ORDER, PHRASES,
   getUnlockedPhrases, shuffleArray,
 } from '../data/amharicPhrases.js';
-import { getHighestUnlockedLevel, isLevel7Mastered } from '../utils/progress.js';
-import { LEVELS } from '../data/fidel.js';
+import { getHighestUnlockedLevel } from '../utils/progress.js';
 import { playPhraseAudio } from '../utils/audio.js';
 import { useChoiceKeys } from '../utils/useChoiceKeys.js';
 import { loadPhraseProgress, savePhraseProgress, resetPhraseProgress, recordPhraseResult, getPhraseWeight } from '../utils/phraseProgress.js';
@@ -907,13 +906,13 @@ function PhraseTestMode({ pool, progress, phraseProgress, onProgressUpdate, alre
         {finalPassed ? (
           <>
             <div className="phrase-test-msg phrase-test-msg-pass">
-              Read mode unlocked! Head to the <ScrollText size={14} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> Read tab.
+              Nice work! You've got a solid handle on these phrases.
             </div>
           </>
         ) : (
           <>
             <div className="phrase-test-msg phrase-test-msg-fail">
-              You need {Math.round(PASS_THRESHOLD * 100)}% to unlock Read mode. Keep practising and try again!
+              You need {Math.round(PASS_THRESHOLD * 100)}% to pass. Keep practising and try again!
             </div>
           </>
         )}
@@ -1144,20 +1143,15 @@ export default function CommonPhrases({ progress, initialMode = 'browse', onProg
   const highestLevel = getHighestUnlockedLevel(progress);
   const pool         = getUnlockedPhrases(highestLevel);
 
-  // Gated on the Fidel alphabet, not on having browsed every phrase card:
-  // someone who already speaks Amharic (a heritage speaker, say) shouldn't
-  // have to click through all 86 phrases just to reach a test on content
-  // they already know. Uses the same isLevel7Mastered() check Read mode
-  // requires (rather than just "reached" Level 7), so passing the test is
-  // always the last step: nothing else is left to unlock Read mode
-  // afterward, since Level 7 mastery is already satisfied by then.
-  const maxLevel = LEVELS.length;
-  const testUnlocked = isLevel7Mastered(progress);
+  // Not gated on alphabet mastery or on having browsed every phrase card —
+  // it doesn't unlock anything else anymore (Read mode has its own,
+  // separate level gate), so it's just another practice mode like
+  // Browse/Flashcard/Type, scoped to whatever's unlocked so far. Someone who
+  // takes it early just gets a smaller, easier version, same as every other
+  // mode on this page already scopes to `pool`.
   const alreadyPassed = !!progress.phraseTestPassed;
 
-  const MODES = testUnlocked
-    ? [...BASE_MODES, { id: 'test', label: alreadyPassed ? 'Test' : 'Final Test', icon: alreadyPassed ? Check : Target }]
-    : BASE_MODES;
+  const MODES = [...BASE_MODES, { id: 'test', label: alreadyPassed ? 'Test' : 'Final Test', icon: alreadyPassed ? Check : Target }];
 
   if (highestLevel < 2) {
     return (
@@ -1196,9 +1190,6 @@ export default function CommonPhrases({ progress, initialMode = 'browse', onProg
         <p className="phrases-pool-info">
           {pool.length} phrase{pool.length !== 1 ? 's' : ''} available
           {PHRASES.some(p => p.requiredLevel > highestLevel) && ` · unlock Level ${highestLevel + 1} for more`}
-          {!testUnlocked && (
-            <span className="phrases-seen-hint"> · master Level {maxLevel} letters to unlock the Final Test</span>
-          )}
         </p>
       )}
 
@@ -1211,7 +1202,7 @@ export default function CommonPhrases({ progress, initialMode = 'browse', onProg
       {mode === 'type' && (
         <TypingMode key="type" pool={pool} settings={progress.settings} onPhraseResult={onPhraseResult} progress={progress} onProgressUpdate={onProgressUpdate} />
       )}
-      {mode === 'test' && testUnlocked && (
+      {mode === 'test' && (
         <PhraseTestMode
           key="test"
           pool={pool}

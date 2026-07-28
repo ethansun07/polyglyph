@@ -9,6 +9,134 @@ history.
 
 ---
 
+### 2026-07-28 — Corrected Read mode's gate threshold: Level 5 → Level 6
+The user asked why Level 5 specifically, which exposed that the number had never actually
+been derived from data — just a gut "5 of 7 feels like most of the way" call. Went back and
+counted real character distribution per level (`getLevelChars`/`getAllChars` in
+`fidel.js`): 231 core characters across the 7 levels (35/35/35/28/35/35/28). Also had to
+correct a bigger misunderstanding first: "reached Level N" means Level N is *unlocked*, not
+mastered — unlocking only requires ~85% mastery of the *previous* level
+(`LEVEL_UNLOCK_THRESHOLD` in `progress.js`), so Level N itself could have zero engagement at
+that point. Redoing the guarantee at 85% (not 100%) of prior levels: Level 5 reached only
+guarantees ~49% of the alphabet mastered, well under "most of it" like the locked-screen
+copy claimed; Level 6 guarantees ~62%; Level 7-reached (not the old full-mastery gate) would
+guarantee ~75% but sits close enough to the original requirement to barely loosen anything.
+Moved `READ_MODE_MIN_LEVEL` in `src/utils/progress.js` from 5 to 6 as the real middle
+ground, updated the locked-screen copy in `SentenceReader.jsx` to match, verified live via
+Playwright that Level 5 is still locked and Level 6 unlocks correctly.
+
+### 2026-07-28 — Closed the loop: removed the Final Test's own attempt-gate too
+Picked back up the question left open in the entry below ("should the Final Test's attempt
+gate come off too, now that it doesn't unlock anything"). Reframed it by asking what the
+Final Test's purpose even still was, now that it doesn't gate Read mode: concluded it's
+still worth keeping as a feature — a mixed-format (multiple-choice + matching) comprehensive
+review across all learned phrases, with pass/fail scoring and per-level high-score tracking,
+genuinely different from Browse/Flashcard/Type's topic-drilling format, not redundant.
+
+But once its role is "another practice mode" rather than "the gate," it was the odd one out:
+Browse/Flashcard/Type are all available from Level 2 onward, ungated, while Test alone still
+required full `isLevel7Mastered`. Removed that gate (`testUnlocked` check deleted from
+`CommonPhrases.jsx`, `MODES` always includes the test tab now) for consistency with its
+siblings — it already scopes its own content to `getUnlockedPhrases(highestLevel)`, so an
+early attempt is just a smaller/easier version of the same test, not exposure to content
+beyond what's been taught, same mechanism that made Read mode's Level-5 gate safe to reason
+about. Also deleted the now-stale "master Level 7 letters to unlock the Final Test" hint
+text. Verified live (Playwright, Level 2 progress) that the Final Test tab appears and opens
+correctly with a smaller 15-question pool instead of the full 86, no crash.
+
+### 2026-07-28 — Reversed course again: Read mode's "no gate" was an overcorrection, landed on a level-based partial gate instead
+Immediately re-examined the "removed entirely" decision from earlier the same session
+(entry below) after the user asked "are you sure that was the right call." On reflection,
+the argument that won ("illegible content gives the same signal a hard block would, so the
+gate wasn't protecting anything") proved too much: it would justify removing the
+level-progression gates too, which nobody was arguing for, and it didn't distinguish
+between two very different people — a brand-new Level-1 user (Read is guaranteed useless
+for them, decoding ability is the actual bottleneck regardless of whether they already know
+the spoken vocabulary) and someone most of the way through the levels who just doesn't want
+to grind the last stretch before trying real content. Full removal served the second
+person fine but made the page pure noise for the first, which is most first-time users.
+
+Landed on a partial gate: `isReadModeUnlocked` back in `src/utils/progress.js`, now meaning
+"reached Level 5 of 7" (`READ_MODE_MIN_LEVEL`), checked via `getHighestUnlockedLevel` —
+deliberately **not** re-coupled to the Common Phrases Final Test the way the original gate
+was. That original coupling (Read mode ← Final Test ← Level 7 mastery) was itself
+questionable in the same conversation (see "so should we get rid of the gate for the final
+test too?" below), and character-decoding progress is the more direct signal for "can this
+person plausibly use Read mode" than a vocabulary test is anyway. `SentenceReader.jsx`'s
+`LockedScreen` came back too, simplified from the original (no checklist, no admin
+unlock/relock bypass) since there's no discrete action to complete this time, just normal
+leveling. Nav's lock icon (`nav-locked`/`isReadLocked`) came back as well, this time
+actually meaningful again since there's a real gate behind it.
+
+Along the way, caught a real bug the first "remove the gate" pass had introduced and not
+noticed: `CommonPhrases.jsx`'s Final Test pass/fail screens still said "Read mode
+unlocked!" and "you need 85% to unlock Read mode" — both already false once Read's gate was
+removed, and still false now that Read's gate doesn't reference the Final Test at all.
+Fixed the copy to just describe the test result, no Read mode mention.
+
+Also flagged, but explicitly left open, a related question: should the Final Test's own
+*attempt*-gate (`isLevel7Mastered` required to even try it, in `CommonPhrases.jsx`) also
+come off, now that passing/failing it no longer unlocks anything? Established that the test
+already scopes its content to `getUnlockedPhrases(highestLevel)` and tracks high scores
+per-level (`phraseTestHighScores[highestLevel]`), so removing that gate wouldn't expose
+early learners to content beyond their level — mechanically low-risk. The only real
+downside found: `phraseTestPassed` is a permanent flag, so passing an early, easier-scoped
+attempt would permanently swap the tab label from "Final Test" to "Test," which is a minor
+cosmetic mismatch with the "final" framing, not a functional problem. Not resolved yet —
+next session should pick this back up rather than re-deriving it.
+
+### 2026-07-28 — Reversed course: removed Read mode's gate for real, split Passages into sub-tabs, fixed Lesson mode's silent no-op progress bug, fixed scroll-on-navigate
+Picked back up the "should Read even be gated" question from the entry below, which had
+concluded "not worth it" and shelved the idea. Re-argued it from a different angle this
+time: someone who can't read the script yet gets real negative feedback from the illegible
+content itself the moment they open Read (can't understand it, gets nothing, leaves) — the
+same practical outcome as being blocked, except more honest. The hard gate wasn't
+protecting anyone from anything the content wouldn't already teach them by being
+illegible. This argument held up where the placement-test ideas in the earlier entry
+didn't, so this time it actually got built: `LockedScreen` in `SentenceReader.jsx` deleted,
+`isReadModeUnlocked`/`readUnlockedByAdmin` removed from `progress.js`, admin unlock/relock
+buttons gone. Verified live via a scripted Playwright run (no chromium-cli available in
+this environment, so installed Playwright straight into the scratchpad directory) that a
+fresh guest can open Read and see real content instead of the lock screen.
+
+Kept, then also cut, the nav's lock-icon/dimmed treatment on the Read tab as a "milestone"
+indicator — reasoned initially that it had gamification value even with the hard block
+gone, but on reflection a padlock icon still tells an unprepared user "you can't use this,"
+which undoes the entire point of removing the block (they just won't click it). Removed
+`isReadLocked`/`nav-locked` too. **The Common Phrases Final Test gate itself is untouched
+and still real** — still requires `isLevel7Mastered` to even attempt the test; only Read
+mode's *own* separate gate on top of that is gone.
+
+Split the Passages tab into "Stories" and "Dialogues" sub-tabs (`passagesSubTab` state)
+before adding any new stories, at the user's request to fix layout before content so new
+stories land in their final home in one pass. Prompted by a worry that Stories (currently
+4, but the Bloom Library catalog scoped out earlier this week has 48+) would eventually
+crowd out Dialogues (fixed at ~12) in the old single stacked-scroll layout. Considered and
+rejected just reordering (put the small stable section first) since that only protects one
+side and just relocates the burial problem instead of solving it — sub-tabs give both
+sections their own space regardless of how long either list gets. Went through two rounds
+of layout polish after the user flagged the result looked "kinda odd": first pass moved the
+bookmark filter to its own right-aligned row (was sharing a row with the tabs, looked like
+a third tab), which fixed the label issue but broke width alignment between the sub-tabs
+row and the tab row above it; user picked "icon-only, end of the tab row" from a set of
+options for where the bookmark toggle should live, which then needed a matching-width fix
+(`margin-right` on `.read-subtabs`) so the sub-tabs' right edge lines up with "Passages"
+above it instead of overhanging past it to match the icon button's edge.
+
+Also fixed two bugs found along the way, unrelated to the gate work: (1) `LessonMode.jsx`'s
+`QuizStep`/`AudioStep` accepted an `onProgressUpdate` prop but never called it — a full
+"Lesson complete!" run recorded nothing anywhere (not mastery, not admin stats, not even
+locally), because it was surfaced by a "does lesson progress show in admin" question that
+led to actually reading the component. Fixed by wiring `recordAnswer`/`onProgressUpdate`
+into Quiz/Audio the same way `QuizMode.jsx` does. Deliberately did **not** wire `MatchStep`
+in too — `MatchingGame.jsx` only returns one aggregate `errors` count per round with no
+per-character attribution, and with only 4 pairs the last match is always forced (zero
+recall signal), so it can't cleanly feed the per-character net-score system the way
+Quiz/Audio's independent multiple-choice questions can. (2) Navigating between pages never
+reset scroll position, since there's no router and page switches are just a React state
+change — `window.scrollTo(0, 0)` added at the top of `navigate()` in `App.jsx` fixes it
+app-wide, not just for Read (where it was first noticed because the page is long).
+
 ### 2026-07-27 — DIALOGUES cleanup (15→12) and renamed the tab to "Passages"
 User asked for the same treatment DIALOGUES that SENTENCES got earlier this session (35→40:
 audit for repetitive templates, consolidate near-duplicates, land on a clean number), plus

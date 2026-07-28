@@ -1,14 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
-import { ScrollText, Check, Circle, Lock, MessagesSquare, Volume2, Wrench, Bookmark, Sparkles } from 'lucide-react';
+import { ScrollText, Check, Lock, MessagesSquare, Volume2, Bookmark, Sparkles } from 'lucide-react';
 import { SENTENCES, DIALOGUES, CONNECTOR_NOTE } from '../data/readingSentences.js';
 import { STORIES } from '../data/stories.js';
-import { isReadModeUnlocked } from '../utils/progress.js';
+import { getHighestUnlockedLevel, isReadModeUnlocked } from '../utils/progress.js';
+import { LEVELS } from '../data/fidel.js';
 import {
   loadReadingProgress, saveReadingProgress,
   isRead, isBookmarked, markRead, toggleBookmark,
 } from '../utils/readingProgress.js';
 import {
-  auth, onAuthChange, ADMIN_EMAIL,
+  auth, onAuthChange,
   loadReadingProgressFromCloud, saveReadingProgressFromCloud,
   generateSentence, saveGeneratedSentence, loadSavedGeneratedSentences,
   deleteSavedGeneratedSentence, fetchGeneratedAudio,
@@ -302,40 +303,27 @@ function StoryCard({ story, settings, read, onRead, bookmarked, onToggleBookmark
 }
 
 // ─── Locked Screen ────────────────────────────────────────────────────────────
-function LockedScreen({ progress, onAdminUnlock }) {
-  const isAdmin  = auth.currentUser?.email === ADMIN_EMAIL;
-  const testDone = !!progress.phraseTestPassed;
-
+// Read mode is guaranteed useless before someone can decode most of the
+// alphabet, so this only blocks brand-new learners — see LOG.md for why a
+// full re-gate replaced the earlier "no gate at all" version.
+function LockedScreen({ progress }) {
+  const currentLevel = getHighestUnlockedLevel(progress);
   return (
     <div className="read-locked">
       <div className="read-locked-icon"><Lock size={45} strokeWidth={1.75} /></div>
       <h3 className="read-locked-title">Read Mode Locked</h3>
-      <p className="read-locked-sub">Complete this to unlock:</p>
-
-      <ul className="read-locked-checklist">
-        <li className={testDone ? 'check-done' : 'check-todo'}>
-          {testDone ? <Check size={15} strokeWidth={2.5} /> : <Circle size={15} strokeWidth={2.25} />} Pass the Common Phrases final test (85% score)
-        </li>
-      </ul>
-
-      {!testDone && (
-        <p className="read-locked-hint">
-          Head to <MessagesSquare size={13} strokeWidth={2.25} style={{ verticalAlign: 'middle' }} /> Phrases → master Level 7 letters → take the Final Test.
-        </p>
-      )}
-
-      {isAdmin && (
-        <button className="btn btn-secondary read-admin-unlock" onClick={onAdminUnlock}>
-          <Wrench size={15} strokeWidth={2.25} /> Admin: unlock now
-        </button>
-      )}
+      <p className="read-locked-sub">
+        Unlocks once you're comfortable with most of the alphabet, around Level 6.
+        You're at Level {currentLevel} of {LEVELS.length} now, keep going!
+      </p>
     </div>
   );
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
-export default function SentenceReader({ progress, onProgressUpdate }) {
+export default function SentenceReader({ progress }) {
   const [tab, setTab] = useState('sentences');
+  const [passagesSubTab, setPassagesSubTab] = useState('stories');
   const [readingProgress, setReadingProgress] = useState(() => loadReadingProgress());
   const [bookmarkedOnly, setBookmarkedOnly] = useState(false);
   const [generated, setGenerated]     = useState(null);
@@ -346,8 +334,6 @@ export default function SentenceReader({ progress, onProgressUpdate }) {
   // server can steer Gemini away from repeating one it just gave this user.
   const recentGeneratedTexts = useRef([]);
   const prevUid = useRef(null);
-  const unlocked = isReadModeUnlocked(progress);
-  const isAdmin  = auth.currentUser?.email === ADMIN_EMAIL;
 
   // Every visitor (guest or not) has a real uid, so this just re-syncs
   // whenever the active identity changes — no merge needed, cloud always
@@ -433,6 +419,7 @@ export default function SentenceReader({ progress, onProgressUpdate }) {
 
   const sentencesReadCount = SENTENCES.filter(s => isRead(readingProgress, s.id)).length;
   const dialoguesReadCount = DIALOGUES.filter(d => isRead(readingProgress, d.id)).length;
+  const storiesReadCount   = STORIES.filter(s => isRead(readingProgress, s.id)).length;
 
   const visibleSentences = bookmarkedOnly ? SENTENCES.filter(s => isBookmarked(readingProgress, s.id)) : SENTENCES;
   const visibleDialogues = bookmarkedOnly ? DIALOGUES.filter(d => isBookmarked(readingProgress, d.id)) : DIALOGUES;
@@ -446,23 +433,11 @@ export default function SentenceReader({ progress, onProgressUpdate }) {
     cardRefs.current.get(target.id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
-  function handleAdminUnlock() {
-    if (onProgressUpdate) {
-      onProgressUpdate({ ...progress, readUnlockedByAdmin: true });
-    }
-  }
-
-  function handleAdminRelock() {
-    if (onProgressUpdate) {
-      onProgressUpdate({ ...progress, readUnlockedByAdmin: false });
-    }
-  }
-
-  if (!unlocked) {
+  if (!isReadModeUnlocked(progress)) {
     return (
       <div className="page">
         <h2 className="page-title"><ScrollText size={22} className="page-title-icon" /> Read</h2>
-        <LockedScreen progress={progress} onAdminUnlock={handleAdminUnlock} />
+        <LockedScreen progress={progress} />
       </div>
     );
   }
@@ -474,15 +449,9 @@ export default function SentenceReader({ progress, onProgressUpdate }) {
         Tap any word or sentence to reveal its meaning. Try reading aloud first.
       </p>
 
-      {isAdmin && progress.readUnlockedByAdmin && (
-        <button className="btn btn-secondary read-admin-unlock" onClick={handleAdminRelock}>
-          <Wrench size={15} strokeWidth={2.25} /> Admin: relock Read mode
-        </button>
-      )}
-
       <ReadingTips />
 
-      <div className="writing-mode-tabs read-tabs-row">
+      <div className="writing-mode-tabs">
         <button
           className={`writing-mode-tab ${tab === 'sentences' ? 'active' : ''}`}
           onClick={() => setTab('sentences')}
@@ -490,14 +459,13 @@ export default function SentenceReader({ progress, onProgressUpdate }) {
         <button
           className={`writing-mode-tab ${tab === 'passages' ? 'active' : ''}`}
           onClick={() => setTab('passages')}
-        >Passages ({dialoguesReadCount}/{DIALOGUES.length})</button>
+        >Passages ({storiesReadCount + dialoguesReadCount}/{STORIES.length + DIALOGUES.length})</button>
         <button
           className={`read-bookmark-filter ${bookmarkedOnly ? 'active' : ''}`}
           onClick={() => setBookmarkedOnly(v => !v)}
           title={bookmarkedOnly ? 'Showing bookmarked only' : 'Show bookmarked only'}
         >
-          <Bookmark size={14} strokeWidth={2.25} fill={bookmarkedOnly ? 'currentColor' : 'none'} />
-          <span className="read-bookmark-filter-label">Bookmarked</span>
+          <Bookmark size={16} strokeWidth={2.25} fill={bookmarkedOnly ? 'currentColor' : 'none'} />
         </button>
       </div>
 
@@ -599,66 +567,81 @@ export default function SentenceReader({ progress, onProgressUpdate }) {
 
       {tab === 'passages' && (
         <>
-          <section className="read-generate-section">
-            <ReadSectionHeader
-              tone="generate"
-              icon={<Sparkles size={16} strokeWidth={2.25} />}
-              title="Stories"
-              description="Real, existing Amharic children's stories (not AI-generated), reused with attribution from openly-licensed collections. Tap a page to reveal its meaning and hear it read aloud."
-            />
-            {bookmarkedOnly && visibleStories.length === 0 ? (
-              <p className="read-empty-state">No bookmarked stories yet, tap the bookmark icon on any story to save it here.</p>
-            ) : (
-              <div className="sentence-list">
-                {visibleStories.map(s => (
-                  <div key={s.id} ref={el => { if (el) cardRefs.current.set(s.id, el); }}>
-                    <StoryCard
-                      story={s}
-                      settings={progress.settings}
-                      read={isRead(readingProgress, s.id)}
-                      onRead={() => handleMarkRead(s.id)}
-                      bookmarked={isBookmarked(readingProgress, s.id)}
-                      onToggleBookmark={() => handleToggleBookmark(s.id)}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
+          <div className="writing-mode-tabs read-subtabs">
+            <button
+              className={`writing-mode-tab ${passagesSubTab === 'stories' ? 'active' : ''}`}
+              onClick={() => setPassagesSubTab('stories')}
+            >Stories ({storiesReadCount}/{STORIES.length})</button>
+            <button
+              className={`writing-mode-tab ${passagesSubTab === 'dialogues' ? 'active' : ''}`}
+              onClick={() => setPassagesSubTab('dialogues')}
+            >Dialogues ({dialoguesReadCount}/{DIALOGUES.length})</button>
+          </div>
 
-          <section className="read-practice-section">
-            <ReadSectionHeader
-              tone="curated"
-              icon={<MessagesSquare size={16} strokeWidth={2.25} />}
-              title={bookmarkedOnly ? 'Bookmarked practice dialogues' : 'Practice dialogues'}
-              description="Built entirely from the phrases you've already learned in Phrases mode, a curated set that's always safe to read even before you know much spoken Amharic."
-            />
+          {passagesSubTab === 'stories' && (
+            <section className="read-generate-section">
+              <ReadSectionHeader
+                tone="generate"
+                icon={<Sparkles size={16} strokeWidth={2.25} />}
+                title={bookmarkedOnly ? 'Bookmarked stories' : 'Stories'}
+                description="Real, existing Amharic children's stories (not AI-generated), reused with attribution from openly-licensed collections. Tap a page to reveal its meaning and hear it read aloud."
+              />
+              {bookmarkedOnly && visibleStories.length === 0 ? (
+                <p className="read-empty-state">No bookmarked stories yet, tap the bookmark icon on any story to save it here.</p>
+              ) : (
+                <div className="sentence-list">
+                  {visibleStories.map(s => (
+                    <div key={s.id} ref={el => { if (el) cardRefs.current.set(s.id, el); }}>
+                      <StoryCard
+                        story={s}
+                        settings={progress.settings}
+                        read={isRead(readingProgress, s.id)}
+                        onRead={() => handleMarkRead(s.id)}
+                        bookmarked={isBookmarked(readingProgress, s.id)}
+                        onToggleBookmark={() => handleToggleBookmark(s.id)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
 
-            {!bookmarkedOnly && dialoguesReadCount < DIALOGUES.length && (
-              <button
-                className="btn btn-secondary btn-sm read-continue-btn"
-                onClick={() => scrollToFirstUnread(DIALOGUES)}
-              >Continue → (skip to next unread)</button>
-            )}
-            {bookmarkedOnly && visibleDialogues.length === 0 ? (
-              <p className="read-empty-state">No bookmarked dialogues yet, tap the bookmark icon on any dialogue to save it here.</p>
-            ) : (
-              <div className="dialogue-list">
-                {visibleDialogues.map(d => (
-                  <div key={d.id} ref={el => { if (el) cardRefs.current.set(d.id, el); }}>
-                    <DialogueCard
-                      dialogue={d}
-                      settings={progress.settings}
-                      read={isRead(readingProgress, d.id)}
-                      onRead={() => handleMarkRead(d.id)}
-                      bookmarked={isBookmarked(readingProgress, d.id)}
-                      onToggleBookmark={() => handleToggleBookmark(d.id)}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
+          {passagesSubTab === 'dialogues' && (
+            <section className="read-practice-section">
+              <ReadSectionHeader
+                tone="curated"
+                icon={<MessagesSquare size={16} strokeWidth={2.25} />}
+                title={bookmarkedOnly ? 'Bookmarked practice dialogues' : 'Practice dialogues'}
+                description="Built entirely from the phrases you've already learned in Phrases mode, a curated set that's always safe to read even before you know much spoken Amharic."
+              />
+
+              {!bookmarkedOnly && dialoguesReadCount < DIALOGUES.length && (
+                <button
+                  className="btn btn-secondary btn-sm read-continue-btn"
+                  onClick={() => scrollToFirstUnread(DIALOGUES)}
+                >Continue → (skip to next unread)</button>
+              )}
+              {bookmarkedOnly && visibleDialogues.length === 0 ? (
+                <p className="read-empty-state">No bookmarked dialogues yet, tap the bookmark icon on any dialogue to save it here.</p>
+              ) : (
+                <div className="dialogue-list">
+                  {visibleDialogues.map(d => (
+                    <div key={d.id} ref={el => { if (el) cardRefs.current.set(d.id, el); }}>
+                      <DialogueCard
+                        dialogue={d}
+                        settings={progress.settings}
+                        read={isRead(readingProgress, d.id)}
+                        onRead={() => handleMarkRead(d.id)}
+                        bookmarked={isBookmarked(readingProgress, d.id)}
+                        onToggleBookmark={() => handleToggleBookmark(d.id)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
         </>
       )}
     </div>
