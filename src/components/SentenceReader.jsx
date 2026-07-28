@@ -16,42 +16,41 @@ import {
 import { PUNCTUATION } from '../data/fidel.js';
 import { playSentenceAudio, playSentenceWordAudio, playDialogueLineAudio, playStoryPageAudio, playAudioFromBase64, speakAmharicText } from '../utils/audio.js';
 
-// ─── Grammar Note (collapsible) ───────────────────────────────────────────────
-function GrammarNote() {
+// ─── Reading Tips (collapsible, combines connector + punctuation notes) ─────
+// Was two separate collapsible rows stacked on top of each other; merged into
+// one so the page doesn't open with a wall of toggles before any real content.
+function ReadingTips() {
   const [open, setOpen] = useState(false);
-  return (
-    <div className="grammar-note">
-      <button className="grammar-note-toggle" onClick={() => setOpen(o => !o)}>
-        {CONNECTOR_NOTE.title} {open ? '▲' : '▼'}
-      </button>
-      {open && (
-        <ul className="grammar-note-body">
-          {CONNECTOR_NOTE.body.map((line, i) => (
-            <li key={i}>{line}</li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
+  const [sub, setSub] = useState('connectors');
 
-// ─── Punctuation Note (collapsible) ──────────────────────────────────────────
-function PunctuationNote() {
-  const [open, setOpen] = useState(false);
   return (
     <div className="grammar-note">
       <button className="grammar-note-toggle" onClick={() => setOpen(o => !o)}>
-        ፣ Punctuation {open ? '▲' : '▼'}
+        Reading Tips {open ? '▲' : '▼'}
       </button>
       {open && (
-        <ul className="grammar-note-body">
-          {PUNCTUATION.map(p => (
-            <li key={p.char}>
-              <span style={{ fontFamily: 'serif', fontSize: '1.1em', marginRight: '0.4em' }}>{p.char}</span>
-              <strong>{p.name}</strong> — {p.description}
-            </li>
-          ))}
-        </ul>
+        <div className="grammar-note-body">
+          <div className="grammar-note-subtabs">
+            <button
+              className={`grammar-note-subtab ${sub === 'connectors' ? 'active' : ''}`}
+              onClick={() => setSub('connectors')}
+            >{CONNECTOR_NOTE.title}</button>
+            <button
+              className={`grammar-note-subtab ${sub === 'punctuation' ? 'active' : ''}`}
+              onClick={() => setSub('punctuation')}
+            >፣ Punctuation</button>
+          </div>
+          <ul>
+            {sub === 'connectors'
+              ? CONNECTOR_NOTE.body.map((line, i) => <li key={i}>{line}</li>)
+              : PUNCTUATION.map(p => (
+                  <li key={p.char}>
+                    <span style={{ fontFamily: 'serif', fontSize: '1.1em', marginRight: '0.4em' }}>{p.char}</span>
+                    <strong>{p.name}</strong> — {p.description}
+                  </li>
+                ))}
+          </ul>
+        </div>
       )}
     </div>
   );
@@ -481,10 +480,9 @@ export default function SentenceReader({ progress, onProgressUpdate }) {
         </button>
       )}
 
-      <GrammarNote />
-      <PunctuationNote />
+      <ReadingTips />
 
-      <div className="writing-mode-tabs" style={{ marginBottom: '0.75rem' }}>
+      <div className="writing-mode-tabs read-tabs-row">
         <button
           className={`writing-mode-tab ${tab === 'sentences' ? 'active' : ''}`}
           onClick={() => setTab('sentences')}
@@ -493,15 +491,15 @@ export default function SentenceReader({ progress, onProgressUpdate }) {
           className={`writing-mode-tab ${tab === 'passages' ? 'active' : ''}`}
           onClick={() => setTab('passages')}
         >Passages ({dialoguesReadCount}/{DIALOGUES.length})</button>
+        <button
+          className={`read-bookmark-filter ${bookmarkedOnly ? 'active' : ''}`}
+          onClick={() => setBookmarkedOnly(v => !v)}
+          title={bookmarkedOnly ? 'Showing bookmarked only' : 'Show bookmarked only'}
+        >
+          <Bookmark size={14} strokeWidth={2.25} fill={bookmarkedOnly ? 'currentColor' : 'none'} />
+          <span className="read-bookmark-filter-label">Bookmarked</span>
+        </button>
       </div>
-
-      <button
-        className={`read-bookmark-filter ${bookmarkedOnly ? 'active' : ''}`}
-        onClick={() => setBookmarkedOnly(v => !v)}
-      >
-        <Bookmark size={14} strokeWidth={2.25} fill={bookmarkedOnly ? 'currentColor' : 'none'} />
-        {bookmarkedOnly ? 'Showing bookmarked only' : 'Show bookmarked only'}
-      </button>
 
       {tab === 'sentences' && (
         <>
