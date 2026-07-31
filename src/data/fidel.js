@@ -228,8 +228,8 @@ export const FIDEL_ROWS = [
     id: 'ppe',
     baseName: 'ጰ',
     chars:         ['ጰ', 'ጱ', 'ጲ', 'ጳ', 'ጴ', 'ጵ', 'ጶ'],
-    romanizations: ['pä', 'pu', 'pi', 'pa', 'pe', 'p',  'po'],
-    note: '💡 ጰ is an ejective P: a sharp, popping P sound. Sounds like ፐ in modern Amharic.',
+    romanizations: ['p̣ä', 'p̣u', 'p̣i', 'p̣a', 'p̣e', 'p̣', 'p̣o'],
+    note: '💡 ጰ is romanized p̣ (p with dot below): an emphatic ejective P. Sounds like ፐ in modern Amharic.',
   },
 
   // ── Level 7 ──────────────────────────────────────────────────────────────

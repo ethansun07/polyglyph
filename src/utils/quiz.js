@@ -9,6 +9,7 @@ const SOUND_GROUPS = [
   ['tse', 'tse2'],            // ጸ / ፀ — both /sʼ/
   ['ha', 'he', 'khe', 'hhe'], // ሀ / ሐ / ኀ / ኸ — all /h/
   ['a', 'gha'],               // አ / ዐ — both glottal stop
+  ['ppe', 'pe'],              // ጰ / ፐ — both /p/ (ejective merged with plain P)
 ];
 const ROW_TO_SOUND_GROUP = {};
 SOUND_GROUPS.forEach((rows, i) => rows.forEach(rowId => { ROW_TO_SOUND_GROUP[rowId] = i; }));

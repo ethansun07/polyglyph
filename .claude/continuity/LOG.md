@@ -9,6 +9,39 @@ history.
 
 ---
 
+### 2026-07-31 — Fixed ፕ (and the rest of the ፐ row) never appearing in Writing Quiz
+User reported ፕ specifically never once appearing across 10-15 writing quiz sessions despite
+being at 184/258 mastered and other Level 7 letters showing up fine. Root cause:
+`WritingPractice.jsx`'s `unambiguousChars` filters out any character whose romanization
+isn't unique across the active pool, and ጰ (Level 6, "ppe" row) and ፐ (Level 7, "pe" row,
+where ፕ lives) had **identical romanization strings for every single order** —
+`['pä','pu','pi','pa','pe','p','po']`, verbatim, on both rows. Once both levels are active
+together (true for essentially any real user past Level 6), all 7 characters of the ፐ row
+silently drop out of Writing Quiz forever, not intermittently — confirmed empirically with a
+direct script against the real data (`unambiguousChars` over the full Level 1-7 pool: pe-row
+survivors = 0/7 before the fix).
+
+Every *other* historically-merged-sound pair in this app (ሀ/ሐ/ኀ/ኸ, ሰ/ሠ, ጸ/ፀ, አ/ዐ) already has
+genuinely distinct romanization spellings specifically to avoid this — confirmed by running
+the same check across all of them, 7/7 survive on every one. ጰ/ፐ was the sole pair that never
+got this treatment, apparently just missed when the data was authored. Fixed by giving ጰ the
+same dot-below ejective marking this file already uses for other ejectives (ጠ→`ṭ`, ጸ→`ṣ`):
+`['p̣ä','p̣u','p̣i','p̣a','p̣e','p̣','p̣o']` in `src/data/fidel.js`.
+
+That romanization collision was also the *only* thing stopping `quiz.js`'s audio-quiz mode
+from unfairly asking a learner to distinguish ጰ and ፐ by ear (they're genuinely
+indistinguishable in modern pronunciation, per the row's own note) — `pickReverseChar`'s
+`soundsLike` check falls back to an explicit `SOUND_GROUPS` list for pairs whose romanization
+text doesn't already match, and `['ppe','pe']` had never been added there since it didn't
+need to be. Added it, so removing the accidental romanization-collision protection doesn't
+introduce a new, opposite bug in audio quiz. Verified both directions: Writing Quiz pool now
+includes all 7 ፐ-row characters (script-level check), audio quiz still never selects a
+ppe/pe character across 500 sampled picks from the full alphabet (unchanged from before).
+
+Updated the `feedback_romanization` auto-memory, which had documented the old (wrong)
+assumption that quiz.js's ambiguous-char filtering already handled this pair — it only
+handled it for audio quiz, and only by coincidence.
+
 ### 2026-07-31 — Fixed silent per-word audio on generated sentences
 User reported tapping a word in a generated sentence "doesn't work." Narrowed it down (asked
 the user to describe the symptom precisely rather than guessing) to: the meaning reveals

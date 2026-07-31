@@ -386,6 +386,13 @@ partner across sessions.
   responsive nav breakpoint)
 - Progress/mastery logic: `src/utils/progress.js` (`getLevelProgress`,
   `isLevelUnlocked`, mastery = net score ≥ 5 reading / ≥ 3 writing)
+- Sound-alike character handling: `SOUND_GROUPS` in `src/utils/quiz.js`
+  (excludes historically-merged-pronunciation pairs from audio quiz — correct,
+  they're genuinely indistinguishable by ear) vs. `unambiguousChars` in
+  `WritingPractice.jsx` (excludes by raw romanization-string collision — every
+  sound-group row needs its own distinct romanization spelling in `fidel.js`
+  or Writing Quiz silently drops the whole row forever, not just sometimes;
+  see LOG.md for how ጰ/ፐ both being plain `p` did exactly this to ፕ)
 - Read-mode vocabulary audit: `scripts/validate-reading-vocab.js`,
   `src/utils/readingVocab.js` (allowed-vocab builder/checker), `src/data/cognates.js`
   (centralized loanwords/proper nouns not in `amharicPhrases.js`)
