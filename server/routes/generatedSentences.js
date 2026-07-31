@@ -141,6 +141,25 @@ router.post('/generate', generateLimiter, async (req, res) => {
   });
 });
 
+// POST /api/generated-sentences/word-audio: synthesize a single word/chunk
+// from a generated sentence on tap. Generated sentences have no
+// pre-recorded per-word MP3s the way curated ones do (the words are
+// dynamic), so unlike everywhere else in the app, this can't fall back to
+// browser speechSynthesis-only — that silently produces no sound at all on
+// a browser/OS without an Amharic voice installed. Takes raw text rather
+// than a saved-sentence id so it works for the ephemeral, not-yet-saved
+// preview too, not just saved ones.
+router.post('/word-audio', async (req, res) => {
+  const text = typeof req.body?.text === 'string' ? req.body.text.slice(0, 200) : '';
+  if (!text) return res.status(400).json({ error: 'Missing text' });
+  try {
+    const audioBase64 = await synthesizeAmharic(text);
+    res.json({ audioBase64 });
+  } catch (err) {
+    res.status(502).json({ error: `Audio generation failed: ${err.message}` });
+  }
+});
+
 // POST /api/generated-sentences: save a generated sentence the user liked
 router.post('/', async (req, res) => {
   const { uid } = req.user;

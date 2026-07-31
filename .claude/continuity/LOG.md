@@ -9,6 +9,33 @@ history.
 
 ---
 
+### 2026-07-31 — Fixed silent per-word audio on generated sentences
+User reported tapping a word in a generated sentence "doesn't work." Narrowed it down (asked
+the user to describe the symptom precisely rather than guessing) to: the meaning reveals
+fine, just no audio plays. Root cause: `SentenceCard`'s per-word tap handler
+(`SentenceReader.jsx`) always calls `onRead()` then the audio callback then `setRevealed`,
+so the reveal toggle was never actually blocked — the audio callback itself
+(`speakAmharicText` in `audio.js`) was the broken part. It relies purely on the browser's
+built-in `speechSynthesis` finding an installed Amharic voice, with no fallback; curated
+sentences don't hit this because their per-word audio tries a real pre-generated MP3 file
+first and only falls back to browser TTS if that's missing, but generated sentences have no
+such file (the words are dynamic, can't pre-generate at build time), so they went straight
+to the unreliable fallback-only path and failed silently on any browser/OS without an
+Amharic voice installed.
+
+Fixed by adding a real backend TTS path instead: `POST /generated-sentences/word-audio` in
+`server/routes/generatedSentences.js` (auth-gated via the router's existing `requireAuth`
+mount, no rate limiter — matches the existing `/:id/audio` sibling endpoint's precedent,
+TTS calls are cheap per that route's own comment) calls the same `synthesizeAmharic` the
+full-sentence audio already uses, taking raw text rather than a saved-sentence id so it
+works for the ephemeral not-yet-saved preview too, not just saved ones. Client:
+`fetchGeneratedWordAudio` in `firebase.js`, wired into both `SentenceCard` usages in
+`SentenceReader.jsx` (live preview + saved list) in place of `speakAmharicText`.
+
+Verified end-to-end against the real running backend (not mocked) — real Gemini generation,
+tapped the first word, confirmed exactly one `word-audio` request fired with the correct
+word text and got back a real 200 response with a real ~14KB base64 MP3.
+
 ### 2026-07-28 — Corrected Read mode's gate threshold: Level 5 → Level 6
 The user asked why Level 5 specifically, which exposed that the number had never actually
 been derived from data — just a gut "5 of 7 feels like most of the way" call. Went back and

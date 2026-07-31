@@ -117,3 +117,6 @@ export const saveGeneratedSentence       = (s)   => apiFetch('/generated-sentenc
 export const loadSavedGeneratedSentences = ()    => apiFetch('/generated-sentences');
 export const deleteSavedGeneratedSentence = (id) => apiFetch(`/generated-sentences/${id}`, { method: 'DELETE' });
 export const fetchGeneratedAudio         = (id)  => apiFetch(`/generated-sentences/${id}/audio`, { method: 'POST' });
+// Per-word audio for a generated sentence — takes raw text (not a saved
+// sentence id) so it works for the ephemeral, not-yet-saved preview too.
+export const fetchGeneratedWordAudio     = (text) => apiFetch('/generated-sentences/word-audio', { method: 'POST', body: JSON.stringify({ text }) });

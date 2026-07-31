@@ -366,7 +366,11 @@ partner across sessions.
 - Live "Generate a sentence" (unconstrained AI sentence + audio + save):
   `server/lib/gemini.js`, `server/lib/tts.js`,
   `server/routes/generatedSentences.js`, the `generated_sentences` table in
-  `db/schema.sql`
+  `db/schema.sql`. Per-word tap audio goes through the real backend TTS too
+  now (`POST /generated-sentences/word-audio`, `fetchGeneratedWordAudio` in
+  `firebase.js`) — it used to be the one place in the app relying on
+  browser-only `speechSynthesis` with no fallback, silent on any
+  browser/OS without an Amharic voice installed.
 - Common Phrases Final Test: **not gated at all now** either (attempt-gate on
   `isLevel7Mastered` removed) — it's just another practice mode like
   Browse/Flashcard/Type, scoped to `getUnlockedPhrases(highestLevel)` same as

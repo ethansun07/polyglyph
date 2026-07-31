@@ -12,10 +12,10 @@ import {
   auth, onAuthChange,
   loadReadingProgressFromCloud, saveReadingProgressFromCloud,
   generateSentence, saveGeneratedSentence, loadSavedGeneratedSentences,
-  deleteSavedGeneratedSentence, fetchGeneratedAudio,
+  deleteSavedGeneratedSentence, fetchGeneratedAudio, fetchGeneratedWordAudio,
 } from '../utils/firebase.js';
 import { PUNCTUATION } from '../data/fidel.js';
-import { playSentenceAudio, playSentenceWordAudio, playDialogueLineAudio, playStoryPageAudio, playAudioFromBase64, speakAmharicText } from '../utils/audio.js';
+import { playSentenceAudio, playSentenceWordAudio, playDialogueLineAudio, playStoryPageAudio, playAudioFromBase64 } from '../utils/audio.js';
 
 // ─── Reading Tips (collapsible, combines connector + punctuation notes) ─────
 // Was two separate collapsible rows stacked on top of each other; merged into
@@ -402,6 +402,20 @@ export default function SentenceReader({ progress }) {
     }
   }
 
+  // Generated sentences have no pre-recorded per-word MP3s (the words are
+  // dynamic), so unlike curated sentences this can't fall back to browser
+  // speechSynthesis-only — that's silent on a browser/OS with no Amharic
+  // voice installed. Real backend TTS instead, same as the full-sentence
+  // audio already uses.
+  async function handlePlayGeneratedWordAudio(word) {
+    try {
+      const { audioBase64 } = await fetchGeneratedWordAudio(word.amharic);
+      playAudioFromBase64(audioBase64, progress.settings);
+    } catch {
+      // Silent — audio just won't play this time.
+    }
+  }
+
   function handleMarkRead(id) {
     if (isRead(readingProgress, id)) return;
     const updated = markRead(readingProgress, id);
@@ -499,7 +513,7 @@ export default function SentenceReader({ progress }) {
                       onToggleBookmark={handleSaveGenerated}
                       bookmarkTitle="Save this sentence"
                       onPlayAudio={() => playAudioFromBase64(generated.audioBase64, progress.settings)}
-                      onPlayWordAudio={(i, word) => speakAmharicText(word.amharic, progress.settings)}
+                      onPlayWordAudio={(i, word) => handlePlayGeneratedWordAudio(word)}
                     />
                   )}
                 </div>
@@ -520,7 +534,7 @@ export default function SentenceReader({ progress }) {
                         onToggleBookmark={() => handleRemoveSavedGenerated(s.id)}
                         bookmarkTitle="Remove from saved"
                         onPlayAudio={() => handlePlaySavedGeneratedAudio(s.id)}
-                        onPlayWordAudio={(i, word) => speakAmharicText(word.amharic, progress.settings)}
+                        onPlayWordAudio={(i, word) => handlePlayGeneratedWordAudio(word)}
                       />
                     ))}
                   </div>
