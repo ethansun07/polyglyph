@@ -923,7 +923,7 @@ function PhraseTestMode({ pool, progress, phraseProgress, onProgressUpdate, alre
   return (
     <div className="phrase-test-mode">
       {alreadyPassed && (
-        <div className="phrase-test-passed-banner"><Check size={14} strokeWidth={2.5} style={{ verticalAlign: 'middle' }} /> Read mode already unlocked, retaking for fun</div>
+        <div className="phrase-test-passed-banner"><Check size={14} strokeWidth={2.5} style={{ verticalAlign: 'middle' }} /> Already passed, retaking for fun</div>
       )}
       <div className="phrase-test-progress">
         Question {questionsSoFar + 1}{step.type === 'match' ? `–${questionsSoFar + step.phrases.length}` : ''} of {total}
