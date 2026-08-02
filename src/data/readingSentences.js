@@ -556,11 +556,11 @@ export const DIALOGUES = [
     lines: [
       { speaker: 'A', amharic: 'ጤና ይስጥልዎ።',                        meaning: 'Hello (respectful).' },
       { speaker: 'B', amharic: 'ጤና ይስጥልህ! ከየት ነህ?',                meaning: 'Hello! Where are you from?' },
-      { speaker: 'A', amharic: 'ከአሜሪካ ነኝ። እንግሊዝኛ ይናገራሉ?',         meaning: "I'm from America. Do you speak English?" },
+      { speaker: 'A', amharic: 'ከአሜሪካ ነኝ። እንግሊዝኛ ትናገራለህ?',         meaning: "I'm from America. Do you speak English?" },
       { speaker: 'B', amharic: 'አይ።',                                meaning: 'No.' },
       { speaker: 'A', amharic: 'ምንም አይደለም! ትንሽ አማርኛ እናገራለሁ።',    meaning: 'No problem! I speak a little Amharic.' },
       { speaker: 'B', amharic: 'በጣም ጥሩ!',                           meaning: 'Very good!' },
-      { speaker: 'A', amharic: 'ፎቶ እችላለሁ? እባክዎ።',                  meaning: 'Can I take a photo? Please.' },
+      { speaker: 'A', amharic: 'ፎቶ እችላለሁ? እባክህ።',                  meaning: 'Can I take a photo? Please.' },
       { speaker: 'B', amharic: 'አዎ! ካሜራው ቆንጆ ነው።',                meaning: 'Yes! The camera is beautiful.' },
       { speaker: 'A', amharic: 'አመሰግናለሁ! ደህና ሁን።',                 meaning: 'Thank you! Goodbye.' },
       { speaker: 'B', amharic: 'ደህና ሁን!',                            meaning: 'Goodbye!' },
