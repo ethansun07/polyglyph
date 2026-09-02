@@ -473,7 +473,7 @@ export default function SentenceReader({ progress }) {
         <button
           className={`writing-mode-tab ${tab === 'passages' ? 'active' : ''}`}
           onClick={() => setTab('passages')}
-        >Passages ({storiesReadCount + dialoguesReadCount}/{STORIES.length + DIALOGUES.length})</button>
+        >Passages ({dialoguesReadCount}/{DIALOGUES.length})</button>
         <button
           className={`read-bookmark-filter ${bookmarkedOnly ? 'active' : ''}`}
           onClick={() => setBookmarkedOnly(v => !v)}
