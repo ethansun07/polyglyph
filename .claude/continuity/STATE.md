@@ -40,6 +40,35 @@ partner across sessions.
   architecture that had a serious cross-account data leak bug (see LOG.md).
 
 ## Recently shipped (most recent first)
+- **Stories batch expanded 4 → 12**, pulling the rest of the low-hanging fruit
+  from the same African Storybook GitHub markdown mirror
+  (`global-asp/asp-source`) used for the first batch: 8 new entries in
+  `src/data/stories.js` (`story_i_love_to_read`, `story_tell_me_happy_sad`,
+  `story_counting_animals`, `story_counting_cats`, `story_house_for_mouse`,
+  `story_wise_man`, `story_askale`, `story_greedy_kinde`), all plain CC-BY.
+  Deliberately skipped one candidate (`0068_ስንት`, a counting-body-parts
+  drill) to avoid a third near-duplicate counting story alongside the two
+  kept, and skipped one of a duplicate pair (`0122`, a near-identical
+  second translation of `0087`'s "I Love to Read"). Two stories needed the
+  same treatment as `story_young_abera`: the Amharic translation diverges
+  from the English edition (`story_wise_man`'s closing proverb is a
+  completely different Amharic idiom than the English version's;
+  `story_askale`'s title character is renamed entirely from the English
+  original's "Akatope"), so those `meaning` fields are direct translations
+  of the actual Amharic text, not copy-pasted English. All 17 stories in
+  the repo have now been reviewed; 5 remain unused (`0068`, `0122` —
+  deliberately skipped, see above — plus `0166` "The Rich Girl" (CC-BY, a
+  kindness-vs-pride fable with a fairly dark ending for the unkind sister),
+  `0222` "The Devil's Shawl" (CC-BY, a folk-religious reconciliation story),
+  and `0343` "Tilahun Who Saved His Father" (CC-BY, touches on a parent's
+  drinking, resolves positively) — each passed over for this batch as
+  tonally heavier than what got picked, not for licensing or quality
+  reasons, worth a look for a future batch that wants more range. Bloom
+  Library's much bigger catalog (mentioned below) is still untouched too.
+  81 new audio files generated across the two rounds via the
+  existing `find-missing-audio.js`/`generate-missing-audio.js` pipeline, all
+  present in `public/audio/stories/`, `find-missing-audio.js` reports 0
+  missing.
 - **Read mode's gate replaced with a level-based one, decoupled entirely
   from the Common Phrases Final Test.** Went through three states in one
   session: full gate (`phraseTestPassed`, i.e. Level 7 mastery + passing the
@@ -179,12 +208,12 @@ partner across sessions.
   `src/utils/audio.js` (same static-file-then-browser-TTS-fallback pattern
   as `playDialogueLineAudio`), audio pre-generated per page via the existing
   `find-missing-audio.js` +
-  `generate-missing-audio.js` pipeline (42 files, all in
-  `public/audio/stories/`). Bookmarking/read-status reuses the existing
-  generic `reading_progress` table (`item_id` is just a TEXT column, no
-  schema change needed). **Only 4 stories so far** — expanding this
-  (especially pulling from Bloom Library's much bigger, level-tagged
-  catalog) means building epub/PDF text extraction first, that hasn't been
+  `generate-missing-audio.js` pipeline. Bookmarking/read-status reuses the
+  existing generic `reading_progress` table (`item_id` is just a TEXT
+  column, no schema change needed). This was the first batch of 4; see the
+  "Stories batch expanded 4 → 12" entry above for the second. Bloom
+  Library's much bigger, level-tagged catalog is still untouched — pulling
+  from it means building epub/PDF text extraction first, that hasn't been
   done yet.
 - **Common Phrases Final Test unlock gate changed twice, ending on Level 7
   mastery.** Was originally gated on having browsed/practiced all 86 phrases

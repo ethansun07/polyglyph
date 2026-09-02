@@ -9,6 +9,56 @@ history.
 
 ---
 
+### 2026-09-02 — Second Stories batch (4 → 12) and two small tab-UI fixes
+Continuing from the Stories feature: pulled more from the same African Storybook GitHub
+markdown mirror used for the first batch, since more CC-BY/CC-BY-NC titles were still
+sitting unused there before touching Bloom Library at all. Reviewed all 13 remaining
+Amharic titles before picking: skipped one (a body-parts counting drill) to avoid a third
+near-duplicate counting story alongside the two kept (animals, cats), and skipped one of a
+duplicate pair (two separate translations of the same "I Love to Read" story, kept the
+better-flowing one). First pass landed on 7: a spread from simple picture-book Q&A to two
+richer folktales (a wise-man riddle story, a clay-daughter-comes-to-life story) to round out
+the difficulty range next to the existing Young Abera.
+
+Two of those seven needed the same care Young Abera needed: the Amharic translation isn't a
+literal copy of the English edition. "The Wise Man"'s closing line is a completely different
+Amharic proverb than the English version's ("a child may run but never outruns his father"
+vs. the English's "shoulders never grow taller than the head") — translated the Amharic
+proverb as written, not the English one. "Askale"'s title character is renamed entirely from
+the English original's "Akatope" — same fix, translate what's actually on screen.
+
+User asked for one more right after. Reviewed the last 4 unreviewed titles (a kindness-vs-
+pride fable with a fairly dark ending, a folk-religious reconciliation story, a comedic
+greedy-man tale, a father's-drinking-problem story with a redemptive ending) and picked the
+comedic one, "Greedy Kinde": a man tries to attend two feasts in one day, keeps shuttling
+between villages guessing wrong about which one has started serving, and ends up missing
+both, first genuinely lighthearted/no-heavy-content story in the set, versus the other three
+candidates which all touch something heavier (death, family drinking problems). The other
+three are still there for a future batch that wants more range, not excluded for quality or
+licensing reasons. 81 new audio files generated across both rounds through the existing
+pipeline, `find-missing-audio.js` confirms 0 missing.
+
+Separately, fixed two small things reported against the current Passages tab (which had been
+restructured into Stories/Dialogues sub-tabs by a change outside this conversation,
+`f5f91b4`, discovered mid-session by reading the file fresh rather than trusting stale
+memory of an earlier structure): the top-level "Passages" count was combining Stories +
+Dialogues into one fraction, which a non-heritage-speaker user could never complete since
+Stories is heritage-speaker content by design — changed to count only Dialogues, same
+treatment the Sentences tab already gives its own optional "Generate your own" content. And
+the Stories/Dialogues sub-tabs were using the exact same solid-pill style as the primary
+Sentences/Passages tabs, making the two rows look like equal siblings instead of a tab and
+its sub-view — restyled the sub-tabs as a compact segmented control (light track, small
+active chip) instead.
+
+**Lesson for next time**: this file (`SentenceReader.jsx`) had drifted substantially from
+what these notes described — sub-tabs added, the admin unlock button removed, the lock
+gate reworked to a level threshold, generated-sentence word audio switched from browser
+`speechSynthesis` to a real backend TTS call — none of it logged here at the time it
+happened. STATE.md/LOG.md are supposed to prevent exactly this "worked from stale memory"
+problem; when a session's edits land somewhere STATE.md describes differently than the
+actual file on disk, that's a signal to re-read the file before touching it, not trust the
+notes over the code.
+
 ### 2026-07-31 — Fixed ፕ (and the rest of the ፐ row) never appearing in Writing Quiz
 User reported ፕ specifically never once appearing across 10-15 writing quiz sessions despite
 being at 184/258 mastered and other Level 7 letters showing up fine. Root cause:
